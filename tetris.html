@@ -226,7 +226,7 @@ function lock() {
   if (!fits(cur.cells, cur.x, 0)) { endGame(); return; }
 
   clearInterval(timer);
-  timer = setInterval(tick, Math.max(80, 800-(level-1)*70));
+  timer = setInterval(tick, Math.max(50, 700-(level-1)*100));
 }
 
 function tick() {
@@ -266,7 +266,7 @@ function startGame() {
   document.getElementById('overlay').style.display='none';
   document.getElementById('pauseBtn').textContent='일시정지';
   clearInterval(timer);
-  timer = setInterval(tick, 800);
+  timer = setInterval(tick, 700);
   drawNext(); drawBoard();
 }
 
