@@ -213,14 +213,21 @@ async function fetchData() {
   xml.querySelectorAll('item').forEach(item => {
     const g = t => item.querySelector(t)?.textContent?.trim()||'';
     const name = g('dutyName').replace(/\s/g,'');
-    if (!name.includes('구미차병원')) return;
+    console.log('병원명:', name); // 디버그용
+    if (!name.includes('구미차')) return;
     const hvec = parseInt(g('hvec')); // 일반 응급실 가용
-    const hv2  = parseInt(g('hv2'));  // 소아 응급실 가용 (hvs/hv2 등)
-    const hvs1 = parseInt(g('hvs1'));
-    const hvs2 = parseInt(g('hvs2'));
+    // 소아 응급실 가용병상 - 가능한 태그 전부 시도
+    const hv2   = parseInt(g('hv2'));
+    const hvs1  = parseInt(g('hvs1'));
+    const hvs2  = parseInt(g('hvs2'));
+    const hvec2 = parseInt(g('hvec2'));
+    const hv3   = parseInt(g('hv3'));
+    const hvs   = parseInt(g('hvs'));
     genAvail = isNaN(hvec)?null:hvec;
-    // 소아: hv2, hvs1, hvs2 중 유효한 값 사용
-    pedAvail = !isNaN(hv2)?hv2:!isNaN(hvs1)?hvs1:!isNaN(hvs2)?hvs2:null;
+    // 소아: 유효한 값 중 첫번째 사용
+    const pedCandidates = [hv2, hvs1, hvs2, hvec2, hv3, hvs];
+    const pedValid = pedCandidates.find(v => !isNaN(v) && v >= 0 && v <= 10);
+    pedAvail = pedValid !== undefined ? pedValid : null;
   });
   return {genAvail, pedAvail};
 }
