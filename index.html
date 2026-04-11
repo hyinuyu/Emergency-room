@@ -121,6 +121,24 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <p><span class="live-dot"></span>경북 구미시 신시로 10 · 054-450-9700</p>
   </div>
 
+  <!-- 상단 시간/갱신/새로고침 바 -->
+  <div style="display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 16px;margin-bottom:14px;gap:10px;flex-wrap:wrap;">
+    <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+      <div style="text-align:center;">
+        <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:2px;">현재 시각</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text);font-family:var(--mono);" id="currentTime">—</div>
+      </div>
+      <div style="width:1px;height:28px;background:var(--border);"></div>
+      <div style="text-align:center;">
+        <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:2px;">마지막 갱신</div>
+        <div style="font-size:14px;font-weight:600;color:var(--main);font-family:var(--mono);" id="updatedTime">—</div>
+      </div>
+    </div>
+    <button class="refresh-btn" id="refreshBtn" onclick="load()">
+      <span class="ri">↻</span> 새로고침
+    </button>
+  </div>
+
   <div class="err" id="errBox"></div>
 
   <!-- 화산 메인 카드 -->
@@ -278,12 +296,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <div style="font-size:11px;color:var(--text3);font-family:var(--mono);">hyinuyu.github.io/Emergency-room</div>
   </div>
 
-  <div class="bottom">
-    <div class="updated">갱신: <b id="updatedTime">—</b></div>
-    <button class="refresh-btn" id="refreshBtn" onclick="load()">
-      <span class="ri">↻</span> 새로고침
-    </button>
-  </div>
+
 
 </div>
 <script>
@@ -475,6 +488,13 @@ async function load() {
 
 load();
 setInterval(load, 10 * 60 * 1000);
+
+// 현재 시각 1초마다 갱신
+function updateClock(){
+  document.getElementById('currentTime').textContent = new Date().toLocaleTimeString('ko-KR');
+}
+updateClock();
+setInterval(updateClock, 1000);
 </script>
 <script>
 // QR 코드 생성
