@@ -3,473 +3,447 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>응급실 현황판</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<title>구미차병원 응급실 현황</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0a0e1a;
-    --surface: #111827;
-    --surface2: #1a2236;
-    --border: #1e2d45;
-    --accent: #00d4ff;
-    --red: #ff4757;
-    --orange: #ffa502;
-    --green: #00ff88;
-    --text: #e8f0fe;
-    --text2: #7a8fa6;
-    --text3: #4a5f75;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Noto Sans KR', sans-serif;
-    min-height: 100vh;
-  }
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-  }
-  .wrap { position: relative; max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+:root {
+  --bg: #060910;
+  --card: #0d1117;
+  --card2: #131a24;
+  --border: #1c2a3a;
+  --border2: #243447;
+  --main: #3b9eff;
+  --main-dim: rgba(59,158,255,0.12);
+  --green: #22d47a;
+  --green-dim: rgba(34,212,122,0.12);
+  --orange: #ffaa00;
+  --orange-dim: rgba(255,170,0,0.12);
+  --red: #ff4466;
+  --red-dim: rgba(255,68,102,0.12);
+  --text: #ddeeff;
+  --text2: #6a8aaa;
+  --text3: #2d4055;
+  --mono: 'DM Mono', monospace;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  min-height: 100vh;
+}
+body::before {
+  content:''; position:fixed; inset:0;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 20%, rgba(59,158,255,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 80% 80%, rgba(34,212,122,0.03) 0%, transparent 60%);
+  pointer-events:none; z-index:0;
+}
+.wrap { position:relative; z-index:1; max-width:1000px; margin:0 auto; padding:28px 16px 60px; }
 
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 28px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--border);
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-  .logo { display: flex; align-items: center; gap: 12px; }
-  .logo-icon {
-    width: 36px; height: 36px;
-    background: var(--accent);
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
-  }
-  .logo h1 { font-size: 18px; font-weight: 700; }
-  .logo span { display: block; font-size: 11px; color: var(--text2); font-weight: 300; letter-spacing: 1px; }
+header {
+  display:flex; align-items:flex-start; justify-content:space-between;
+  margin-bottom:28px; gap:16px; flex-wrap:wrap;
+}
+.header-left h1 { font-size:22px; font-weight:900; letter-spacing:-0.5px; color:#fff; }
+.header-left h1 span { color: var(--main); }
+.header-left p { font-size:12px; color:var(--text2); margin-top:6px; font-family:var(--mono); }
+.top-right { display:flex; align-items:center; gap:10px; }
 
-  .refresh-btn {
-    display: flex; align-items: center; gap: 8px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text2);
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 13px;
-    cursor: pointer;
-    font-family: inherit;
-    transition: all 0.2s;
-  }
-  .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .spin { display: inline-block; }
-  .spinning .spin { animation: spin 1s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+.live-pill {
+  display:flex; align-items:center; gap:6px;
+  background:var(--green-dim); border:1px solid rgba(34,212,122,0.25);
+  border-radius:20px; padding:5px 12px;
+  font-size:12px; color:var(--green); font-family:var(--mono);
+}
+.live-dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-  .meta {
-    display: flex; align-items: center; gap: 16px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-  }
-  .meta-item { font-size: 12px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
-  .meta-item b { color: var(--accent); }
-  .live-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--green);
-    animation: pulse 2s infinite;
-    flex-shrink: 0;
-  }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.refresh-btn {
+  display:flex; align-items:center; gap:6px;
+  background:var(--card2); border:1px solid var(--border2);
+  color:var(--text2); padding:7px 14px; border-radius:8px;
+  font-size:12px; cursor:pointer; font-family:inherit; transition:all 0.2s;
+}
+.refresh-btn:hover { border-color:var(--main); color:var(--main); }
+.refresh-btn.spinning .ri { animation:spin 0.8s linear infinite; display:inline-block; }
+@keyframes spin { to{transform:rotate(360deg)} }
 
-  .notice {
-    background: rgba(0,212,255,0.06);
-    border: 1px solid rgba(0,212,255,0.2);
-    border-radius: 10px;
-    padding: 12px 16px;
-    font-size: 13px;
-    color: var(--text2);
-    margin-bottom: 20px;
-    line-height: 1.6;
-  }
-  .notice b { color: var(--accent); }
+.updated { font-size:11px; color:var(--text3); font-family:var(--mono); margin-bottom:20px; }
+.updated b { color:var(--text2); }
 
-  .tabs {
-    display: flex; gap: 4px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 4px;
-    margin-bottom: 20px;
-    width: fit-content;
-  }
-  .tab {
-    padding: 8px 20px; border-radius: 7px;
-    font-size: 13px; font-weight: 500;
-    cursor: pointer; border: none;
-    background: none; color: var(--text2);
-    font-family: inherit; transition: all 0.2s;
-  }
-  .tab.active { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.notice {
+  background:var(--main-dim); border:1px solid rgba(59,158,255,0.2);
+  border-radius:10px; padding:11px 15px; font-size:12px; color:var(--text2);
+  margin-bottom:20px; line-height:1.7;
+}
+.notice b { color:var(--main); }
 
-  .search-wrap { position: relative; margin-bottom: 16px; }
-  .search-wrap input {
-    width: 100%;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 16px 10px 40px;
-    color: var(--text);
-    font-size: 14px;
-    font-family: inherit;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .search-wrap input:focus { border-color: var(--accent); }
-  .search-wrap input::placeholder { color: var(--text3); }
-  .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text3); }
+.err-box {
+  background:var(--red-dim); border:1px solid rgba(255,68,102,0.25);
+  border-radius:10px; padding:12px 16px; font-size:12px; color:#ff8899;
+  margin-bottom:16px; display:none;
+}
+.err-box.show { display:block; }
 
-  .region-filter { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
-  .region-btn {
-    padding: 5px 12px; border-radius: 20px; font-size: 12px;
-    border: 1px solid var(--border); background: var(--surface);
-    color: var(--text2); cursor: pointer; font-family: inherit; transition: all 0.2s;
-  }
-  .region-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,0.08); }
+/* Hero */
+.hero {
+  background:var(--card); border:1px solid var(--border2);
+  border-radius:16px; padding:24px; margin-bottom:20px;
+  position:relative; overflow:hidden;
+}
+.hero::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg, var(--main), transparent);
+}
+.hero-top {
+  display:flex; align-items:flex-start; justify-content:space-between;
+  margin-bottom:20px; gap:12px; flex-wrap:wrap;
+}
+.hero-name { font-size:19px; font-weight:700; color:#fff; }
+.hero-addr { font-size:12px; color:var(--text2); margin-top:4px; }
+.hero-tel { font-size:12px; color:var(--main); margin-top:2px; font-family:var(--mono); }
 
-  .hospital-list { display: flex; flex-direction: column; gap: 10px; }
-  .hospital-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px 20px;
-    display: grid;
-    grid-template-columns: auto 1fr auto auto;
-    align-items: center;
-    gap: 14px;
-    transition: all 0.2s;
-    animation: fadeIn 0.3s ease;
-  }
-  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
-  .hospital-card:hover { border-color: #2a3f5f; background: var(--surface2); }
-  .hospital-card.favorited { border-color: rgba(0,212,255,0.3); }
+.hero-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:24px; }
+.stat-box {
+  background:var(--card2); border:1px solid var(--border);
+  border-radius:12px; padding:14px 16px;
+}
+.stat-label { font-size:11px; color:var(--text2); margin-bottom:6px; }
+.stat-val { font-family:var(--mono); font-size:28px; font-weight:500; line-height:1; }
+.stat-sub { font-size:11px; color:var(--text3); margin-top:4px; }
 
-  .star-btn {
-    width: 32px; height: 32px; border-radius: 8px;
-    border: none; background: var(--surface2);
-    color: var(--text3); font-size: 18px;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s; flex-shrink: 0;
-  }
-  .star-btn.starred { color: #ffd32a; background: rgba(255,211,42,0.1); }
-  .star-btn:hover { transform: scale(1.15); }
+/* Graph */
+.graph-title {
+  font-size:13px; font-weight:500; color:var(--text2);
+  margin-bottom:12px; display:flex; align-items:center; gap:8px;
+}
+.graph-title small { font-family:var(--mono); font-size:11px; color:var(--text3); }
+.graph-wrap {
+  position:relative; height:140px;
+  background:var(--card2); border:1px solid var(--border);
+  border-radius:12px; overflow:hidden; padding:12px 12px 28px;
+}
+.graph-wrap canvas { position:absolute; top:0; left:0; width:100%; height:100%; }
+.graph-empty {
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-size:12px; color:var(--text3); z-index:1;
+}
 
-  .hospital-info h3 { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
-  .hospital-info p { font-size: 12px; color: var(--text3); }
+/* Section */
+.section-title {
+  font-size:12px; font-weight:600; color:var(--text2);
+  margin-bottom:14px; letter-spacing:1px; text-transform:uppercase;
+  display:flex; align-items:center; gap:10px;
+}
+.section-title::after { content:''; flex:1; height:1px; background:var(--border); }
 
-  .bed-info { text-align: right; }
-  .bed-count { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 600; line-height: 1; }
-  .bed-label { font-size: 11px; color: var(--text3); margin-top: 2px; }
+/* Compare grid */
+.compare-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:24px; }
+.compare-card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:12px; padding:16px; transition:all 0.2s;
+}
+.compare-card:hover { border-color:var(--border2); background:var(--card2); }
+.cc-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
+.cc-name { font-size:14px; font-weight:600; line-height:1.3; }
+.cc-addr { font-size:11px; color:var(--text2); margin-top:3px; }
+.cc-beds { font-family:var(--mono); font-size:24px; font-weight:500; text-align:right; line-height:1; }
+.cc-bed-label { font-size:10px; color:var(--text2); text-align:right; margin-top:2px; }
+.cc-bar-wrap { height:4px; background:var(--border); border-radius:2px; overflow:hidden; }
+.cc-bar { height:100%; border-radius:2px; transition:width 0.8s ease; }
 
-  .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; white-space: nowrap; }
-  .status-green { background: rgba(0,255,136,0.1); color: var(--green); border: 1px solid rgba(0,255,136,0.2); }
-  .status-orange { background: rgba(255,165,2,0.1); color: var(--orange); border: 1px solid rgba(255,165,2,0.2); }
-  .status-red { background: rgba(255,71,87,0.1); color: var(--red); border: 1px solid rgba(255,71,87,0.2); }
-  .status-gray { background: rgba(122,143,166,0.1); color: var(--text2); border: 1px solid var(--border); }
+/* Badge */
+.badge {
+  display:inline-block; padding:2px 8px; border-radius:10px;
+  font-size:10px; font-weight:500; font-family:var(--mono); margin-top:8px;
+}
+.badge-green { background:var(--green-dim); color:var(--green); border:1px solid rgba(34,212,122,0.2); }
+.badge-orange { background:var(--orange-dim); color:var(--orange); border:1px solid rgba(255,170,0,0.2); }
+.badge-red { background:var(--red-dim); color:var(--red); border:1px solid rgba(255,68,102,0.2); }
+.badge-gray { background:rgba(100,130,160,0.1); color:var(--text2); border:1px solid var(--border); }
 
-  .empty { text-align: center; padding: 60px 20px; color: var(--text3); }
-  .empty .icon { font-size: 40px; margin-bottom: 12px; }
-  .empty p { font-size: 14px; line-height: 1.8; }
+/* Bar chart */
+.bar-chart { margin-bottom:24px; }
+.bar-row { display:grid; grid-template-columns:150px 1fr 44px; align-items:center; gap:12px; margin-bottom:10px; }
+.bar-name { font-size:12px; color:var(--text2); text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.bar-track { height:26px; background:var(--card2); border-radius:6px; overflow:hidden; border:1px solid var(--border); }
+.bar-fill {
+  height:100%; border-radius:5px;
+  display:flex; align-items:center; padding-left:8px;
+  font-size:11px; font-family:var(--mono); font-weight:500;
+  transition:width 1s ease; color:var(--bg); white-space:nowrap;
+}
+.bar-num { font-family:var(--mono); font-size:13px; font-weight:500; text-align:right; }
 
-  .fav-count {
-    background: var(--accent); color: var(--bg);
-    border-radius: 10px; padding: 1px 7px;
-    font-size: 11px; font-weight: 700; margin-left: 6px;
-  }
+.loading { text-align:center; padding:40px; color:var(--text2); font-size:13px; }
 
-  .loading-msg { text-align: center; padding: 40px; color: var(--text2); font-size: 14px; }
-  .err-box {
-    background: rgba(255,71,87,0.1); border: 1px solid rgba(255,71,87,0.3);
-    border-radius: 10px; padding: 14px 18px; font-size: 13px;
-    color: #ff8a96; margin-bottom: 20px; display: none;
-  }
-  .err-box.show { display: block; }
-
-  @media(max-width:600px){
-    .hospital-card { grid-template-columns: auto 1fr auto; }
-    .bed-info { display: none; }
-  }
+@media(max-width:580px){
+  .compare-grid { grid-template-columns:1fr; }
+  .bar-row { grid-template-columns:100px 1fr 36px; }
+  .stat-val { font-size:22px; }
+}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <header>
-    <div class="logo">
-      <div class="logo-icon">🏥</div>
-      <div>
-        <h1>응급실 현황판</h1>
-        <span>MY EMERGENCY ROOM DASHBOARD</span>
-      </div>
-    </div>
-    <button class="refresh-btn" id="refreshBtn" onclick="loadData()">
-      <span class="spin">↻</span> 새로고침
+<header>
+  <div class="header-left">
+    <h1>🏥 <span>구미차병원</span> 응급실 현황</h1>
+    <p>실시간 응급의료기관 정보 · 공공데이터 기반</p>
+  </div>
+  <div class="top-right">
+    <div class="live-pill"><div class="live-dot"></div>LIVE</div>
+    <button class="refresh-btn" id="refreshBtn" onclick="loadAll()">
+      <span class="ri">↻</span> 새로고침
     </button>
-  </header>
-
-  <div class="meta">
-    <div class="live-dot"></div>
-    <div class="meta-item">마지막 갱신: <b id="lastUpdated">—</b></div>
-    <div class="meta-item">즐겨찾기: <b id="favCount">0</b>개</div>
   </div>
+</header>
 
-  <div class="notice">
-    ⭐ <b>별표</b>를 누르면 즐겨찾기 추가! 앱을 껐다 켜도 유지돼요.<br>
-    🔄 실시간 응급실 가용병상 정보 (공공데이터 기반)
-  </div>
+<div class="updated">마지막 갱신: <b id="updatedTime">—</b> · 3분마다 자동 갱신</div>
 
-  <div class="err-box" id="errBox"></div>
-
-  <div class="tabs">
-    <button class="tab active" id="tabAll" onclick="switchTab('all')">전체 병원</button>
-    <button class="tab" id="tabFav" onclick="switchTab('fav')">⭐ 즐겨찾기 <span class="fav-count" id="favBadge">0</span></button>
-  </div>
-
-  <div class="search-wrap">
-    <span class="search-icon">🔍</span>
-    <input type="text" id="searchInput" placeholder="병원 이름으로 검색..." oninput="renderList()">
-  </div>
-
-  <div class="region-filter" id="regionFilter"></div>
-  <div class="hospital-list" id="hospitalList">
-    <div class="loading-msg">🔄 데이터 불러오는 중...</div>
-  </div>
-
+<div class="notice">
+  📡 <b>국립중앙의료원 공공데이터</b> 기반 실시간 응급실 정보입니다.<br>
+  가용병상: <b style="color:var(--green)">여유(4+)</b> / <b style="color:var(--orange)">혼잡(1~3)</b> / <b style="color:var(--red)">만실(0)</b>
 </div>
 
+<div class="err-box" id="errBox"></div>
+
+<div class="hero" id="heroCard">
+  <div class="loading">🔄 구미차병원 데이터 불러오는 중...</div>
+</div>
+
+<div class="section-title">비교 병원 현황</div>
+<div class="compare-grid" id="compareGrid">
+  <div class="loading" style="grid-column:span 2">🔄 불러오는 중...</div>
+</div>
+
+<div class="section-title">가용병상 비교</div>
+<div class="bar-chart" id="barChart">
+  <div class="loading">🔄 불러오는 중...</div>
+</div>
+
+</div>
 <script>
 const API_KEY = '1ae147a1907296a5c5fd16751a21b2f146381a4727784592ae9c235d8ac0263d';
+const BASE = 'https://apis.data.go.kr/B552657/ErmctInfoInqireService';
 
-let allHospitals = [];
-let favorites = [];
-let currentTab = 'all';
-let currentRegion = '전체';
-
-// Load favorites from localStorage
-try { favorites = JSON.parse(localStorage.getItem('er_fav') || '[]'); } catch(e) {}
-
-const SIDO_LIST = [
-  '서울특별시','경기도','인천광역시','부산광역시',
-  '대구광역시','광주광역시','대전광역시','울산광역시',
-  '강원특별자치도','충청북도','충청남도','전북특별자치도',
-  '전라남도','경상북도','경상남도','제주특별자치도'
+const HOSPITALS = [
+  { id:'A1100070', name:'구미차병원',           addr:'경북 구미시 신시로 10',              tel:'054-450-9700', main:true  },
+  { id:'A1100176', name:'순천향대 구미병원',     addr:'경북 구미시 1공단로 179',            tel:'054-468-9114', main:false },
+  { id:'A1100006', name:'구미강동병원',          addr:'경북 구미시 강동로 167',             tel:'054-450-1500', main:false },
+  { id:'A1200072', name:'일산백병원',            addr:'경기 고양시 일산서구 주화로 170',    tel:'031-910-7114', main:false },
+  { id:'A1200078', name:'동국대 일산병원',       addr:'경기 고양시 일산동구 동국로 27',     tel:'031-961-7000', main:false },
 ];
 
-function shortRegion(sido) {
-  return sido.replace('특별자치도','').replace('특별자치시','').replace('광역시','').replace('특별시','').replace('도','').replace('시','').trim();
+const HISTORY = { time:[], beds:[] };
+
+const bedColor = n => n===null?'var(--text2)':n===0?'var(--red)':n<=3?'var(--orange)':'var(--green)';
+const badgeCls  = n => n===null?'badge-gray':n===0?'badge-red':n<=3?'badge-orange':'badge-green';
+const badgeLbl  = n => n===null?'정보없음':n===0?'만실':n<=3?'혼잡':'여유';
+
+async function fetchRT(hpid) {
+  try {
+    const url = `${BASE}/getEmrrmRltmUsefulSckbdInfoInqire?serviceKey=${encodeURIComponent(API_KEY)}&HPID=${encodeURIComponent(hpid)}&pageNo=1&numOfRows=1`;
+    const res = await fetch(url);
+    const txt = await res.text();
+    const xml = new DOMParser().parseFromString(txt, 'text/xml');
+    const item = xml.querySelector('item');
+    if (!item) return null;
+    const g = t => { const el=item.querySelector(t); return el?el.textContent.trim():''; };
+    const n = s => { const v=parseInt(g(s)); return isNaN(v)?null:v; };
+    return { hvec:n('hvec'), hvoc:n('hvoc'), hvcc:n('hvcc') };
+  } catch(e) { return null; }
 }
 
-async function fetchSido(sido) {
-  // 기본정보 API: 모든 응급의료기관 목록
-  const url = `https://apis.data.go.kr/B552657/ErmctInfoInqireService/getEgytBassInfoInqire`
-    + `?serviceKey=${encodeURIComponent(API_KEY)}`
-    + `&Q0=${encodeURIComponent(sido)}`
-    + `&pageNo=1&numOfRows=100`;
-  const res = await fetch(url);
-  const text = await res.text();
-  const xml = new DOMParser().parseFromString(text, 'text/xml');
-  const resultCode = xml.querySelector('resultCode')?.textContent;
-  if (resultCode && resultCode !== '00') return [];
-  const items = xml.querySelectorAll('item');
-  const baseMap = {};
-  items.forEach(item => {
-    const g = tag => item.querySelector(tag)?.textContent?.trim() || '';
-    const id = g('hpid');
-    baseMap[id] = {
-      id,
-      name: g('dutyName'),
-      address: g('dutyAddr'),
-      region: shortRegion(sido),
-      tel: g('dutyTel3'),
-      hvec: null,
-    };
+function drawGraph() {
+  const wrap = document.getElementById('graphWrap');
+  if (!wrap) return;
+  const canvas = wrap.querySelector('canvas');
+  const empty  = wrap.querySelector('.graph-empty');
+  if (HISTORY.beds.length < 2) { if(empty) empty.style.display='flex'; return; }
+  if (empty) empty.style.display='none';
+
+  const dpr = window.devicePixelRatio||1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width  = rect.width  * dpr;
+  canvas.height = rect.height * dpr;
+  const ctx = canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  const data = HISTORY.beds.map(v=>v===null?0:v);
+  const max  = Math.max(...data, 5);
+  const pad  = {t:14*dpr, r:12*dpr, b:22*dpr, l:32*dpr};
+  const gw   = W-pad.l-pad.r;
+  const gh   = H-pad.t-pad.b;
+
+  // grid
+  ctx.strokeStyle='rgba(28,42,58,0.9)'; ctx.lineWidth=1;
+  [0,0.5,1].forEach(f=>{
+    const y=pad.t+gh*(1-f);
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(W-pad.r,y); ctx.stroke();
+    ctx.fillStyle='rgba(100,130,160,0.6)';
+    ctx.font=`${10*dpr}px DM Mono`;
+    ctx.textAlign='right';
+    ctx.fillText(Math.round(max*f), pad.l-4, y+4);
   });
-  // 실시간 병상정보 추가
-  try {
-    const url2 = `https://apis.data.go.kr/B552657/ErmctInfoInqireService/getEmrrmRltmUsefulSckbdInfoInqire`
-      + `?serviceKey=${encodeURIComponent(API_KEY)}`
-      + `&STAGE1=${encodeURIComponent(sido)}`
-      + `&pageNo=1&numOfRows=100`;
-    const res2 = await fetch(url2);
-    const text2 = await res2.text();
-    const xml2 = new DOMParser().parseFromString(text2, 'text/xml');
-    xml2.querySelectorAll('item').forEach(item => {
-      const g = tag => item.querySelector(tag)?.textContent?.trim() || '';
-      const id = g('hpid');
-      const beds = parseInt(g('hvec'));
-      if (baseMap[id]) baseMap[id].hvec = isNaN(beds) ? null : beds;
-    });
-  } catch(e) {}
-  return Object.values(baseMap);
+
+  const pts = data.map((v,i)=>({
+    x: pad.l + (data.length===1?gw/2:i/(data.length-1)*gw),
+    y: pad.t + gh*(1-v/max),
+  }));
+
+  // fill
+  const grad=ctx.createLinearGradient(0,pad.t,0,pad.t+gh);
+  grad.addColorStop(0,'rgba(59,158,255,0.28)');
+  grad.addColorStop(1,'rgba(59,158,255,0)');
+  ctx.beginPath();
+  pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+  ctx.lineTo(pts[pts.length-1].x,pad.t+gh);
+  ctx.lineTo(pts[0].x,pad.t+gh);
+  ctx.closePath(); ctx.fillStyle=grad; ctx.fill();
+
+  // line
+  ctx.beginPath(); ctx.strokeStyle='#3b9eff';
+  ctx.lineWidth=2*dpr; ctx.lineJoin='round';
+  pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+  ctx.stroke();
+
+  // dots
+  pts.forEach(p=>{
+    ctx.beginPath(); ctx.arc(p.x,p.y,3*dpr,0,Math.PI*2);
+    ctx.fillStyle='#3b9eff'; ctx.fill();
+  });
+
+  // time labels
+  const times=HISTORY.time;
+  ctx.fillStyle='rgba(100,130,160,0.7)';
+  ctx.font=`${9*dpr}px DM Mono`; ctx.textAlign='center';
+  [0,Math.floor((times.length-1)/2),times.length-1].forEach(i=>{
+    if(times[i] && pts[i]) ctx.fillText(times[i], pts[i].x, H-3);
+  });
 }
 
-async function loadData() {
-  const btn = document.getElementById('refreshBtn');
+function renderHero(h, rt) {
+  const beds=rt?.hvec??null, oc=rt?.hvoc??null, cc=rt?.hvcc??null;
+  const now=new Date();
+  const ts=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  HISTORY.time.push(ts); HISTORY.beds.push(beds);
+  if(HISTORY.time.length>20){HISTORY.time.shift();HISTORY.beds.shift();}
+
+  document.getElementById('heroCard').innerHTML=`
+    <div class="hero-top">
+      <div>
+        <div class="hero-name">🏥 ${h.name}</div>
+        <div class="hero-addr">${h.addr}</div>
+        <div class="hero-tel">${h.tel}</div>
+      </div>
+      <div class="badge ${badgeCls(beds)}" style="font-size:13px;padding:6px 16px">${badgeLbl(beds)}</div>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-box">
+        <div class="stat-label">응급실 가용병상</div>
+        <div class="stat-val" style="color:${bedColor(beds)}">${beds??'?'}</div>
+        <div class="stat-sub">실시간</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">수술실</div>
+        <div class="stat-val" style="color:${bedColor(oc)}">${oc??'?'}</div>
+        <div class="stat-sub">가용</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">중환자실</div>
+        <div class="stat-val" style="color:${bedColor(cc)}">${cc??'?'}</div>
+        <div class="stat-sub">가용</div>
+      </div>
+    </div>
+    <div class="graph-title">
+      응급실 가용병상 추이
+      <small>(최근 ${HISTORY.beds.length}회 갱신 기록)</small>
+    </div>
+    <div class="graph-wrap" id="graphWrap" style="position:relative;height:140px;background:var(--card2);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+      <canvas style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
+      <div class="graph-empty" style="position:absolute;inset:0;display:${HISTORY.beds.length<2?'flex':'none'};align-items:center;justify-content:center;font-size:12px;color:var(--text3);">
+        데이터 수집 중... 3분 후 그래프가 나타나요 📈
+      </div>
+    </div>
+  `;
+  setTimeout(drawGraph, 60);
+}
+
+function renderCompare(all) {
+  const others = all.filter(h=>!h.main);
+  const maxBed  = Math.max(...all.map(h=>h.rt?.hvec??0), 1);
+
+  document.getElementById('compareGrid').innerHTML = others.map(h=>{
+    const beds=h.rt?.hvec??null;
+    const pct=beds===null?0:Math.min(100,Math.round(beds/maxBed*100));
+    return `
+      <div class="compare-card">
+        <div class="cc-header">
+          <div>
+            <div class="cc-name">${h.name}</div>
+            <div class="cc-addr">${h.addr}</div>
+          </div>
+          <div>
+            <div class="cc-beds" style="color:${bedColor(beds)}">${beds??'?'}</div>
+            <div class="cc-bed-label">가용병상</div>
+          </div>
+        </div>
+        <div class="cc-bar-wrap">
+          <div class="cc-bar" style="width:${pct}%;background:${bedColor(beds)};opacity:0.7"></div>
+        </div>
+        <div class="badge ${badgeCls(beds)}">${badgeLbl(beds)}</div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('barChart').innerHTML = all.map(h=>{
+    const beds=h.rt?.hvec??null;
+    const pct=beds===null?0:Math.min(100,Math.round(beds/maxBed*100));
+    return `
+      <div class="bar-row">
+        <div class="bar-name" style="${h.main?'color:var(--main);font-weight:700':''}">${h.main?'⭐ ':''}${h.name}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${pct}%;background:${bedColor(beds)}">
+            ${pct>12?(beds??'?'):''}
+          </div>
+        </div>
+        <div class="bar-num" style="color:${bedColor(beds)}">${beds??'?'}</div>
+      </div>`;
+  }).join('');
+}
+
+async function loadAll() {
+  const btn=document.getElementById('refreshBtn');
   btn.classList.add('spinning');
-  document.getElementById('hospitalList').innerHTML = '<div class="loading-msg">🔄 전국 응급실 정보 불러오는 중...</div>';
-  showErr('');
+  document.getElementById('errBox').classList.remove('show');
 
   try {
-    // Fetch all regions in parallel
-    const results = await Promise.allSettled(
-      SIDO_LIST.map(sido => fetchSido(sido))
+    const results = await Promise.all(
+      HOSPITALS.map(async h=>({ ...h, rt: await fetchRT(h.id) }))
     );
-    const data = results.flatMap(r => r.status === 'fulfilled' ? r.value : []);
+    const main=results.find(h=>h.main);
+    renderHero(main, main.rt);
+    renderCompare(results);
+    document.getElementById('updatedTime').textContent=new Date().toLocaleTimeString('ko-KR');
 
-    if (data.length > 0) {
-      allHospitals = data;
-      document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString('ko-KR');
-    } else {
-      // Demo fallback
-      allHospitals = demoData();
-      showErr('⚠️ 실시간 API 연결 실패 — 샘플 데이터로 표시 중이에요. 잠시 후 새로고침해보세요.');
+    const allNull=results.every(h=>h.rt===null);
+    if(allNull){
+      document.getElementById('errBox').textContent='⚠️ 실시간 데이터를 받지 못했어요. API 승인까지 최대 1~2시간 걸릴 수 있어요. 잠시 후 새로고침해보세요!';
+      document.getElementById('errBox').classList.add('show');
     }
   } catch(e) {
-    allHospitals = demoData();
-    showErr('⚠️ 네트워크 오류 — 샘플 데이터로 표시 중이에요.');
+    document.getElementById('errBox').textContent='⚠️ 데이터 불러오기 실패. 잠시 후 다시 시도해주세요.';
+    document.getElementById('errBox').classList.add('show');
   }
-
-  buildRegions();
-  renderList();
   btn.classList.remove('spinning');
 }
 
-function demoData() {
-  return [
-    {id:'A001',name:'서울대학교병원',address:'서울 종로구 대학로 101',region:'서울',tel:'02-2072-2114',hvec:12},
-    {id:'A002',name:'세브란스병원',address:'서울 서대문구 연세로 50-1',region:'서울',tel:'02-2228-1234',hvec:5},
-    {id:'A003',name:'삼성서울병원',address:'서울 강남구 일원로 81',region:'서울',tel:'02-3410-2114',hvec:0},
-    {id:'A004',name:'서울아산병원',address:'서울 송파구 올림픽로 43길 88',region:'서울',tel:'02-3010-3114',hvec:8},
-    {id:'A005',name:'고려대 안암병원',address:'서울 성북구 인촌로 73',region:'서울',tel:'02-920-5114',hvec:3},
-    {id:'B001',name:'아주대학교병원',address:'경기 수원시 영통구 월드컵로 164',region:'경기',tel:'031-219-5114',hvec:15},
-    {id:'B002',name:'분당서울대병원',address:'경기 성남시 분당구 구미로 173번길 82',region:'경기',tel:'031-787-7114',hvec:7},
-    {id:'B003',name:'가천대 길병원',address:'인천 남동구 남동대로 774번길 21',region:'인천',tel:'032-460-3114',hvec:9},
-    {id:'C001',name:'부산대학교병원',address:'부산 서구 구덕로 179',region:'부산',tel:'051-240-7000',hvec:11},
-    {id:'C002',name:'동아대학교병원',address:'부산 서구 대신공원로 26',region:'부산',tel:'051-240-2400',hvec:2},
-    {id:'D001',name:'경북대학교병원',address:'대구 중구 동덕로 130',region:'대구',tel:'053-200-5114',hvec:6},
-    {id:'E001',name:'전남대학교병원',address:'광주 동구 제봉로 42',region:'광주',tel:'062-220-5114',hvec:4},
-    {id:'F001',name:'충남대학교병원',address:'대전 중구 문화로 282',region:'대전',tel:'042-280-7114',hvec:10},
-    {id:'G001',name:'제주대학교병원',address:'제주 제주시 아란13길 15',region:'제주',tel:'064-717-1114',hvec:8},
-  ];
-}
-
-function getStatus(beds) {
-  if (beds === null) return {label:'정보없음', cls:'status-gray'};
-  if (beds === 0) return {label:'만실', cls:'status-red'};
-  if (beds <= 3) return {label:'혼잡', cls:'status-orange'};
-  return {label:'여유', cls:'status-green'};
-}
-
-function bedColor(beds) {
-  if (beds === null) return 'var(--text2)';
-  if (beds === 0) return 'var(--red)';
-  if (beds <= 3) return 'var(--orange)';
-  return 'var(--green)';
-}
-
-function buildRegions() {
-  const regions = ['전체', ...new Set(allHospitals.map(h => h.region).filter(Boolean).sort())];
-  document.getElementById('regionFilter').innerHTML = regions.map(r =>
-    `<button class="region-btn ${r===currentRegion?'active':''}" onclick="setRegion('${r}')">${r}</button>`
-  ).join('');
-}
-
-function setRegion(r) {
-  currentRegion = r;
-  document.querySelectorAll('.region-btn').forEach(b =>
-    b.classList.toggle('active', b.textContent.trim() === r)
-  );
-  renderList();
-}
-
-function switchTab(tab) {
-  currentTab = tab;
-  document.getElementById('tabAll').classList.toggle('active', tab==='all');
-  document.getElementById('tabFav').classList.toggle('active', tab==='fav');
-  renderList();
-}
-
-function toggleFav(id, e) {
-  e.stopPropagation();
-  favorites = favorites.includes(id) ? favorites.filter(f=>f!==id) : [...favorites, id];
-  try { localStorage.setItem('er_fav', JSON.stringify(favorites)); } catch(e) {}
-  updateFavCount();
-  renderList();
-}
-
-function updateFavCount() {
-  const c = favorites.length;
-  document.getElementById('favCount').textContent = c;
-  document.getElementById('favBadge').textContent = c;
-}
-
-function renderList() {
-  const search = document.getElementById('searchInput').value.trim().toLowerCase();
-  let list = [...allHospitals];
-  if (currentTab === 'fav') list = list.filter(h => favorites.includes(h.id));
-  if (currentRegion !== '전체') list = list.filter(h => h.region === currentRegion);
-  if (search) list = list.filter(h => h.name.toLowerCase().includes(search) || (h.address||'').toLowerCase().includes(search));
-
-  const el = document.getElementById('hospitalList');
-  if (list.length === 0) {
-    el.innerHTML = `<div class="empty">
-      <div class="icon">${currentTab==='fav'?'⭐':'🔍'}</div>
-      <p>${currentTab==='fav'
-        ? '즐겨찾기한 병원이 없어요.<br>별표를 눌러 추가해보세요!'
-        : '검색 결과가 없어요.'}</p>
-    </div>`;
-    return;
-  }
-
-  el.innerHTML = list.map(h => {
-    const isFav = favorites.includes(h.id);
-    const s = getStatus(h.hvec);
-    const bedStr = h.hvec === null ? '?' : h.hvec;
-    return `<div class="hospital-card ${isFav?'favorited':''}">
-      <button class="star-btn ${isFav?'starred':''}" onclick="toggleFav('${h.id}',event)">${isFav?'★':'☆'}</button>
-      <div class="hospital-info">
-        <h3>${h.name}</h3>
-        <p>${h.address||''}${h.tel?' · '+h.tel:''}</p>
-      </div>
-      <div class="bed-info">
-        <div class="bed-count" style="color:${bedColor(h.hvec)}">${bedStr}</div>
-        <div class="bed-label">가용병상</div>
-      </div>
-      <div class="status-badge ${s.cls}">${s.label}</div>
-    </div>`;
-  }).join('');
-
-  updateFavCount();
-}
-
-function showErr(msg) {
-  const el = document.getElementById('errBox');
-  el.textContent = msg;
-  el.classList.toggle('show', !!msg);
-}
-
-updateFavCount();
-loadData();
-setInterval(loadData, 3 * 60 * 1000);
+loadAll();
+setInterval(loadAll, 3*60*1000);
+window.addEventListener('resize', drawGraph);
 </script>
 </body>
 </html>
