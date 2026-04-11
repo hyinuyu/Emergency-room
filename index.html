@@ -269,6 +269,15 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <span class="info-val">10분마다 자동</span>
   </div>
 
+  <!-- QR 코드 -->
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px;text-align:center;">
+    <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:12px;">📱 QR 코드로 접속하기</div>
+    <div style="display:flex;justify-content:center;margin-bottom:10px;">
+      <canvas id="qrCanvas" style="border-radius:8px;"></canvas>
+    </div>
+    <div style="font-size:11px;color:var(--text3);font-family:var(--mono);">hyinuyu.github.io/Emergency-room</div>
+  </div>
+
   <div class="bottom">
     <div class="updated">갱신: <b id="updatedTime">—</b></div>
     <button class="refresh-btn" id="refreshBtn" onclick="load()">
@@ -468,6 +477,25 @@ load();
 setInterval(load, 10 * 60 * 1000);
 </script>
 <script>
+// QR 코드 생성
+(function(){
+  const url = 'https://hyinuyu.github.io/Emergency-room/';
+  const script = document.createElement('script');
+  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+  script.onload = function(){
+    const canvas = document.getElementById('qrCanvas');
+    new QRCode(canvas, {
+      text: url,
+      width: 160,
+      height: 160,
+      colorDark: '#ddeeff',
+      colorLight: '#0d1117',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  };
+  document.head.appendChild(script);
+})();
+
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js');
 }
