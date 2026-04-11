@@ -275,9 +275,10 @@ function endGame() {
   ov.innerHTML = `
     <div class="overlay-title">💀 게임 오버</div>
     <div class="overlay-sub">점수: <b style="color:var(--main)">${score.toLocaleString()}</b> · 레벨 ${level} · ${lines}라인</div>
-    <div style="display:flex;flex-direction:column;gap:8px;width:160px;">
-      <input id="nameInput" type="text" maxlength="10" placeholder="이름을 입력하세요" style="background:#131a24;border:1px solid #243447;border-radius:8px;padding:8px 12px;color:#ddeeff;font-size:13px;font-family:inherit;outline:none;text-align:center;">
-      <button class="start-btn" onclick="saveAndShow()">기록 저장!</button>
+    <div style="display:flex;flex-direction:column;gap:8px;width:190px;">
+      <input id="nameInput" type="text" maxlength="10" placeholder="✏️ 이름 (10자 이내)" style="background:#131a24;border:1px solid #243447;border-radius:8px;padding:8px 12px;color:#ddeeff;font-size:13px;font-family:inherit;outline:none;text-align:center;">
+      <input id="msgInput" type="text" maxlength="20" placeholder="💬 한마디 (20자 이내)" style="background:#131a24;border:1px solid #243447;border-radius:8px;padding:8px 12px;color:#ddeeff;font-size:13px;font-family:inherit;outline:none;text-align:center;">
+      <button class="start-btn" onclick="saveAndShow()">🏆 기록 저장!</button>
     </div>
     <button onclick="startGame()" style="background:none;border:none;color:#6a8aaa;font-size:12px;cursor:pointer;font-family:inherit;">저장 없이 다시하기</button>
   `;
@@ -286,8 +287,10 @@ function endGame() {
 
 function saveAndShow() {
   const inp = document.getElementById('nameInput');
+  const msgInp = document.getElementById('msgInput');
   const name = (inp ? inp.value.trim() : '') || '익명';
-  saveRecord(name, score, level, lines);
+  const msg = (msgInp ? msgInp.value.trim() : '') || '';
+  saveRecord(name, score, level, lines, msg);
   showLeaderboard();
 }
 
@@ -327,7 +330,7 @@ async function fetchRecords() {
   }
 }
 
-async function saveRecord(name, sc, lv, ln) {
+async function saveRecord(name, sc, lv, ln, mg) {
   try {
     const id = await getBinId();
     let records = await fetchRecords();
@@ -336,6 +339,7 @@ async function saveRecord(name, sc, lv, ln) {
       score: sc,
       level: lv,
       lines: ln,
+      msg: mg || '',
       date: new Date().toLocaleDateString('ko-KR')
     });
     records.sort((a,b) => b.score - a.score);
@@ -370,11 +374,14 @@ async function showLeaderboard() {
   const records = await fetchRecords();
   const medals = ['🥇','🥈','🥉'];
   const rows = records.map((r,i) => `
-    <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #1c2a3a;font-size:12px;">
-      <span style="width:24px;text-align:center;font-size:${i<3?'15':'12'}px;color:#2d4055;">${medals[i] || (i+1)}</span>
-      <span style="flex:1;color:#ddeeff;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.name}</span>
-      <span style="color:#3b9eff;font-family:'DM Mono',monospace;">${r.score.toLocaleString()}</span>
-      <span style="color:#2d4055;font-size:10px;margin-left:4px;">Lv${r.level}</span>
+    <div style="padding:7px 0;border-bottom:1px solid #1c2a3a;font-size:12px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:24px;text-align:center;font-size:${i<3?'15':'12'}px;color:#2d4055;">${medals[i] || (i+1)}</span>
+        <span style="flex:1;color:#ddeeff;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.name}</span>
+        <span style="color:#3b9eff;font-family:'DM Mono',monospace;">${r.score.toLocaleString()}</span>
+        <span style="color:#2d4055;font-size:10px;margin-left:4px;">Lv${r.level}</span>
+      </div>
+      ${r.msg ? '<div style="font-size:11px;color:#4a6a8a;padding-left:32px;margin-top:2px;">💬 '+r.msg+'</div>' : ''}
     </div>
   `).join('');
 
