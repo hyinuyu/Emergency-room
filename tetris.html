@@ -295,25 +295,9 @@ function saveAndShow() {
 }
 
 const API_KEY = '$2a$10$j9dLi5DIogSkjVnGiKwCWuGfP7Bhq8F8y0p/QZci76k4EP4SYhBuC';
-const BIN_NAME = 'gumi-tetris-leaderboard';
-let BIN_ID = localStorage.getItem('tetris_bin_id') || null;
+const BIN_ID = '69dab36b856a682189231598';
 
 async function getBinId() {
-  if (BIN_ID) return BIN_ID;
-  // 새 bin 생성
-  const res = await fetch('https://api.jsonbin.io/v3/b', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Master-Key': API_KEY,
-      'X-Bin-Name': BIN_NAME,
-      'X-Bin-Private': 'false'
-    },
-    body: JSON.stringify({ records: [] })
-  });
-  const data = await res.json();
-  BIN_ID = data.metadata.id;
-  localStorage.setItem('tetris_bin_id', BIN_ID);
   return BIN_ID;
 }
 
