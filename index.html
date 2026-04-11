@@ -296,8 +296,9 @@ let smokeInterval = null;
 function getStateKey(avail, total) {
   if (avail === null) return null;
   const usedPct = (total - avail) / total;
-  if (usedPct >= 0.8) return 'full';
-  if (usedPct >= 0.5) return 'busy';
+  const used = total - avail;
+  if (used > 16) return 'full';
+  if (used >= 8) return 'busy';
   return 'calm';
 }
 
