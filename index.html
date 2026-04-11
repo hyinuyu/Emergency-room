@@ -199,6 +199,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
     <div class="volcano-status" id="volcanoStatus">불러오는 중...</div>
     <div class="volcano-desc" id="volcanoDesc">잠시만 기다려주세요</div>
+    <div style="display:flex;justify-content:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+      <span style="font-size:11px;color:var(--text3);">🟢 여유 8명 미만</span>
+      <span style="font-size:11px;color:var(--text3);">🟡 혼잡 8~14명</span>
+      <span style="font-size:11px;color:var(--text3);">🔴 포화 15명 이상</span>
+    </div>
 
     <div class="volcano-nums">
       <div class="vnum-box">
@@ -321,7 +326,7 @@ function getStateKey(avail, total) {
   if (avail === null) return null;
   const usedPct = (total - avail) / total;
   const used = total - avail;
-  if (used > 16) return 'full';
+  if (used >= 15) return 'full';
   if (used >= 8) return 'busy';
   return 'calm';
 }
