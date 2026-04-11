@@ -16,7 +16,7 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 20%,rgba(59,158,255,0.05) 0%,transparent 70%);pointer-events:none;}
-.wrap{position:relative;max-width:480px;margin:0 auto;padding:36px 18px 60px;}
+.wrap{position:relative;max-width:480px;width:100%;margin:0 auto;padding:36px 18px 60px;display:flex;flex-direction:column;align-items:stretch;box-sizing:border-box;}
 
 /* 헤더 */
 .hosp-name{text-align:center;margin-bottom:24px;}
@@ -72,7 +72,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .gauge-fill{height:100%;border-radius:3px;transition:width 0.8s ease;}
 
 /* 정보 */
-.info-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.info-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;width:100%;box-sizing:border-box;}
 .info-label{font-size:12px;color:var(--text2);}
 .info-val{font-size:12px;color:var(--text);font-family:var(--mono);}
 
@@ -249,7 +249,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     </div>
   </div>
 
-  <!-- 병원 정보 -->
+
   <!-- 블로그 -->
   <a href="https://blog.naver.com/hyinuyu" target="_blank" style="text-decoration:none;display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(135deg,rgba(59,158,255,0.08),rgba(59,158,255,0.03));border:1px solid rgba(59,158,255,0.25);border-radius:14px;padding:14px 18px;margin-bottom:8px;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--main)'" onmouseout="this.style.borderColor='rgba(59,158,255,0.25)'">
     <div style="display:flex;align-items:center;gap:12px;">
@@ -274,6 +274,28 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <span style="font-size:18px;color:#a78bfa;">→</span>
   </a>
 
+  <!-- 공유하기 -->
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 18px;margin-bottom:8px;">
+    <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;">🔗 친구에게 공유하기</div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="copyLink()" id="copyBtn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--card2);border:1px solid var(--border2);color:var(--text2);padding:10px;border-radius:10px;font-size:12px;cursor:pointer;font-family:inherit;">
+        📋 링크 복사
+      </button>
+      <button onclick="kakaoShare()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(254,229,0,0.1);border:1px solid rgba(254,229,0,0.3);color:#FEE500;padding:10px;border-radius:10px;font-size:12px;cursor:pointer;font-family:inherit;">
+        💬 카카오 공유
+      </button>
+    </div>
+  </div>
+
+  <!-- QR 코드 -->
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:8px;text-align:center;">
+    <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:12px;">📱 QR 코드로 접속하기</div>
+    <div style="display:flex;justify-content:center;margin-bottom:10px;">
+      <div id="qrWrap" style="display:inline-block;border-radius:8px;overflow:hidden;"></div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);font-family:var(--mono);">hyinuyu.github.io/Emergency-room</div>
+  </div>
+
   <!-- 앱 설치 안내 -->
   <div id="installBanner" style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
     <div style="font-size:12px;color:var(--text2);line-height:1.6;">
@@ -286,31 +308,21 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <button onclick="document.getElementById('installBanner').style.display='none'" style="background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;flex-shrink:0;">✕</button>
   </div>
 
-  <div class="info-card">
-    <span class="info-label">📍 주소</span>
-    <span class="info-val">경북 구미시 신시로 10</span>
+  <!-- 병원 정보 -->
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+    <span style="font-size:12px;color:var(--text2);">📍 주소</span>
+    <span style="font-size:12px;color:var(--text);font-family:var(--mono);">경북 구미시 신시로 10</span>
   </div>
-  <div class="info-card">
-    <span class="info-label">📞 응급실</span>
-    <span class="info-val">054-450-9700</span>
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+    <span style="font-size:12px;color:var(--text2);">📞 응급실</span>
+    <span style="font-size:12px;color:var(--text);font-family:var(--mono);">054-450-9700</span>
   </div>
-  <div class="info-card">
-    <span class="info-label">🔄 갱신 주기</span>
-    <span class="info-val">10분마다 자동</span>
-  </div>
-
-  <!-- QR 코드 -->
-  <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px;text-align:center;">
-    <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:12px;">📱 QR 코드로 접속하기</div>
-    <div style="display:flex;justify-content:center;margin-bottom:10px;">
-      <div id="qrWrap" style="display:inline-block;border-radius:8px;overflow:hidden;"></div>
-    </div>
-    <div style="font-size:11px;color:var(--text3);font-family:var(--mono);">hyinuyu.github.io/Emergency-room</div>
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+    <span style="font-size:12px;color:var(--text2);">🔄 갱신 주기</span>
+    <span style="font-size:12px;color:var(--text);font-family:var(--mono);">10분마다 자동</span>
   </div>
 
 
-
-</div>
 <script>
 const API_KEY = '1ae147a1907296a5c5fd16751a21b2f146381a4727784592ae9c235d8ac0263d';
 const BASE = 'https://apis.data.go.kr/B552657/ErmctInfoInqireService';
@@ -527,6 +539,45 @@ setInterval(updateClock, 1000);
   };
   document.head.appendChild(script);
 })();
+
+// 공유 기능
+function copyLink() {
+  const url = 'https://hyinuyu.github.io/Emergency-room/';
+  navigator.clipboard.writeText(url).then(function() {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✅ 복사됐어요!';
+    btn.style.borderColor = 'var(--green)';
+    btn.style.color = 'var(--green)';
+    setTimeout(function() {
+      btn.textContent = '📋 링크 복사';
+      btn.style.borderColor = 'var(--border2)';
+      btn.style.color = 'var(--text2)';
+    }, 2000);
+  }).catch(function() {
+    prompt('아래 주소를 복사하세요:', url);
+  });
+}
+
+function kakaoShare() {
+  const url = 'https://hyinuyu.github.io/Emergency-room/';
+  const kakaoUrl = 'https://sharer.kakao.com/talk/friends/picker/link?app_key=NONE&validation_action=default&validation_params=%7B%7D';
+  // 카카오 SDK 없이 링크 공유
+  const shareUrl = 'https://sharer.kakao.com/talk/friends/picker/easylink?app_key=none&link_ver=4.0&template_id=0&template_args=%7B%7D';
+  // 모바일이면 카카오앱으로, 아니면 안내
+  if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+    window.open('kakaolink://send?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent('구미차병원 응급실 현황 + 테트리스 🌋'), '_blank');
+    setTimeout(function() {
+      // 앱이 없으면 복사로 대체
+      navigator.clipboard.writeText('구미차병원 응급실 현황 확인 + 테트리스 게임! 🌋\n' + url).then(function() {
+        alert('카카오 앱이 없어서 링크를 복사했어요!\n카카오톡에 붙여넣기 해주세요 😊');
+      });
+    }, 1500);
+  } else {
+    navigator.clipboard.writeText('구미차병원 응급실 현황 확인 + 테트리스 게임! 🌋\n' + url).then(function() {
+      alert('링크를 복사했어요!\n카카오톡에 붙여넣기 해주세요 😊');
+    });
+  }
+}
 
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js');
