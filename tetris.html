@@ -85,6 +85,7 @@ h1 span{color:var(--main);}
       <canvas id="nextCanvas" width="80" height="80"></canvas>
     </div>
     <button class="pause-btn" id="pauseBtn" onclick="togglePause()">일시정지</button>
+    <button class="pause-btn" onclick="showLeaderboard()" style="border-color:rgba(255,170,0,0.3);color:#ffaa00;">🏆 기록</button>
   </div>
 </div>
 
@@ -273,8 +274,120 @@ function endGame() {
   ov.style.display='flex';
   ov.innerHTML = `
     <div class="overlay-title">💀 게임 오버</div>
-    <div class="overlay-sub">점수: <b style="color:var(--main)">${score.toLocaleString()}</b><br>레벨 ${level} · ${lines}라인</div>
-    <button class="start-btn" onclick="startGame()">다시 하기!</button>
+    <div class="overlay-sub">점수: <b style="color:var(--main)">${score.toLocaleString()}</b> · 레벨 ${level} · ${lines}라인</div>
+    <div style="display:flex;flex-direction:column;gap:8px;width:160px;">
+      <input id="nameInput" type="text" maxlength="10" placeholder="이름을 입력하세요" style="background:#131a24;border:1px solid #243447;border-radius:8px;padding:8px 12px;color:#ddeeff;font-size:13px;font-family:inherit;outline:none;text-align:center;">
+      <button class="start-btn" onclick="saveAndShow()">기록 저장!</button>
+    </div>
+    <button onclick="startGame()" style="background:none;border:none;color:#6a8aaa;font-size:12px;cursor:pointer;font-family:inherit;">저장 없이 다시하기</button>
+  `;
+  setTimeout(()=>{ const inp=document.getElementById('nameInput'); if(inp) inp.focus(); },100);
+}
+
+function saveAndShow() {
+  const inp = document.getElementById('nameInput');
+  const name = (inp ? inp.value.trim() : '') || '익명';
+  saveRecord(name, score, level, lines);
+  showLeaderboard();
+}
+
+const API_KEY = '$2a$10$j9dLi5DIogSkjVnGiKwCWuGfP7Bhq8F8y0p/QZci76k4EP4SYhBuC';
+const BIN_NAME = 'gumi-tetris-leaderboard';
+let BIN_ID = localStorage.getItem('tetris_bin_id') || null;
+
+async function getBinId() {
+  if (BIN_ID) return BIN_ID;
+  // 새 bin 생성
+  const res = await fetch('https://api.jsonbin.io/v3/b', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Master-Key': API_KEY,
+      'X-Bin-Name': BIN_NAME,
+      'X-Bin-Private': 'false'
+    },
+    body: JSON.stringify({ records: [] })
+  });
+  const data = await res.json();
+  BIN_ID = data.metadata.id;
+  localStorage.setItem('tetris_bin_id', BIN_ID);
+  return BIN_ID;
+}
+
+async function fetchRecords() {
+  try {
+    const id = await getBinId();
+    const res = await fetch('https://api.jsonbin.io/v3/b/' + id + '/latest', {
+      headers: { 'X-Master-Key': API_KEY }
+    });
+    const data = await res.json();
+    return data.record.records || [];
+  } catch(e) {
+    return JSON.parse(localStorage.getItem('tetris_records_backup') || '[]');
+  }
+}
+
+async function saveRecord(name, sc, lv, ln) {
+  try {
+    const id = await getBinId();
+    let records = await fetchRecords();
+    records.push({
+      name,
+      score: sc,
+      level: lv,
+      lines: ln,
+      date: new Date().toLocaleDateString('ko-KR')
+    });
+    records.sort((a,b) => b.score - a.score);
+    records = records.slice(0, 20);
+    await fetch('https://api.jsonbin.io/v3/b/' + id, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': API_KEY
+      },
+      body: JSON.stringify({ records })
+    });
+    localStorage.setItem('tetris_records_backup', JSON.stringify(records));
+  } catch(e) {
+    // 로컬 폴백
+    let records = JSON.parse(localStorage.getItem('tetris_records_backup') || '[]');
+    records.push({ name, score:sc, level:lv, lines:ln, date: new Date().toLocaleDateString('ko-KR') });
+    records.sort((a,b) => b.score - a.score);
+    records = records.slice(0, 20);
+    localStorage.setItem('tetris_records_backup', JSON.stringify(records));
+  }
+}
+
+async function showLeaderboard() {
+  const ov = document.getElementById('overlay');
+  ov.style.display = 'flex';
+  ov.innerHTML = `
+    <div class="overlay-title">🏆 담벼락 기록</div>
+    <div style="color:#6a8aaa;font-size:12px;padding:20px;">불러오는 중... ⏳</div>
+  `;
+
+  const records = await fetchRecords();
+  const medals = ['🥇','🥈','🥉'];
+  const rows = records.map((r,i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #1c2a3a;font-size:12px;">
+      <span style="width:24px;text-align:center;font-size:${i<3?'15':'12'}px;color:#2d4055;">${medals[i] || (i+1)}</span>
+      <span style="flex:1;color:#ddeeff;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.name}</span>
+      <span style="color:#3b9eff;font-family:'DM Mono',monospace;">${r.score.toLocaleString()}</span>
+      <span style="color:#2d4055;font-size:10px;margin-left:4px;">Lv${r.level}</span>
+    </div>
+  `).join('');
+
+  ov.innerHTML = `
+    <div class="overlay-title">🏆 담벼락 기록</div>
+    <div style="font-size:11px;color:#6a8aaa;margin-top:-8px;margin-bottom:8px;">누구나 볼 수 있어요 · 상위 20명</div>
+    <div style="width:230px;max-height:260px;overflow-y:auto;border:1px solid #1c2a3a;border-radius:10px;padding:4px 12px;">
+      ${rows || '<div style="color:#6a8aaa;font-size:12px;padding:20px;text-align:center;">아직 기록이 없어요!<br>🔥 첫 주인공이 되세요</div>'}
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="start-btn" onclick="startGame()">🎮 도전!</button>
+      <button onclick="showLeaderboard()" style="background:none;border:1px solid #1c2a3a;border-radius:8px;padding:8px 14px;color:#6a8aaa;font-size:12px;cursor:pointer;font-family:inherit;">🔄 새로고침</button>
+    </div>
   `;
 }
 
