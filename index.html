@@ -122,19 +122,19 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   </div>
 
   <!-- 상단 시간/갱신/새로고침 바 -->
-  <div style="display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 16px;margin-bottom:14px;gap:10px;flex-wrap:wrap;">
-    <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
-      <div style="text-align:center;">
-        <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:2px;">현재 시각</div>
-        <div style="font-size:14px;font-weight:600;color:var(--text);font-family:var(--mono);" id="currentTime">—</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 12px;margin-bottom:14px;gap:8px;">
+    <div style="display:flex;gap:10px;align-items:center;">
+      <div>
+        <div style="font-size:9px;color:var(--text3);font-family:var(--mono);">현재시각</div>
+        <div style="font-size:12px;font-weight:600;color:var(--text);font-family:var(--mono);" id="currentTime">—</div>
       </div>
-      <div style="width:1px;height:28px;background:var(--border);"></div>
-      <div style="text-align:center;">
-        <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:2px;">마지막 갱신</div>
-        <div style="font-size:14px;font-weight:600;color:var(--main);font-family:var(--mono);" id="updatedTime">—</div>
+      <div style="width:1px;height:22px;background:var(--border);"></div>
+      <div>
+        <div style="font-size:9px;color:var(--text3);font-family:var(--mono);">마지막갱신</div>
+        <div style="font-size:12px;font-weight:600;color:var(--main);font-family:var(--mono);" id="updatedTime">—</div>
       </div>
     </div>
-    <button class="refresh-btn" id="refreshBtn" onclick="load()">
+    <button id="refreshBtn" onclick="load()" style="display:flex;align-items:center;gap:4px;background:var(--card2);border:1px solid var(--border2);color:var(--text2);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:inherit;transition:all 0.2s;white-space:nowrap;">
       <span class="ri">↻</span> 새로고침
     </button>
   </div>
