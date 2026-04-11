@@ -197,10 +197,11 @@ const usedColor = n => n===null?'var(--text3)':n>=18?'var(--red)':n>=14?'var(--o
 
 function getStatus(avail, total) {
   if (avail===null) return {label:'정보없음', cls:'s-gray'};
-  const pct = avail/total;
-  if (avail===0)   return {label:'🔴 만실', cls:'s-red'};
-  if (pct < 0.3)   return {label:'🟡 혼잡', cls:'s-orange'};
-  return               {label:'🟢 여유', cls:'s-green'};
+  const used = total - avail;
+  const usedPct = used / total;
+  if (usedPct >= 0.8) return {label:'🔴 포화', cls:'s-red'};
+  if (usedPct >= 0.5) return {label:'🟡 혼잡', cls:'s-orange'};
+  return                  {label:'🟢 여유', cls:'s-green'};
 }
 
 async function fetchData() {
