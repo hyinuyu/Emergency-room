@@ -214,7 +214,7 @@ async function fetchData() {
     const g = t => item.querySelector(t)?.textContent?.trim()||'';
     const name = g('dutyName').replace(/\s/g,'');
     console.log('병원명:', name); // 디버그용
-    if (!name.includes('구미차')) return;
+    if (!name.includes('구미차') && !name.includes('차의과학')) return;
     const hvec = parseInt(g('hvec')); // 일반 응급실 가용
     // 소아 응급실 가용병상 - 가능한 태그 전부 시도
     const hv2   = parseInt(g('hv2'));
@@ -225,9 +225,7 @@ async function fetchData() {
     const hvs   = parseInt(g('hvs'));
     genAvail = isNaN(hvec)?null:hvec;
     // 소아: 유효한 값 중 첫번째 사용
-    const pedCandidates = [hv2, hvs1, hvs2, hvec2, hv3, hvs];
-    const pedValid = pedCandidates.find(v => !isNaN(v) && v >= 0 && v <= 10);
-    pedAvail = pedValid !== undefined ? pedValid : null;
+    pedAvail = isNaN(parseInt(g('hv28')))?null:parseInt(g('hv28'));
   });
   return {genAvail, pedAvail};
 }
