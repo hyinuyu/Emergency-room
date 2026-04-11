@@ -19,51 +19,60 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .wrap{position:relative;max-width:480px;margin:0 auto;padding:36px 18px 60px;}
 
 /* 헤더 */
-.hosp-name{text-align:center;margin-bottom:28px;}
+.hosp-name{text-align:center;margin-bottom:24px;}
 .hosp-name h1{font-size:20px;font-weight:900;color:#fff;}
 .hosp-name h1 span{color:var(--main);}
 .hosp-name p{font-size:12px;color:var(--text2);margin-top:6px;font-family:var(--mono);}
 .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;display:inline-block;margin-right:5px;vertical-align:middle;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
 
-/* 상태 뱃지 */
-.status-wrap{display:flex;justify-content:center;margin-bottom:22px;}
-.status-badge{padding:7px 24px;border-radius:30px;font-size:14px;font-weight:700;font-family:var(--mono);}
-.s-green{background:rgba(34,212,122,0.12);color:var(--green);border:1px solid rgba(34,212,122,0.3);}
-.s-orange{background:rgba(255,170,0,0.12);color:var(--orange);border:1px solid rgba(255,170,0,0.3);}
-.s-red{background:rgba(255,68,102,0.12);color:var(--red);border:1px solid rgba(255,68,102,0.3);}
-.s-gray{background:rgba(100,130,160,0.1);color:var(--text2);border:1px solid var(--border);}
+/* 화산 섹션 */
+.volcano-section{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:20px;padding:28px 20px;margin-bottom:16px;
+  text-align:center;position:relative;overflow:hidden;
+}
+.volcano-bg{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 50% 100%, rgba(255,68,102,0.05) 0%, transparent 70%);
+  transition:all 1s ease;
+}
 
-/* 섹션 타이틀 */
-.sec{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;margin-top:20px;}
+/* 화산 SVG */
+.volcano-wrap{position:relative;height:180px;margin-bottom:16px;}
+.volcano-svg{width:100%;height:100%;}
 
-/* 병상 카드 */
-.ward-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;}
-.ward-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 16px;position:relative;overflow:hidden;}
-.ward-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
-.ward-card.general::before{background:linear-gradient(90deg,var(--main),transparent);}
-.ward-card.peds::before{background:linear-gradient(90deg,#a78bfa,transparent);}
-.wc-title{font-size:11px;color:var(--text2);margin-bottom:14px;font-weight:500;}
+/* 상태 텍스트 */
+.volcano-status{font-size:22px;font-weight:900;margin-bottom:6px;transition:all 0.5s;}
+.volcano-desc{font-size:13px;color:var(--text2);margin-bottom:16px;}
 
-.wc-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
-.wc-label{font-size:11px;color:var(--text3);}
-.wc-val{font-family:var(--mono);font-size:20px;font-weight:500;}
+/* 숫자 */
+.volcano-nums{display:flex;justify-content:center;gap:24px;}
+.vnum-box{text-align:center;}
+.vnum-val{font-family:var(--mono);font-size:32px;font-weight:500;line-height:1;}
+.vnum-label{font-size:11px;color:var(--text2);margin-top:4px;}
 
-/* 게이지 바 */
-.gauge-wrap{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:10px;}
+/* 소아 카드 */
+.ped-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;padding:16px 20px;margin-bottom:16px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.ped-left{display:flex;align-items:center;gap:10px;}
+.ped-icon{font-size:24px;}
+.ped-title{font-size:14px;font-weight:600;}
+.ped-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+.ped-right{text-align:right;}
+.ped-avail{font-family:var(--mono);font-size:26px;font-weight:500;line-height:1;}
+.ped-total{font-size:11px;color:var(--text2);margin-top:2px;}
+.ped-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:500;font-family:var(--mono);margin-top:4px;}
+
+/* 게이지 */
+.gauge-wrap{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:10px;}
 .gauge-fill{height:100%;border-radius:3px;transition:width 0.8s ease;}
 
-/* 그래프 */
-.graph-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:4px;}
-.graph-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
-.graph-header-title{font-size:12px;color:var(--text2);font-weight:500;}
-.graph-sub{font-size:11px;color:var(--text3);font-family:var(--mono);}
-.graph-wrap{position:relative;height:100px;}
-.graph-wrap canvas{position:absolute;inset:0;width:100%;height:100%;}
-.graph-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text3);}
-
 /* 정보 */
-.info-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.info-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
 .info-label{font-size:12px;color:var(--text2);}
 .info-val{font-size:12px;color:var(--text);font-family:var(--mono);}
 
@@ -79,7 +88,24 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .err{background:rgba(255,68,102,0.1);border:1px solid rgba(255,68,102,0.2);border-radius:10px;padding:11px 14px;font-size:12px;color:#ff8899;margin-bottom:14px;display:none;line-height:1.6;}
 .err.show{display:block;}
 
-@media(max-width:360px){.wc-val{font-size:17px;}}
+/* 연기 애니메이션 */
+@keyframes smoke {
+  0%{transform:translateY(0) scale(1);opacity:0.6;}
+  100%{transform:translateY(-40px) scale(2);opacity:0;}
+}
+@keyframes lava {
+  0%,100%{transform:scaleY(1);}
+  50%{transform:scaleY(1.08);}
+}
+@keyframes shake {
+  0%,100%{transform:translateX(0);}
+  25%{transform:translateX(-4px);}
+  75%{transform:translateX(4px);}
+}
+@keyframes explode {
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-6px);}
+}
 </style>
 </head>
 <body>
@@ -90,78 +116,112 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <p><span class="live-dot"></span>경북 구미시 신시로 10 · 054-450-9700</p>
   </div>
 
-  <div class="status-wrap">
-    <div class="status-badge s-gray" id="statusBadge">불러오는 중...</div>
-  </div>
-
   <div class="err" id="errBox"></div>
 
-  <div class="sec">응급실 현황</div>
-  <div class="ward-cards">
-    <!-- 일반 -->
-    <div class="ward-card general">
-      <div class="wc-title">🏥 일반 응급실</div>
-      <div class="wc-row">
-        <span class="wc-label">가용병상</span>
-        <span class="wc-val" id="genAvail" style="color:var(--text3)">—</span>
-      </div>
-      <div class="wc-row">
-        <span class="wc-label">추정 환자</span>
-        <span class="wc-val" id="genPatients" style="color:var(--text3)">—</span>
-      </div>
-      <div class="wc-row">
-        <span class="wc-label">총 병상</span>
-        <span class="wc-val" style="color:var(--text3)">20</span>
-      </div>
-      <div class="gauge-wrap">
-        <div class="gauge-fill" id="genGauge" style="width:0%;background:var(--green)"></div>
-      </div>
+  <!-- 화산 메인 카드 -->
+  <div class="volcano-section" id="volcanoSection">
+    <div class="volcano-bg" id="volcanoBg"></div>
+
+    <div class="volcano-wrap">
+      <svg class="volcano-svg" viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg" id="volcanSvg">
+        <!-- 하늘 배경 -->
+        <defs>
+          <radialGradient id="skyGrad" cx="50%" cy="100%">
+            <stop offset="0%" stop-color="#1a0a00" stop-opacity="0.5"/>
+            <stop offset="100%" stop-color="#060910" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="lavaGrad" cx="50%" cy="50%">
+            <stop offset="0%" stop-color="#ff6600"/>
+            <stop offset="100%" stop-color="#ff2200"/>
+          </radialGradient>
+        </defs>
+
+        <!-- 연기들 -->
+        <g id="smokeGroup">
+          <circle id="s1" cx="150" cy="60" r="8" fill="#888" opacity="0"/>
+          <circle id="s2" cx="145" cy="50" r="10" fill="#777" opacity="0"/>
+          <circle id="s3" cx="155" cy="45" r="7" fill="#999" opacity="0"/>
+          <circle id="s4" cx="148" cy="35" r="12" fill="#666" opacity="0"/>
+          <circle id="s5" cx="152" cy="28" r="9" fill="#777" opacity="0"/>
+        </g>
+
+        <!-- 화산 몸체 -->
+        <g id="volcanoBody">
+          <!-- 산 -->
+          <polygon points="60,165 150,55 240,165" fill="#2a1a0a" id="mountain"/>
+          <!-- 산 앞면 -->
+          <polygon points="80,165 150,75 220,165" fill="#1a0f05"/>
+          <!-- 분화구 -->
+          <ellipse cx="150" cy="65" rx="22" ry="8" fill="#0d0705"/>
+          <!-- 용암 (상태에 따라 변함) -->
+          <ellipse cx="150" cy="63" rx="16" ry="5" fill="url(#lavaGrad)" id="lavaPool" opacity="0.3"/>
+        </g>
+
+        <!-- 분출 파티클들 (폭발시) -->
+        <g id="particles" opacity="0">
+          <circle cx="150" cy="55" r="3" fill="#ff6600"/>
+          <circle cx="138" cy="45" r="2" fill="#ff4400"/>
+          <circle cx="162" cy="42" r="2.5" fill="#ff8800"/>
+          <circle cx="143" cy="35" r="2" fill="#ffaa00"/>
+          <circle cx="158" cy="38" r="2" fill="#ff5500"/>
+          <circle cx="132" cy="50" r="1.5" fill="#ff3300"/>
+          <circle cx="168" cy="48" r="2" fill="#ff7700"/>
+        </g>
+
+        <!-- 용암 흘림 (혼잡이상) -->
+        <g id="lavaFlow" opacity="0">
+          <path d="M138,75 Q125,100 115,130 Q110,145 120,155" stroke="#ff4400" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <path d="M162,75 Q175,105 180,135 Q183,148 173,158" stroke="#ff6600" stroke-width="3" fill="none" stroke-linecap="round"/>
+        </g>
+
+        <!-- 바닥 -->
+        <rect x="0" y="163" width="300" height="17" fill="#0d0705" rx="2"/>
+        <ellipse cx="150" cy="163" rx="120" ry="6" fill="url(#skyGrad)"/>
+      </svg>
     </div>
-    <!-- 소아 -->
-    <div class="ward-card peds">
-      <div class="wc-title">👶 소아 응급실</div>
-      <div class="wc-row">
-        <span class="wc-label">가용병상</span>
-        <span class="wc-val" id="pedAvail" style="color:var(--text3)">—</span>
+
+    <div class="volcano-status" id="volcanoStatus">불러오는 중...</div>
+    <div class="volcano-desc" id="volcanoDesc">잠시만 기다려주세요</div>
+
+    <div class="volcano-nums">
+      <div class="vnum-box">
+        <div class="vnum-val" id="valAvail" style="color:var(--text3)">—</div>
+        <div class="vnum-label">가용병상</div>
       </div>
-      <div class="wc-row">
-        <span class="wc-label">추정 환자</span>
-        <span class="wc-val" id="pedPatients" style="color:var(--text3)">—</span>
+      <div class="vnum-box">
+        <div class="vnum-val" id="valPatients" style="color:var(--text3)">—</div>
+        <div class="vnum-label">추정 환자</div>
       </div>
-      <div class="wc-row">
-        <span class="wc-label">총 병상</span>
-        <span class="wc-val" style="color:var(--text3)">5</span>
-      </div>
-      <div class="gauge-wrap">
-        <div class="gauge-fill" id="pedGauge" style="width:0%;background:#a78bfa"></div>
+      <div class="vnum-box">
+        <div class="vnum-val" style="color:var(--text3)">20</div>
+        <div class="vnum-label">총 병상</div>
       </div>
     </div>
   </div>
 
-  <div class="sec">추정 환자 수 추이 (10분 간격)</div>
-  <div class="graph-card">
-    <div class="graph-header">
-      <span class="graph-header-title">일반 응급실 추정 환자</span>
-      <span class="graph-sub" id="graphSub1">수집 중...</span>
+  <!-- 소아 카드 -->
+  <div class="ped-card">
+    <div class="ped-left">
+      <div class="ped-icon">👶</div>
+      <div>
+        <div class="ped-title">소아 응급실</div>
+        <div class="ped-sub">총 5병상</div>
+        <div class="ped-badge" id="pedBadge" style="background:rgba(100,130,160,0.1);color:var(--text2);border:1px solid var(--border)">불러오는 중</div>
+      </div>
     </div>
-    <div class="graph-wrap" id="graphWrap1">
-      <canvas id="canvas1"></canvas>
-      <div class="graph-empty" id="empty1">10분마다 점이 찍혀요 📈</div>
+    <div class="ped-right">
+      <div class="ped-avail" id="pedAvailVal" style="color:var(--text3)">—</div>
+      <div class="ped-total">/ 5 가용</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:2px;">추정 <span id="pedPatients" style="color:var(--orange)">—</span>명</div>
+    </div>
+  </div>
+  <div style="margin-bottom:16px;padding:0 2px;">
+    <div class="gauge-wrap">
+      <div class="gauge-fill" id="pedGauge" style="width:0%;background:var(--green)"></div>
     </div>
   </div>
 
-  <div class="graph-card" style="margin-top:10px;">
-    <div class="graph-header">
-      <span class="graph-header-title">소아 응급실 추정 환자</span>
-      <span class="graph-sub" id="graphSub2">수집 중...</span>
-    </div>
-    <div class="graph-wrap" id="graphWrap2">
-      <canvas id="canvas2"></canvas>
-      <div class="graph-empty" id="empty2">10분마다 점이 찍혀요 📈</div>
-    </div>
-  </div>
-
-  <div class="sec">병원 정보</div>
+  <!-- 병원 정보 -->
   <div class="info-card">
     <span class="info-label">📍 주소</span>
     <span class="info-val">경북 구미시 신시로 10</span>
@@ -186,22 +246,123 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 <script>
 const API_KEY = '1ae147a1907296a5c5fd16751a21b2f146381a4727784592ae9c235d8ac0263d';
 const BASE = 'https://apis.data.go.kr/B552657/ErmctInfoInqireService';
-const TOTAL_GEN = 20; // 일반 응급실 총 병상
-const TOTAL_PED = 5;  // 소아 응급실 총 병상
+const TOTAL_GEN = 20;
+const TOTAL_PED = 5;
 
-// 그래프 히스토리
-const H = { gen:{ time:[], val:[] }, ped:{ time:[], val:[] } };
+// 상태별 화산 설정
+const STATES = {
+  calm: {
+    label: '🌋 잠잠해요',
+    desc: '응급실 여유 있어요. 오셔도 됩니다 👍',
+    color: 'var(--green)',
+    lavaOpacity: 0.2,
+    smokeAnim: 'slow',
+    particlesOpacity: 0,
+    lavaFlowOpacity: 0,
+    bgColor: 'rgba(34,212,122,0.04)',
+    shakeAnim: 'none',
+  },
+  busy: {
+    label: '🌋💨 부글부글...',
+    desc: '응급실 좀 바빠요. 서두르세요! 😤',
+    color: 'var(--orange)',
+    lavaOpacity: 0.7,
+    smokeAnim: 'fast',
+    particlesOpacity: 0.4,
+    lavaFlowOpacity: 0.6,
+    bgColor: 'rgba(255,170,0,0.04)',
+    shakeAnim: 'none',
+  },
+  full: {
+    label: '🌋🔥 폭발 직전!!',
+    desc: '응급실 포화 상태!! 각오하세요 😱',
+    color: 'var(--red)',
+    lavaOpacity: 1,
+    smokeAnim: 'fast',
+    particlesOpacity: 1,
+    lavaFlowOpacity: 1,
+    bgColor: 'rgba(255,68,102,0.08)',
+    shakeAnim: 'shake',
+  }
+};
 
-const bedColor = n => n===null?'var(--text3)':n===0?'var(--red)':n<=3?'var(--orange)':'var(--green)';
-const usedColor = n => n===null?'var(--text3)':n>=18?'var(--red)':n>=14?'var(--orange)':'var(--green)';
+let smokeInterval = null;
 
-function getStatus(avail, total) {
-  if (avail===null) return {label:'정보없음', cls:'s-gray'};
-  const used = total - avail;
-  const usedPct = used / total;
-  if (usedPct >= 0.8) return {label:'🔴 포화', cls:'s-red'};
-  if (usedPct >= 0.5) return {label:'🟡 혼잡', cls:'s-orange'};
-  return                  {label:'🟢 여유', cls:'s-green'};
+function getStateKey(avail, total) {
+  if (avail === null) return null;
+  const usedPct = (total - avail) / total;
+  if (usedPct >= 0.8) return 'full';
+  if (usedPct >= 0.5) return 'busy';
+  return 'calm';
+}
+
+function animateSmoke(speed) {
+  if (smokeInterval) clearInterval(smokeInterval);
+  const smokes = ['s1','s2','s3','s4','s5'];
+  let idx = 0;
+  const interval = speed === 'fast' ? 400 : 1200;
+
+  smokeInterval = setInterval(() => {
+    smokes.forEach(id => {
+      const el = document.getElementById(id);
+      el.style.animation = 'none';
+      el.style.opacity = '0';
+    });
+    const el = document.getElementById(smokes[idx % smokes.length]);
+    el.style.animation = `smoke ${speed === 'fast' ? 1.5 : 3}s ease-out forwards`;
+    el.style.opacity = '0.6';
+    idx++;
+  }, interval);
+}
+
+function updateVolcano(avail) {
+  const stateKey = getStateKey(avail, TOTAL_GEN);
+  if (!stateKey) return;
+  const state = STATES[stateKey];
+
+  // 텍스트
+  const statusEl = document.getElementById('volcanoStatus');
+  statusEl.textContent = state.label;
+  statusEl.style.color = state.color;
+  document.getElementById('volcanoDesc').textContent = state.desc;
+
+  // 용암
+  document.getElementById('lavaPool').setAttribute('opacity', state.lavaOpacity);
+  document.getElementById('particles').setAttribute('opacity', state.particlesOpacity);
+  document.getElementById('lavaFlow').setAttribute('opacity', state.lavaFlowOpacity);
+
+  // 배경
+  document.getElementById('volcanoBg').style.background =
+    `radial-gradient(ellipse 80% 60% at 50% 100%, ${state.bgColor}, transparent 70%)`;
+
+  // 화산 흔들기 (포화시)
+  const body = document.getElementById('volcanoBody');
+  if (stateKey === 'full') {
+    body.style.animation = 'shake 0.3s infinite';
+    document.getElementById('particles').style.animation = 'explode 0.5s infinite';
+  } else {
+    body.style.animation = 'none';
+    document.getElementById('particles').style.animation = 'none';
+  }
+
+  // 연기
+  animateSmoke(state.smokeAnim);
+}
+
+function bedColor(n, total) {
+  if (n === null) return 'var(--text3)';
+  const pct = (total - n) / total;
+  if (pct >= 0.8) return 'var(--red)';
+  if (pct >= 0.5) return 'var(--orange)';
+  return 'var(--green)';
+}
+
+function pedBadge(avail, total) {
+  if (avail === null) return {label:'정보없음', bg:'rgba(100,130,160,0.1)', color:'var(--text2)', border:'var(--border)'};
+  const pct = (total - avail) / total;
+  if (pct >= 0.8) return {label:'🔴 포화', bg:'rgba(255,68,102,0.1)', color:'var(--red)', border:'rgba(255,68,102,0.2)'};
+  if (pct >= 0.5) return {label:'🟡 혼잡', bg:'rgba(255,170,0,0.1)', color:'var(--orange)', border:'rgba(255,170,0,0.2)'};
+  return {label:'🟢 여유', bg:'rgba(34,212,122,0.1)', color:'var(--green)', border:'rgba(34,212,122,0.2)'};
 }
 
 async function fetchData() {
@@ -209,164 +370,67 @@ async function fetchData() {
   const res = await fetch(url);
   const txt = await res.text();
   const xml = new DOMParser().parseFromString(txt, 'text/xml');
-
-  let genAvail=null, pedAvail=null;
+  let genAvail = null, pedAvail = null;
   xml.querySelectorAll('item').forEach(item => {
     const g = t => item.querySelector(t)?.textContent?.trim()||'';
     const name = g('dutyName').replace(/\s/g,'');
-    console.log('병원명:', name); // 디버그용
     if (!name.includes('구미차') && !name.includes('차의과학')) return;
-    const hvec = parseInt(g('hvec')); // 일반 응급실 가용
-    // 소아 응급실 가용병상 - 가능한 태그 전부 시도
-    const hv2   = parseInt(g('hv2'));
-    const hvs1  = parseInt(g('hvs1'));
-    const hvs2  = parseInt(g('hvs2'));
-    const hvec2 = parseInt(g('hvec2'));
-    const hv3   = parseInt(g('hv3'));
-    const hvs   = parseInt(g('hvs'));
-    genAvail = isNaN(hvec)?null:hvec;
-    // 소아: 유효한 값 중 첫번째 사용
-    pedAvail = isNaN(parseInt(g('hv28')))?null:parseInt(g('hv28'));
+    const hvec = parseInt(g('hvec'));
+    const hv28 = parseInt(g('hv28'));
+    genAvail = isNaN(hvec) ? null : hvec;
+    pedAvail = isNaN(hv28) ? null : hv28;
   });
   return {genAvail, pedAvail};
 }
 
-function drawGraph(canvasId, emptyId, subId, history, color) {
-  const canvas = document.getElementById(canvasId);
-  const empty  = document.getElementById(emptyId);
-  const sub    = document.getElementById(subId);
-  if (history.val.length < 2) { empty.style.display='flex'; return; }
-  empty.style.display='none';
-  sub.textContent=`최근 ${history.val.length}회`;
-
-  const dpr=window.devicePixelRatio||1;
-  const rect=canvas.getBoundingClientRect();
-  canvas.width=rect.width*dpr; canvas.height=rect.height*dpr;
-  const ctx=canvas.getContext('2d');
-  const W=canvas.width, H=canvas.height;
-  ctx.clearRect(0,0,W,H);
-
-  const data=history.val.map(v=>v===null?0:v);
-  const max=Math.max(...data,3);
-  const pad={t:10*dpr,r:10*dpr,b:20*dpr,l:28*dpr};
-  const gw=W-pad.l-pad.r, gh=H-pad.t-pad.b;
-
-  // 그리드
-  ctx.strokeStyle='rgba(28,42,58,0.9)'; ctx.lineWidth=1;
-  [0,0.5,1].forEach(f=>{
-    const y=pad.t+gh*(1-f);
-    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(W-pad.r,y); ctx.stroke();
-    ctx.fillStyle='rgba(100,130,160,0.5)';
-    ctx.font=`${9*dpr}px DM Mono`; ctx.textAlign='right';
-    ctx.fillText(Math.round(max*f),pad.l-3,y+3);
-  });
-
-  const pts=data.map((v,i)=>({
-    x:pad.l+(data.length===1?gw/2:i/(data.length-1)*gw),
-    y:pad.t+gh*(1-v/max),
-  }));
-
-  // 채우기
-  const grad=ctx.createLinearGradient(0,pad.t,0,pad.t+gh);
-  grad.addColorStop(0, color+'44'); grad.addColorStop(1, color+'00');
-  ctx.beginPath();
-  pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
-  ctx.lineTo(pts[pts.length-1].x,pad.t+gh); ctx.lineTo(pts[0].x,pad.t+gh);
-  ctx.closePath(); ctx.fillStyle=grad; ctx.fill();
-
-  // 선
-  ctx.beginPath(); ctx.strokeStyle=color; ctx.lineWidth=2*dpr; ctx.lineJoin='round';
-  pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y)); ctx.stroke();
-
-  // 점
-  pts.forEach(p=>{
-    ctx.beginPath(); ctx.arc(p.x,p.y,3*dpr,0,Math.PI*2);
-    ctx.fillStyle=color; ctx.fill();
-  });
-
-  // 시간 레이블
-  ctx.fillStyle='rgba(100,130,160,0.6)'; ctx.font=`${8*dpr}px DM Mono`; ctx.textAlign='center';
-  [0,Math.floor((history.time.length-1)/2),history.time.length-1].forEach(i=>{
-    if(history.time[i]&&pts[i]) ctx.fillText(history.time[i],pts[i].x,H-2);
-  });
-}
-
-function updateWard(avail, total, availId, patientId, gaugeId, colorVar) {
-  const availEl = document.getElementById(availId);
-  const patEl   = document.getElementById(patientId);
-  const gauge   = document.getElementById(gaugeId);
-
-  if (avail===null) {
-    availEl.textContent='?'; availEl.style.color='var(--text3)';
-    patEl.textContent='?';   patEl.style.color='var(--text3)';
-    gauge.style.width='0%';
-    return;
-  }
-
-  const used = total - avail;
-  const usedPct = Math.min(100, Math.round(used/total*100));
-
-  availEl.textContent = avail;
-  availEl.style.color = bedColor(avail);
-
-  patEl.textContent = used < 0 ? '?' : used + '명';
-  patEl.style.color = used < 0 ? 'var(--text3)' : (used >= total*0.9 ? 'var(--red)' : used >= total*0.6 ? 'var(--orange)' : 'var(--green)');
-
-  gauge.style.width = usedPct+'%';
-  gauge.style.background = used >= total*0.9 ? 'var(--red)' : used >= total*0.6 ? 'var(--orange)' : colorVar;
-}
-
 async function load() {
-  const btn=document.getElementById('refreshBtn');
+  const btn = document.getElementById('refreshBtn');
   btn.classList.add('spinning');
   document.getElementById('errBox').classList.remove('show');
 
   try {
     const {genAvail, pedAvail} = await fetchData();
 
-    // 일반 병동 업데이트
-    updateWard(genAvail, TOTAL_GEN, 'genAvail', 'genPatients', 'genGauge', 'var(--main)');
-    // 소아 병동 업데이트
-    updateWard(pedAvail, TOTAL_PED, 'pedAvail', 'pedPatients', 'pedGauge', '#a78bfa');
+    // 일반 응급실
+    const genUsed = genAvail === null ? null : TOTAL_GEN - genAvail;
+    document.getElementById('valAvail').textContent = genAvail ?? '?';
+    document.getElementById('valAvail').style.color = bedColor(genAvail, TOTAL_GEN);
+    document.getElementById('valPatients').textContent = genUsed === null ? '?' : genUsed + '명';
+    document.getElementById('valPatients').style.color = bedColor(genAvail, TOTAL_GEN);
 
-    // 상태 뱃지 (일반 기준)
-    const s = getStatus(genAvail, TOTAL_GEN);
-    const badge = document.getElementById('statusBadge');
-    badge.textContent=s.label; badge.className='status-badge '+s.cls;
+    // 화산 업데이트
+    updateVolcano(genAvail);
 
-    // 히스토리 기록
-    const now=new Date();
-    const ts=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-    const genUsed = genAvail===null?null:TOTAL_GEN-genAvail;
-    const pedUsed = pedAvail===null?null:TOTAL_PED-pedAvail;
+    // 소아 응급실
+    const pedUsed = pedAvail === null ? null : TOTAL_PED - pedAvail;
+    document.getElementById('pedAvailVal').textContent = pedAvail ?? '?';
+    document.getElementById('pedAvailVal').style.color = bedColor(pedAvail, TOTAL_PED);
+    document.getElementById('pedPatients').textContent = pedUsed === null ? '?' : pedUsed;
+    const pb = pedBadge(pedAvail, TOTAL_PED);
+    const badge = document.getElementById('pedBadge');
+    badge.textContent = pb.label;
+    badge.style.background = pb.bg;
+    badge.style.color = pb.color;
+    badge.style.border = `1px solid ${pb.border}`;
+    const pedPct = pedAvail === null ? 0 : Math.min(100, Math.round((TOTAL_PED - pedAvail) / TOTAL_PED * 100));
+    document.getElementById('pedGauge').style.width = pedPct + '%';
+    document.getElementById('pedGauge').style.background = bedColor(pedAvail, TOTAL_PED);
 
-    H.gen.time.push(ts); H.gen.val.push(genUsed);
-    H.ped.time.push(ts); H.ped.val.push(pedUsed);
-    if(H.gen.time.length>30){H.gen.time.shift();H.gen.val.shift();}
-    if(H.ped.time.length>30){H.ped.time.shift();H.ped.val.shift();}
+    document.getElementById('updatedTime').textContent = new Date().toLocaleTimeString('ko-KR');
 
-    drawGraph('canvas1','empty1','graphSub1',H.gen,'#3b9eff');
-    drawGraph('canvas2','empty2','graphSub2',H.ped,'#a78bfa');
-
-    document.getElementById('updatedTime').textContent=new Date().toLocaleTimeString('ko-KR');
-
-    if(genAvail===null && pedAvail===null){
-      document.getElementById('errBox').textContent='⚠️ 데이터를 받지 못했어요. API 응답 대기 중이거나 병원이 현재 데이터를 전송하지 않을 수 있어요.';
+    if (genAvail === null) {
+      document.getElementById('errBox').textContent = '⚠️ 데이터를 받지 못했어요. 잠시 후 새로고침해보세요.';
       document.getElementById('errBox').classList.add('show');
     }
   } catch(e) {
-    document.getElementById('errBox').textContent='⚠️ 불러오기 실패. 잠시 후 새로고침해보세요.';
+    document.getElementById('errBox').textContent = '⚠️ 불러오기 실패. 잠시 후 새로고침해보세요.';
     document.getElementById('errBox').classList.add('show');
   }
   btn.classList.remove('spinning');
 }
 
 load();
-setInterval(load, 10*60*1000); // 10분마다
-window.addEventListener('resize', ()=>{
-  drawGraph('canvas1','empty1','graphSub1',H.gen,'#3b9eff');
-  drawGraph('canvas2','empty2','graphSub2',H.ped,'#a78bfa');
-});
+setInterval(load, 10 * 60 * 1000);
 </script>
 </body>
 </html>
