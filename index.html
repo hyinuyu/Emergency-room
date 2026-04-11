@@ -107,6 +107,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   50%{transform:translateY(-6px);}
 }
 </style>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#060910">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="응급실현황">
 </head>
 <body>
 <div class="wrap">
@@ -431,6 +436,11 @@ async function load() {
 
 load();
 setInterval(load, 10 * 60 * 1000);
+</script>
+<script>
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js');
+}
 </script>
 </body>
 </html>
