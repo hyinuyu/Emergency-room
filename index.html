@@ -8,68 +8,78 @@
 <style>
 :root {
   --bg:#060910; --card:#0d1117; --card2:#131a24;
-  --border:#1c2a3a; --main:#3b9eff;
-  --green:#22d47a; --orange:#ffaa00; --red:#ff4466;
+  --border:#1c2a3a; --border2:#243447;
+  --main:#3b9eff; --green:#22d47a; --orange:#ffaa00; --red:#ff4466;
   --text:#ddeeff; --text2:#6a8aaa; --text3:#2d4055;
   --mono:'DM Mono',monospace;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;}
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 30%,rgba(59,158,255,0.05) 0%,transparent 70%);pointer-events:none;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 20%,rgba(59,158,255,0.05) 0%,transparent 70%);pointer-events:none;}
+.wrap{position:relative;max-width:480px;margin:0 auto;padding:36px 18px 60px;}
 
-.wrap{position:relative;width:100%;max-width:480px;padding:40px 20px 60px;}
-
-/* 병원명 */
-.hosp-name{text-align:center;margin-bottom:32px;}
-.hosp-name h1{font-size:20px;font-weight:900;color:#fff;letter-spacing:-0.3px;}
+/* 헤더 */
+.hosp-name{text-align:center;margin-bottom:28px;}
+.hosp-name h1{font-size:20px;font-weight:900;color:#fff;}
 .hosp-name h1 span{color:var(--main);}
 .hosp-name p{font-size:12px;color:var(--text2);margin-top:6px;font-family:var(--mono);}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;display:inline-block;margin-right:5px;vertical-align:middle;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
 
 /* 상태 뱃지 */
-.status-wrap{display:flex;justify-content:center;margin-bottom:28px;}
-.status-badge{padding:7px 22px;border-radius:30px;font-size:14px;font-weight:700;font-family:var(--mono);letter-spacing:0.5px;}
+.status-wrap{display:flex;justify-content:center;margin-bottom:22px;}
+.status-badge{padding:7px 24px;border-radius:30px;font-size:14px;font-weight:700;font-family:var(--mono);}
 .s-green{background:rgba(34,212,122,0.12);color:var(--green);border:1px solid rgba(34,212,122,0.3);}
 .s-orange{background:rgba(255,170,0,0.12);color:var(--orange);border:1px solid rgba(255,170,0,0.3);}
 .s-red{background:rgba(255,68,102,0.12);color:var(--red);border:1px solid rgba(255,68,102,0.3);}
 .s-gray{background:rgba(100,130,160,0.1);color:var(--text2);border:1px solid var(--border);}
 
-/* 메인 숫자 카드 2개 */
-.main-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;}
-.main-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px 20px;text-align:center;position:relative;overflow:hidden;}
-.main-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
-.main-card.beds::before{background:linear-gradient(90deg,var(--main),transparent);}
-.main-card.patients::before{background:linear-gradient(90deg,var(--orange),transparent);}
-.mc-label{font-size:12px;color:var(--text2);margin-bottom:12px;}
-.mc-val{font-family:var(--mono);font-size:48px;font-weight:500;line-height:1;}
-.mc-unit{font-size:13px;color:var(--text3);margin-top:6px;}
+/* 섹션 타이틀 */
+.sec{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;margin-top:20px;}
+
+/* 병상 카드 */
+.ward-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;}
+.ward-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 16px;position:relative;overflow:hidden;}
+.ward-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.ward-card.general::before{background:linear-gradient(90deg,var(--main),transparent);}
+.ward-card.peds::before{background:linear-gradient(90deg,#a78bfa,transparent);}
+.wc-title{font-size:11px;color:var(--text2);margin-bottom:14px;font-weight:500;}
+
+.wc-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+.wc-label{font-size:11px;color:var(--text3);}
+.wc-val{font-family:var(--mono);font-size:20px;font-weight:500;}
+
+/* 게이지 바 */
+.gauge-wrap{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:10px;}
+.gauge-fill{height:100%;border-radius:3px;transition:width 0.8s ease;}
 
 /* 그래프 */
-.graph-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px;}
-.graph-label{font-size:12px;color:var(--text2);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
-.graph-label span{font-family:var(--mono);font-size:11px;color:var(--text3);}
-.graph-wrap{position:relative;height:110px;}
+.graph-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:4px;}
+.graph-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.graph-header-title{font-size:12px;color:var(--text2);font-weight:500;}
+.graph-sub{font-size:11px;color:var(--text3);font-family:var(--mono);}
+.graph-wrap{position:relative;height:100px;}
 .graph-wrap canvas{position:absolute;inset:0;width:100%;height:100%;}
 .graph-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text3);}
 
-/* 하단 정보 */
-.info-row{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:12px;}
-.info-left{font-size:13px;color:var(--text2);}
-.info-right{font-size:13px;color:var(--text);font-family:var(--mono);}
+/* 정보 */
+.info-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.info-label{font-size:12px;color:var(--text2);}
+.info-val{font-size:12px;color:var(--text);font-family:var(--mono);}
 
-/* 새로고침 */
-.bottom{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
+/* 하단 */
+.bottom{display:flex;align-items:center;justify-content:space-between;margin-top:16px;}
 .updated{font-size:11px;color:var(--text3);font-family:var(--mono);}
 .updated b{color:var(--text2);}
-.refresh-btn{display:flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--border);color:var(--text2);padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.2s;}
+.refresh-btn{display:flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--border2);color:var(--text2);padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.2s;}
 .refresh-btn:hover{border-color:var(--main);color:var(--main);}
 .refresh-btn.spinning .ri{animation:spin 0.8s linear infinite;display:inline-block;}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;display:inline-block;margin-right:4px;vertical-align:middle;}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-
-.err{background:rgba(255,68,102,0.1);border:1px solid rgba(255,68,102,0.25);border-radius:10px;padding:12px 16px;font-size:12px;color:#ff8899;margin-bottom:14px;display:none;}
+.err{background:rgba(255,68,102,0.1);border:1px solid rgba(255,68,102,0.2);border-radius:10px;padding:11px 14px;font-size:12px;color:#ff8899;margin-bottom:14px;display:none;line-height:1.6;}
 .err.show{display:block;}
+
+@media(max-width:360px){.wc-val{font-size:17px;}}
 </style>
 </head>
 <body>
@@ -86,37 +96,83 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
   <div class="err" id="errBox"></div>
 
-  <div class="main-cards">
-    <div class="main-card beds">
-      <div class="mc-label">응급실 가용병상</div>
-      <div class="mc-val" id="valBeds" style="color:var(--text3)">—</div>
-      <div class="mc-unit">개 남음</div>
+  <div class="sec">응급실 현황</div>
+  <div class="ward-cards">
+    <!-- 일반 -->
+    <div class="ward-card general">
+      <div class="wc-title">🏥 일반 응급실</div>
+      <div class="wc-row">
+        <span class="wc-label">가용병상</span>
+        <span class="wc-val" id="genAvail" style="color:var(--text3)">—</span>
+      </div>
+      <div class="wc-row">
+        <span class="wc-label">추정 환자</span>
+        <span class="wc-val" id="genPatients" style="color:var(--text3)">—</span>
+      </div>
+      <div class="wc-row">
+        <span class="wc-label">총 병상</span>
+        <span class="wc-val" style="color:var(--text3)">20</span>
+      </div>
+      <div class="gauge-wrap">
+        <div class="gauge-fill" id="genGauge" style="width:0%;background:var(--green)"></div>
+      </div>
     </div>
-    <div class="main-card patients">
-      <div class="mc-label">현재 응급실 환자</div>
-      <div class="mc-val" id="valPatients" style="color:var(--text3)">—</div>
-      <div class="mc-unit">명</div>
+    <!-- 소아 -->
+    <div class="ward-card peds">
+      <div class="wc-title">👶 소아 응급실</div>
+      <div class="wc-row">
+        <span class="wc-label">가용병상</span>
+        <span class="wc-val" id="pedAvail" style="color:var(--text3)">—</span>
+      </div>
+      <div class="wc-row">
+        <span class="wc-label">추정 환자</span>
+        <span class="wc-val" id="pedPatients" style="color:var(--text3)">—</span>
+      </div>
+      <div class="wc-row">
+        <span class="wc-label">총 병상</span>
+        <span class="wc-val" style="color:var(--text3)">5</span>
+      </div>
+      <div class="gauge-wrap">
+        <div class="gauge-fill" id="pedGauge" style="width:0%;background:#a78bfa"></div>
+      </div>
     </div>
   </div>
 
-  <div class="graph-section">
-    <div class="graph-label">
-      가용병상 추이
-      <span id="graphSub">데이터 수집 중...</span>
+  <div class="sec">추정 환자 수 추이 (10분 간격)</div>
+  <div class="graph-card">
+    <div class="graph-header">
+      <span class="graph-header-title">일반 응급실 추정 환자</span>
+      <span class="graph-sub" id="graphSub1">수집 중...</span>
     </div>
-    <div class="graph-wrap" id="graphWrap">
-      <canvas id="graphCanvas"></canvas>
-      <div class="graph-empty" id="graphEmpty">3분마다 자동 갱신돼요 📈</div>
+    <div class="graph-wrap" id="graphWrap1">
+      <canvas id="canvas1"></canvas>
+      <div class="graph-empty" id="empty1">10분마다 점이 찍혀요 📈</div>
     </div>
   </div>
 
-  <div class="info-row">
-    <div class="info-left">📍 주소</div>
-    <div class="info-right">경북 구미시 신시로 10</div>
+  <div class="graph-card" style="margin-top:10px;">
+    <div class="graph-header">
+      <span class="graph-header-title">소아 응급실 추정 환자</span>
+      <span class="graph-sub" id="graphSub2">수집 중...</span>
+    </div>
+    <div class="graph-wrap" id="graphWrap2">
+      <canvas id="canvas2"></canvas>
+      <div class="graph-empty" id="empty2">10분마다 점이 찍혀요 📈</div>
+    </div>
   </div>
-  <div class="info-row">
-    <div class="info-left">📞 응급실 전화</div>
-    <div class="info-right">054-450-9700</div>
+
+  <div class="sec">병원 정보</div>
+  <div class="info-card">
+    <span class="info-label">📍 주소</span>
+    <span class="info-val">경북 구미시 신시로 10</span>
+  </div>
+  <div class="info-card">
+    <span class="info-label">📞 응급실</span>
+    <span class="info-val">054-450-9700</span>
+  </div>
+  <div class="info-card">
+    <span class="info-label">🔄 갱신 주기</span>
+    <span class="info-val">10분마다 자동</span>
   </div>
 
   <div class="bottom">
@@ -130,62 +186,62 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 <script>
 const API_KEY = '1ae147a1907296a5c5fd16751a21b2f146381a4727784592ae9c235d8ac0263d';
 const BASE = 'https://apis.data.go.kr/B552657/ErmctInfoInqireService';
-const KEYWORD = '구미차병원';
-const HISTORY = {time:[], beds:[]};
+const TOTAL_GEN = 20; // 일반 응급실 총 병상
+const TOTAL_PED = 5;  // 소아 응급실 총 병상
+
+// 그래프 히스토리
+const H = { gen:{ time:[], val:[] }, ped:{ time:[], val:[] } };
 
 const bedColor = n => n===null?'var(--text3)':n===0?'var(--red)':n<=3?'var(--orange)':'var(--green)';
+const usedColor = n => n===null?'var(--text3)':n>=18?'var(--red)':n>=14?'var(--orange)':'var(--green)';
 
-function getStatus(n) {
-  if (n===null) return {label:'정보없음', cls:'s-gray'};
-  if (n===0)    return {label:'🔴 만실', cls:'s-red'};
-  if (n<=3)     return {label:'🟡 혼잡', cls:'s-orange'};
-  return           {label:'🟢 여유', cls:'s-green'};
+function getStatus(avail, total) {
+  if (avail===null) return {label:'정보없음', cls:'s-gray'};
+  const pct = avail/total;
+  if (avail===0)   return {label:'🔴 만실', cls:'s-red'};
+  if (pct < 0.3)   return {label:'🟡 혼잡', cls:'s-orange'};
+  return               {label:'🟢 여유', cls:'s-green'};
 }
 
 async function fetchData() {
-  // 가용병상 (실시간)
-  const url1 = `${BASE}/getEmrrmRltmUsefulSckbdInfoInqire?serviceKey=${encodeURIComponent(API_KEY)}&STAGE1=${encodeURIComponent('경상북도')}&pageNo=1&numOfRows=100`;
-  const res1 = await fetch(url1);
-  const txt1 = await res1.text();
-  const xml1 = new DOMParser().parseFromString(txt1, 'text/xml');
+  const url = `${BASE}/getEmrrmRltmUsefulSckbdInfoInqire?serviceKey=${encodeURIComponent(API_KEY)}&STAGE1=${encodeURIComponent('경상북도')}&pageNo=1&numOfRows=100`;
+  const res = await fetch(url);
+  const txt = await res.text();
+  const xml = new DOMParser().parseFromString(txt, 'text/xml');
 
-  let beds = null, patients = null;
-
-  xml1.querySelectorAll('item').forEach(item => {
+  let genAvail=null, pedAvail=null;
+  xml.querySelectorAll('item').forEach(item => {
     const g = t => item.querySelector(t)?.textContent?.trim()||'';
     const name = g('dutyName').replace(/\s/g,'');
-    if (name.includes(KEYWORD.replace(/\s/g,''))) {
-      const hvec = parseInt(g('hvec')); // 가용병상
-      const hvs3 = parseInt(g('hvs3')); // 응급실 환자수 (일반)
-      beds     = isNaN(hvec)?null:hvec;
-      patients = isNaN(hvs3)?null:hvs3;
-    }
+    if (!name.includes('구미차병원')) return;
+    const hvec = parseInt(g('hvec')); // 일반 응급실 가용
+    const hv2  = parseInt(g('hv2'));  // 소아 응급실 가용 (hvs/hv2 등)
+    const hvs1 = parseInt(g('hvs1'));
+    const hvs2 = parseInt(g('hvs2'));
+    genAvail = isNaN(hvec)?null:hvec;
+    // 소아: hv2, hvs1, hvs2 중 유효한 값 사용
+    pedAvail = !isNaN(hv2)?hv2:!isNaN(hvs1)?hvs1:!isNaN(hvs2)?hvs2:null;
   });
-
-  return {beds, patients};
+  return {genAvail, pedAvail};
 }
 
-function drawGraph() {
-  const canvas = document.getElementById('graphCanvas');
-  const empty  = document.getElementById('graphEmpty');
-  const sub    = document.getElementById('graphSub');
-
-  if (HISTORY.beds.length < 2) {
-    empty.style.display='flex';
-    return;
-  }
+function drawGraph(canvasId, emptyId, subId, history, color) {
+  const canvas = document.getElementById(canvasId);
+  const empty  = document.getElementById(emptyId);
+  const sub    = document.getElementById(subId);
+  if (history.val.length < 2) { empty.style.display='flex'; return; }
   empty.style.display='none';
-  sub.textContent=`최근 ${HISTORY.beds.length}회`;
+  sub.textContent=`최근 ${history.val.length}회`;
 
-  const dpr = window.devicePixelRatio||1;
-  const rect = canvas.getBoundingClientRect();
+  const dpr=window.devicePixelRatio||1;
+  const rect=canvas.getBoundingClientRect();
   canvas.width=rect.width*dpr; canvas.height=rect.height*dpr;
   const ctx=canvas.getContext('2d');
   const W=canvas.width, H=canvas.height;
   ctx.clearRect(0,0,W,H);
 
-  const data=HISTORY.beds.map(v=>v===null?0:v);
-  const max=Math.max(...data,5);
+  const data=history.val.map(v=>v===null?0:v);
+  const max=Math.max(...data,3);
   const pad={t:10*dpr,r:10*dpr,b:20*dpr,l:28*dpr};
   const gw=W-pad.l-pad.r, gh=H-pad.t-pad.b;
 
@@ -206,27 +262,52 @@ function drawGraph() {
 
   // 채우기
   const grad=ctx.createLinearGradient(0,pad.t,0,pad.t+gh);
-  grad.addColorStop(0,'rgba(59,158,255,0.25)'); grad.addColorStop(1,'rgba(59,158,255,0)');
+  grad.addColorStop(0, color+'44'); grad.addColorStop(1, color+'00');
   ctx.beginPath();
   pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
   ctx.lineTo(pts[pts.length-1].x,pad.t+gh); ctx.lineTo(pts[0].x,pad.t+gh);
   ctx.closePath(); ctx.fillStyle=grad; ctx.fill();
 
   // 선
-  ctx.beginPath(); ctx.strokeStyle='#3b9eff'; ctx.lineWidth=2*dpr; ctx.lineJoin='round';
+  ctx.beginPath(); ctx.strokeStyle=color; ctx.lineWidth=2*dpr; ctx.lineJoin='round';
   pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y)); ctx.stroke();
 
   // 점
   pts.forEach(p=>{
     ctx.beginPath(); ctx.arc(p.x,p.y,3*dpr,0,Math.PI*2);
-    ctx.fillStyle='#3b9eff'; ctx.fill();
+    ctx.fillStyle=color; ctx.fill();
   });
 
-  // 시간
+  // 시간 레이블
   ctx.fillStyle='rgba(100,130,160,0.6)'; ctx.font=`${8*dpr}px DM Mono`; ctx.textAlign='center';
-  [0,Math.floor((HISTORY.time.length-1)/2),HISTORY.time.length-1].forEach(i=>{
-    if(HISTORY.time[i]&&pts[i]) ctx.fillText(HISTORY.time[i],pts[i].x,H-2);
+  [0,Math.floor((history.time.length-1)/2),history.time.length-1].forEach(i=>{
+    if(history.time[i]&&pts[i]) ctx.fillText(history.time[i],pts[i].x,H-2);
   });
+}
+
+function updateWard(avail, total, availId, patientId, gaugeId, colorVar) {
+  const availEl = document.getElementById(availId);
+  const patEl   = document.getElementById(patientId);
+  const gauge   = document.getElementById(gaugeId);
+
+  if (avail===null) {
+    availEl.textContent='?'; availEl.style.color='var(--text3)';
+    patEl.textContent='?';   patEl.style.color='var(--text3)';
+    gauge.style.width='0%';
+    return;
+  }
+
+  const used = total - avail;
+  const usedPct = Math.min(100, Math.round(used/total*100));
+
+  availEl.textContent = avail;
+  availEl.style.color = bedColor(avail);
+
+  patEl.textContent = used < 0 ? '?' : used + '명';
+  patEl.style.color = used < 0 ? 'var(--text3)' : (used >= total*0.9 ? 'var(--red)' : used >= total*0.6 ? 'var(--orange)' : 'var(--green)');
+
+  gauge.style.width = usedPct+'%';
+  gauge.style.background = used >= total*0.9 ? 'var(--red)' : used >= total*0.6 ? 'var(--orange)' : colorVar;
 }
 
 async function load() {
@@ -235,48 +316,51 @@ async function load() {
   document.getElementById('errBox').classList.remove('show');
 
   try {
-    const {beds, patients} = await fetchData();
+    const {genAvail, pedAvail} = await fetchData();
 
-    // 병상 수
-    const bedsEl = document.getElementById('valBeds');
-    bedsEl.textContent = beds??'?';
-    bedsEl.style.color = bedColor(beds);
+    // 일반 병동 업데이트
+    updateWard(genAvail, TOTAL_GEN, 'genAvail', 'genPatients', 'genGauge', 'var(--main)');
+    // 소아 병동 업데이트
+    updateWard(pedAvail, TOTAL_PED, 'pedAvail', 'pedPatients', 'pedGauge', '#a78bfa');
 
-    // 환자 수
-    const patEl = document.getElementById('valPatients');
-    patEl.textContent = patients??'?';
-    patEl.style.color = patients===null?'var(--text3)':'var(--orange)';
+    // 상태 뱃지 (일반 기준)
+    const s = getStatus(genAvail, TOTAL_GEN);
+    const badge = document.getElementById('statusBadge');
+    badge.textContent=s.label; badge.className='status-badge '+s.cls;
 
-    // 상태 뱃지
-    const s=getStatus(beds);
-    const badge=document.getElementById('statusBadge');
-    badge.textContent=s.label;
-    badge.className='status-badge '+s.cls;
-
-    // 그래프 기록
+    // 히스토리 기록
     const now=new Date();
     const ts=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-    HISTORY.time.push(ts); HISTORY.beds.push(beds);
-    if(HISTORY.time.length>20){HISTORY.time.shift();HISTORY.beds.shift();}
-    drawGraph();
+    const genUsed = genAvail===null?null:TOTAL_GEN-genAvail;
+    const pedUsed = pedAvail===null?null:TOTAL_PED-pedAvail;
+
+    H.gen.time.push(ts); H.gen.val.push(genUsed);
+    H.ped.time.push(ts); H.ped.val.push(pedUsed);
+    if(H.gen.time.length>30){H.gen.time.shift();H.gen.val.shift();}
+    if(H.ped.time.length>30){H.ped.time.shift();H.ped.val.shift();}
+
+    drawGraph('canvas1','empty1','graphSub1',H.gen,'#3b9eff');
+    drawGraph('canvas2','empty2','graphSub2',H.ped,'#a78bfa');
 
     document.getElementById('updatedTime').textContent=new Date().toLocaleTimeString('ko-KR');
 
-    if(beds===null && patients===null){
-      document.getElementById('errBox').textContent='⚠️ 데이터를 받지 못했어요. API 승인 중이거나 병원이 현재 데이터를 전송하지 않을 수 있어요.';
+    if(genAvail===null && pedAvail===null){
+      document.getElementById('errBox').textContent='⚠️ 데이터를 받지 못했어요. API 응답 대기 중이거나 병원이 현재 데이터를 전송하지 않을 수 있어요.';
       document.getElementById('errBox').classList.add('show');
     }
   } catch(e) {
     document.getElementById('errBox').textContent='⚠️ 불러오기 실패. 잠시 후 새로고침해보세요.';
     document.getElementById('errBox').classList.add('show');
   }
-
   btn.classList.remove('spinning');
 }
 
 load();
-setInterval(load, 3*60*1000);
-window.addEventListener('resize', drawGraph);
+setInterval(load, 10*60*1000); // 10분마다
+window.addEventListener('resize', ()=>{
+  drawGraph('canvas1','empty1','graphSub1',H.gen,'#3b9eff');
+  drawGraph('canvas2','empty2','graphSub2',H.ped,'#a78bfa');
+});
 </script>
 </body>
 </html>
