@@ -279,31 +279,47 @@ function shortRegion(sido) {
 }
 
 async function fetchSido(sido) {
-  const url = `https://apis.data.go.kr/B552657/ErmctInfoInqireService/getEmrrmRltmUsefulSckbdInfoInqire`
+  // 기본정보 API: 모든 응급의료기관 목록
+  const url = `https://apis.data.go.kr/B552657/ErmctInfoInqireService/getEgytBassInfoInqire`
     + `?serviceKey=${encodeURIComponent(API_KEY)}`
-    + `&STAGE1=${encodeURIComponent(sido)}`
-    + `&pageNo=1&numOfRows=50`;
+    + `&Q0=${encodeURIComponent(sido)}`
+    + `&pageNo=1&numOfRows=100`;
   const res = await fetch(url);
   const text = await res.text();
   const xml = new DOMParser().parseFromString(text, 'text/xml');
   const resultCode = xml.querySelector('resultCode')?.textContent;
   if (resultCode && resultCode !== '00') return [];
   const items = xml.querySelectorAll('item');
-  const result = [];
+  const baseMap = {};
   items.forEach(item => {
     const g = tag => item.querySelector(tag)?.textContent?.trim() || '';
-    const beds = parseInt(g('hvec'));
-    result.push({
-      id: g('hpid'),
+    const id = g('hpid');
+    baseMap[id] = {
+      id,
       name: g('dutyName'),
       address: g('dutyAddr'),
       region: shortRegion(sido),
       tel: g('dutyTel3'),
-      hvec: isNaN(beds) ? null : beds,
-      time: g('hvidate'),
-    });
+      hvec: null,
+    };
   });
-  return result;
+  // 실시간 병상정보 추가
+  try {
+    const url2 = `https://apis.data.go.kr/B552657/ErmctInfoInqireService/getEmrrmRltmUsefulSckbdInfoInqire`
+      + `?serviceKey=${encodeURIComponent(API_KEY)}`
+      + `&STAGE1=${encodeURIComponent(sido)}`
+      + `&pageNo=1&numOfRows=100`;
+    const res2 = await fetch(url2);
+    const text2 = await res2.text();
+    const xml2 = new DOMParser().parseFromString(text2, 'text/xml');
+    xml2.querySelectorAll('item').forEach(item => {
+      const g = tag => item.querySelector(tag)?.textContent?.trim() || '';
+      const id = g('hpid');
+      const beds = parseInt(g('hvec'));
+      if (baseMap[id]) baseMap[id].hvec = isNaN(beds) ? null : beds;
+    });
+  } catch(e) {}
+  return Object.values(baseMap);
 }
 
 async function loadData() {
