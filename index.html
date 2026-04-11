@@ -7,187 +7,101 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #060910;
-  --card: #0d1117;
-  --card2: #131a24;
-  --border: #1c2a3a;
-  --border2: #243447;
-  --main: #3b9eff;
-  --main-dim: rgba(59,158,255,0.12);
-  --green: #22d47a;
-  --green-dim: rgba(34,212,122,0.12);
-  --orange: #ffaa00;
-  --orange-dim: rgba(255,170,0,0.12);
-  --red: #ff4466;
-  --red-dim: rgba(255,68,102,0.12);
-  --text: #ddeeff;
-  --text2: #6a8aaa;
-  --text3: #2d4055;
-  --mono: 'DM Mono', monospace;
+  --bg:#060910; --card:#0d1117; --card2:#131a24;
+  --border:#1c2a3a; --border2:#243447;
+  --main:#3b9eff; --main-dim:rgba(59,158,255,0.12);
+  --green:#22d47a; --green-dim:rgba(34,212,122,0.12);
+  --orange:#ffaa00; --orange-dim:rgba(255,170,0,0.12);
+  --red:#ff4466; --red-dim:rgba(255,68,102,0.12);
+  --text:#ddeeff; --text2:#6a8aaa; --text3:#2d4055;
+  --mono:'DM Mono',monospace;
 }
-* { margin:0; padding:0; box-sizing:border-box; }
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Noto Sans KR', sans-serif;
-  min-height: 100vh;
-}
-body::before {
-  content:''; position:fixed; inset:0;
-  background:
-    radial-gradient(ellipse 60% 40% at 20% 20%, rgba(59,158,255,0.04) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 60% at 80% 80%, rgba(34,212,122,0.03) 0%, transparent 60%);
-  pointer-events:none; z-index:0;
-}
-.wrap { position:relative; z-index:1; max-width:1000px; margin:0 auto; padding:28px 16px 60px; }
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 20%,rgba(59,158,255,0.04) 0%,transparent 60%),radial-gradient(ellipse 40% 60% at 80% 80%,rgba(34,212,122,0.03) 0%,transparent 60%);pointer-events:none;z-index:0;}
+.wrap{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:28px 16px 60px;}
 
-header {
-  display:flex; align-items:flex-start; justify-content:space-between;
-  margin-bottom:28px; gap:16px; flex-wrap:wrap;
-}
-.header-left h1 { font-size:22px; font-weight:900; letter-spacing:-0.5px; color:#fff; }
-.header-left h1 span { color: var(--main); }
-.header-left p { font-size:12px; color:var(--text2); margin-top:6px; font-family:var(--mono); }
-.top-right { display:flex; align-items:center; gap:10px; }
+header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;gap:16px;flex-wrap:wrap;}
+.header-left h1{font-size:21px;font-weight:900;letter-spacing:-0.5px;color:#fff;}
+.header-left h1 span{color:var(--main);}
+.header-left p{font-size:12px;color:var(--text2);margin-top:5px;font-family:var(--mono);}
+.top-right{display:flex;align-items:center;gap:10px;}
+.live-pill{display:flex;align-items:center;gap:6px;background:var(--green-dim);border:1px solid rgba(34,212,122,0.25);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--green);font-family:var(--mono);}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.refresh-btn{display:flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--border2);color:var(--text2);padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.2s;}
+.refresh-btn:hover{border-color:var(--main);color:var(--main);}
+.refresh-btn.spinning .ri{animation:spin 0.8s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-.live-pill {
-  display:flex; align-items:center; gap:6px;
-  background:var(--green-dim); border:1px solid rgba(34,212,122,0.25);
-  border-radius:20px; padding:5px 12px;
-  font-size:12px; color:var(--green); font-family:var(--mono);
-}
-.live-dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:pulse 2s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
-.refresh-btn {
-  display:flex; align-items:center; gap:6px;
-  background:var(--card2); border:1px solid var(--border2);
-  color:var(--text2); padding:7px 14px; border-radius:8px;
-  font-size:12px; cursor:pointer; font-family:inherit; transition:all 0.2s;
-}
-.refresh-btn:hover { border-color:var(--main); color:var(--main); }
-.refresh-btn.spinning .ri { animation:spin 0.8s linear infinite; display:inline-block; }
-@keyframes spin { to{transform:rotate(360deg)} }
-
-.updated { font-size:11px; color:var(--text3); font-family:var(--mono); margin-bottom:20px; }
-.updated b { color:var(--text2); }
-
-.notice {
-  background:var(--main-dim); border:1px solid rgba(59,158,255,0.2);
-  border-radius:10px; padding:11px 15px; font-size:12px; color:var(--text2);
-  margin-bottom:20px; line-height:1.7;
-}
-.notice b { color:var(--main); }
-
-.err-box {
-  background:var(--red-dim); border:1px solid rgba(255,68,102,0.25);
-  border-radius:10px; padding:12px 16px; font-size:12px; color:#ff8899;
-  margin-bottom:16px; display:none;
-}
-.err-box.show { display:block; }
+.updated{font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:18px;}
+.updated b{color:var(--text2);}
+.notice{background:var(--main-dim);border:1px solid rgba(59,158,255,0.2);border-radius:10px;padding:11px 15px;font-size:12px;color:var(--text2);margin-bottom:18px;line-height:1.7;}
+.notice b{color:var(--main);}
+.err-box{background:var(--red-dim);border:1px solid rgba(255,68,102,0.25);border-radius:10px;padding:12px 16px;font-size:12px;color:#ff8899;margin-bottom:14px;display:none;}
+.err-box.show{display:block;}
 
 /* Hero */
-.hero {
-  background:var(--card); border:1px solid var(--border2);
-  border-radius:16px; padding:24px; margin-bottom:20px;
-  position:relative; overflow:hidden;
-}
-.hero::before {
-  content:''; position:absolute; top:0; left:0; right:0; height:2px;
-  background:linear-gradient(90deg, var(--main), transparent);
-}
-.hero-top {
-  display:flex; align-items:flex-start; justify-content:space-between;
-  margin-bottom:20px; gap:12px; flex-wrap:wrap;
-}
-.hero-name { font-size:19px; font-weight:700; color:#fff; }
-.hero-addr { font-size:12px; color:var(--text2); margin-top:4px; }
-.hero-tel { font-size:12px; color:var(--main); margin-top:2px; font-family:var(--mono); }
-
-.hero-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:24px; }
-.stat-box {
-  background:var(--card2); border:1px solid var(--border);
-  border-radius:12px; padding:14px 16px;
-}
-.stat-label { font-size:11px; color:var(--text2); margin-bottom:6px; }
-.stat-val { font-family:var(--mono); font-size:28px; font-weight:500; line-height:1; }
-.stat-sub { font-size:11px; color:var(--text3); margin-top:4px; }
+.hero{background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:22px;margin-bottom:18px;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--main),transparent);}
+.hero-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:12px;flex-wrap:wrap;}
+.hero-name{font-size:18px;font-weight:700;color:#fff;}
+.hero-addr{font-size:12px;color:var(--text2);margin-top:4px;}
+.hero-tel{font-size:12px;color:var(--main);margin-top:2px;font-family:var(--mono);}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+.stat-box{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;}
+.stat-label{font-size:11px;color:var(--text2);margin-bottom:5px;}
+.stat-val{font-family:var(--mono);font-size:26px;font-weight:500;line-height:1;}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:3px;}
 
 /* Graph */
-.graph-title {
-  font-size:13px; font-weight:500; color:var(--text2);
-  margin-bottom:12px; display:flex; align-items:center; gap:8px;
-}
-.graph-title small { font-family:var(--mono); font-size:11px; color:var(--text3); }
-.graph-wrap {
-  position:relative; height:140px;
-  background:var(--card2); border:1px solid var(--border);
-  border-radius:12px; overflow:hidden; padding:12px 12px 28px;
-}
-.graph-wrap canvas { position:absolute; top:0; left:0; width:100%; height:100%; }
-.graph-empty {
-  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-  font-size:12px; color:var(--text3); z-index:1;
-}
+.graph-title{font-size:13px;font-weight:500;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.graph-title small{font-family:var(--mono);font-size:11px;color:var(--text3);}
+.graph-wrap{position:relative;height:130px;background:var(--card2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.graph-wrap canvas{position:absolute;top:0;left:0;width:100%;height:100%;}
+.graph-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text3);}
 
 /* Section */
-.section-title {
-  font-size:12px; font-weight:600; color:var(--text2);
-  margin-bottom:14px; letter-spacing:1px; text-transform:uppercase;
-  display:flex; align-items:center; gap:10px;
-}
-.section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+.section-title{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:12px;letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;gap:10px;}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border);}
 
-/* Compare grid */
-.compare-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:24px; }
-.compare-card {
-  background:var(--card); border:1px solid var(--border);
-  border-radius:12px; padding:16px; transition:all 0.2s;
-}
-.compare-card:hover { border-color:var(--border2); background:var(--card2); }
-.cc-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
-.cc-name { font-size:14px; font-weight:600; line-height:1.3; }
-.cc-addr { font-size:11px; color:var(--text2); margin-top:3px; }
-.cc-beds { font-family:var(--mono); font-size:24px; font-weight:500; text-align:right; line-height:1; }
-.cc-bed-label { font-size:10px; color:var(--text2); text-align:right; margin-top:2px; }
-.cc-bar-wrap { height:4px; background:var(--border); border-radius:2px; overflow:hidden; }
-.cc-bar { height:100%; border-radius:2px; transition:width 0.8s ease; }
+/* Compare */
+.compare-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:18px;}
+.compare-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px;transition:all 0.2s;}
+.compare-card:hover{border-color:var(--border2);background:var(--card2);}
+.cc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.cc-name{font-size:13px;font-weight:600;line-height:1.3;}
+.cc-addr{font-size:11px;color:var(--text2);margin-top:3px;}
+.cc-beds{font-family:var(--mono);font-size:22px;font-weight:500;text-align:right;line-height:1;}
+.cc-bed-label{font-size:10px;color:var(--text2);text-align:right;margin-top:2px;}
+.cc-bar-wrap{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.cc-bar{height:100%;border-radius:2px;transition:width 0.8s ease;}
 
 /* Badge */
-.badge {
-  display:inline-block; padding:2px 8px; border-radius:10px;
-  font-size:10px; font-weight:500; font-family:var(--mono); margin-top:8px;
-}
-.badge-green { background:var(--green-dim); color:var(--green); border:1px solid rgba(34,212,122,0.2); }
-.badge-orange { background:var(--orange-dim); color:var(--orange); border:1px solid rgba(255,170,0,0.2); }
-.badge-red { background:var(--red-dim); color:var(--red); border:1px solid rgba(255,68,102,0.2); }
-.badge-gray { background:rgba(100,130,160,0.1); color:var(--text2); border:1px solid var(--border); }
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:500;font-family:var(--mono);margin-top:7px;}
+.badge-green{background:var(--green-dim);color:var(--green);border:1px solid rgba(34,212,122,0.2);}
+.badge-orange{background:var(--orange-dim);color:var(--orange);border:1px solid rgba(255,170,0,0.2);}
+.badge-red{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,68,102,0.2);}
+.badge-gray{background:rgba(100,130,160,0.1);color:var(--text2);border:1px solid var(--border);}
 
 /* Bar chart */
-.bar-chart { margin-bottom:24px; }
-.bar-row { display:grid; grid-template-columns:150px 1fr 44px; align-items:center; gap:12px; margin-bottom:10px; }
-.bar-name { font-size:12px; color:var(--text2); text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.bar-track { height:26px; background:var(--card2); border-radius:6px; overflow:hidden; border:1px solid var(--border); }
-.bar-fill {
-  height:100%; border-radius:5px;
-  display:flex; align-items:center; padding-left:8px;
-  font-size:11px; font-family:var(--mono); font-weight:500;
-  transition:width 1s ease; color:var(--bg); white-space:nowrap;
-}
-.bar-num { font-family:var(--mono); font-size:13px; font-weight:500; text-align:right; }
-
-.loading { text-align:center; padding:40px; color:var(--text2); font-size:13px; }
+.bar-chart{margin-bottom:20px;}
+.bar-row{display:grid;grid-template-columns:140px 1fr 40px;align-items:center;gap:10px;margin-bottom:9px;}
+.bar-name{font-size:12px;color:var(--text2);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bar-track{height:24px;background:var(--card2);border-radius:6px;overflow:hidden;border:1px solid var(--border);}
+.bar-fill{height:100%;border-radius:5px;display:flex;align-items:center;padding-left:8px;font-size:11px;font-family:var(--mono);font-weight:500;transition:width 1s ease;color:var(--bg);white-space:nowrap;}
+.bar-num{font-family:var(--mono);font-size:13px;font-weight:500;text-align:right;}
+.loading{text-align:center;padding:36px;color:var(--text2);font-size:13px;}
 
 @media(max-width:580px){
-  .compare-grid { grid-template-columns:1fr; }
-  .bar-row { grid-template-columns:100px 1fr 36px; }
-  .stat-val { font-size:22px; }
+  .compare-grid{grid-template-columns:1fr;}
+  .bar-row{grid-template-columns:100px 1fr 34px;}
+  .stat-val{font-size:20px;}
 }
 </style>
 </head>
 <body>
 <div class="wrap">
-
 <header>
   <div class="header-left">
     <h1>🏥 <span>구미차병원</span> 응급실 현황</h1>
@@ -202,131 +116,128 @@ header {
 </header>
 
 <div class="updated">마지막 갱신: <b id="updatedTime">—</b> · 3분마다 자동 갱신</div>
-
-<div class="notice">
-  📡 <b>국립중앙의료원 공공데이터</b> 기반 실시간 응급실 정보입니다.<br>
-  가용병상: <b style="color:var(--green)">여유(4+)</b> / <b style="color:var(--orange)">혼잡(1~3)</b> / <b style="color:var(--red)">만실(0)</b>
-</div>
-
+<div class="notice">📡 <b>국립중앙의료원 공공데이터</b> 기반 실시간 응급실 정보입니다.<br>가용병상: <b style="color:var(--green)">여유(4+)</b> / <b style="color:var(--orange)">혼잡(1~3)</b> / <b style="color:var(--red)">만실(0)</b></div>
 <div class="err-box" id="errBox"></div>
 
-<div class="hero" id="heroCard">
-  <div class="loading">🔄 구미차병원 데이터 불러오는 중...</div>
-</div>
+<div class="hero" id="heroCard"><div class="loading">🔄 데이터 불러오는 중...</div></div>
 
 <div class="section-title">비교 병원 현황</div>
-<div class="compare-grid" id="compareGrid">
-  <div class="loading" style="grid-column:span 2">🔄 불러오는 중...</div>
-</div>
+<div class="compare-grid" id="compareGrid"><div class="loading" style="grid-column:span 2">🔄 불러오는 중...</div></div>
 
 <div class="section-title">가용병상 비교</div>
-<div class="bar-chart" id="barChart">
-  <div class="loading">🔄 불러오는 중...</div>
+<div class="bar-chart" id="barChart"><div class="loading">🔄 불러오는 중...</div></div>
 </div>
 
-</div>
 <script>
 const API_KEY = '1ae147a1907296a5c5fd16751a21b2f146381a4727784592ae9c235d8ac0263d';
 const BASE = 'https://apis.data.go.kr/B552657/ErmctInfoInqireService';
 
-const HOSPITALS = [
-  { id:'A1100070', name:'구미차병원',           addr:'경북 구미시 신시로 10',              tel:'054-450-9700', main:true  },
-  { id:'A1100176', name:'순천향대 구미병원',     addr:'경북 구미시 1공단로 179',            tel:'054-468-9114', main:false },
-  { id:'A1100006', name:'구미강동병원',          addr:'경북 구미시 강동로 167',             tel:'054-450-1500', main:false },
-  { id:'A1200072', name:'일산백병원',            addr:'경기 고양시 일산서구 주화로 170',    tel:'031-910-7114', main:false },
-  { id:'A1200078', name:'동국대 일산병원',       addr:'경기 고양시 일산동구 동국로 27',     tel:'031-961-7000', main:false },
+// 찾을 병원 이름 키워드 & 소속 지역
+const TARGETS = [
+  { keyword:'구미차병원',   sido:'경상북도', main:true,  addr:'경북 구미시 신시로 10',            tel:'054-450-9700' },
+  { keyword:'순천향대학교구미병원', sido:'경상북도', main:false, addr:'경북 구미시 1공단로 179', tel:'054-468-9114' },
+  { keyword:'구미강동병원', sido:'경상북도', main:false, addr:'경북 구미시 강동로 167',            tel:'054-450-1500' },
+  { keyword:'일산백병원',   sido:'경기도',   main:false, addr:'경기 고양시 일산서구 주화로 170',  tel:'031-910-7114' },
+  { keyword:'동국대학교일산병원', sido:'경기도', main:false, addr:'경기 고양시 일산동구 동국로 27', tel:'031-961-7000' },
 ];
 
-const HISTORY = { time:[], beds:[] };
+const HISTORY = {time:[], beds:[]};
 
 const bedColor = n => n===null?'var(--text2)':n===0?'var(--red)':n<=3?'var(--orange)':'var(--green)';
 const badgeCls  = n => n===null?'badge-gray':n===0?'badge-red':n<=3?'badge-orange':'badge-green';
 const badgeLbl  = n => n===null?'정보없음':n===0?'만실':n<=3?'혼잡':'여유';
+const shortName = s => s.replace('대학교','대').replace('순천향대','순천향').replace('동국대학교','동국대');
 
-async function fetchRT(hpid) {
-  try {
-    const url = `${BASE}/getEmrrmRltmUsefulSckbdInfoInqire?serviceKey=${encodeURIComponent(API_KEY)}&HPID=${encodeURIComponent(hpid)}&pageNo=1&numOfRows=1`;
-    const res = await fetch(url);
-    const txt = await res.text();
-    const xml = new DOMParser().parseFromString(txt, 'text/xml');
-    const item = xml.querySelector('item');
-    if (!item) return null;
-    const g = t => { const el=item.querySelector(t); return el?el.textContent.trim():''; };
-    const n = s => { const v=parseInt(g(s)); return isNaN(v)?null:v; };
-    return { hvec:n('hvec'), hvoc:n('hvoc'), hvcc:n('hvcc') };
-  } catch(e) { return null; }
+async function fetchRegion(sido) {
+  const url = `${BASE}/getEmrrmRltmUsefulSckbdInfoInqire?serviceKey=${encodeURIComponent(API_KEY)}&STAGE1=${encodeURIComponent(sido)}&pageNo=1&numOfRows=100`;
+  const res = await fetch(url);
+  const txt = await res.text();
+  const xml = new DOMParser().parseFromString(txt, 'text/xml');
+  const items = xml.querySelectorAll('item');
+  const map = {};
+  items.forEach(item => {
+    const g = t => item.querySelector(t)?.textContent?.trim()||'';
+    const name = g('dutyName').replace(/\s/g,'');
+    const hvec = parseInt(g('hvec'));
+    const hvoc = parseInt(g('hvoc'));
+    const hvcc = parseInt(g('hvcc'));
+    map[name] = {
+      hvec: isNaN(hvec)?null:hvec,
+      hvoc: isNaN(hvoc)?null:hvoc,
+      hvcc: isNaN(hvcc)?null:hvcc,
+    };
+  });
+  return map;
 }
 
 function drawGraph() {
   const wrap = document.getElementById('graphWrap');
   if (!wrap) return;
   const canvas = wrap.querySelector('canvas');
-  const empty  = wrap.querySelector('.graph-empty');
+  const empty = wrap.querySelector('.graph-empty');
   if (HISTORY.beds.length < 2) { if(empty) empty.style.display='flex'; return; }
   if (empty) empty.style.display='none';
 
   const dpr = window.devicePixelRatio||1;
   const rect = canvas.getBoundingClientRect();
-  canvas.width  = rect.width  * dpr;
-  canvas.height = rect.height * dpr;
+  canvas.width = rect.width*dpr; canvas.height = rect.height*dpr;
   const ctx = canvas.getContext('2d');
   const W=canvas.width, H=canvas.height;
   ctx.clearRect(0,0,W,H);
 
   const data = HISTORY.beds.map(v=>v===null?0:v);
-  const max  = Math.max(...data, 5);
-  const pad  = {t:14*dpr, r:12*dpr, b:22*dpr, l:32*dpr};
-  const gw   = W-pad.l-pad.r;
-  const gh   = H-pad.t-pad.b;
+  const max = Math.max(...data,5);
+  const pad = {t:14*dpr,r:12*dpr,b:22*dpr,l:32*dpr};
+  const gw=W-pad.l-pad.r, gh=H-pad.t-pad.b;
 
-  // grid
   ctx.strokeStyle='rgba(28,42,58,0.9)'; ctx.lineWidth=1;
   [0,0.5,1].forEach(f=>{
     const y=pad.t+gh*(1-f);
     ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(W-pad.r,y); ctx.stroke();
     ctx.fillStyle='rgba(100,130,160,0.6)';
-    ctx.font=`${10*dpr}px DM Mono`;
-    ctx.textAlign='right';
+    ctx.font=`${10*dpr}px DM Mono`; ctx.textAlign='right';
     ctx.fillText(Math.round(max*f), pad.l-4, y+4);
   });
 
   const pts = data.map((v,i)=>({
-    x: pad.l + (data.length===1?gw/2:i/(data.length-1)*gw),
-    y: pad.t + gh*(1-v/max),
+    x: pad.l+(data.length===1?gw/2:i/(data.length-1)*gw),
+    y: pad.t+gh*(1-v/max),
   }));
 
-  // fill
   const grad=ctx.createLinearGradient(0,pad.t,0,pad.t+gh);
-  grad.addColorStop(0,'rgba(59,158,255,0.28)');
-  grad.addColorStop(1,'rgba(59,158,255,0)');
+  grad.addColorStop(0,'rgba(59,158,255,0.28)'); grad.addColorStop(1,'rgba(59,158,255,0)');
   ctx.beginPath();
   pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
-  ctx.lineTo(pts[pts.length-1].x,pad.t+gh);
-  ctx.lineTo(pts[0].x,pad.t+gh);
+  ctx.lineTo(pts[pts.length-1].x,pad.t+gh); ctx.lineTo(pts[0].x,pad.t+gh);
   ctx.closePath(); ctx.fillStyle=grad; ctx.fill();
 
-  // line
-  ctx.beginPath(); ctx.strokeStyle='#3b9eff';
-  ctx.lineWidth=2*dpr; ctx.lineJoin='round';
-  pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
-  ctx.stroke();
+  ctx.beginPath(); ctx.strokeStyle='#3b9eff'; ctx.lineWidth=2*dpr; ctx.lineJoin='round';
+  pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y)); ctx.stroke();
 
-  // dots
   pts.forEach(p=>{
     ctx.beginPath(); ctx.arc(p.x,p.y,3*dpr,0,Math.PI*2);
     ctx.fillStyle='#3b9eff'; ctx.fill();
   });
 
-  // time labels
   const times=HISTORY.time;
-  ctx.fillStyle='rgba(100,130,160,0.7)';
-  ctx.font=`${9*dpr}px DM Mono`; ctx.textAlign='center';
+  ctx.fillStyle='rgba(100,130,160,0.7)'; ctx.font=`${9*dpr}px DM Mono`; ctx.textAlign='center';
   [0,Math.floor((times.length-1)/2),times.length-1].forEach(i=>{
-    if(times[i] && pts[i]) ctx.fillText(times[i], pts[i].x, H-3);
+    if(times[i]&&pts[i]) ctx.fillText(times[i],pts[i].x,H-3);
   });
 }
 
-function renderHero(h, rt) {
+function matchHospital(map, keyword) {
+  const key = keyword.replace(/\s/g,'');
+  // 정확히 일치
+  if (map[key]) return map[key];
+  // 부분 일치
+  for (const name of Object.keys(map)) {
+    if (name.includes(key) || key.includes(name)) return map[name];
+  }
+  return null;
+}
+
+function renderHero(target, rt) {
   const beds=rt?.hvec??null, oc=rt?.hvoc??null, cc=rt?.hvcc??null;
   const now=new Date();
   const ts=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
@@ -336,9 +247,9 @@ function renderHero(h, rt) {
   document.getElementById('heroCard').innerHTML=`
     <div class="hero-top">
       <div>
-        <div class="hero-name">🏥 ${h.name}</div>
-        <div class="hero-addr">${h.addr}</div>
-        <div class="hero-tel">${h.tel}</div>
+        <div class="hero-name">🏥 ${target.keyword}</div>
+        <div class="hero-addr">${target.addr}</div>
+        <div class="hero-tel">${target.tel}</div>
       </div>
       <div class="badge ${badgeCls(beds)}" style="font-size:13px;padding:6px 16px">${badgeLbl(beds)}</div>
     </div>
@@ -359,33 +270,28 @@ function renderHero(h, rt) {
         <div class="stat-sub">가용</div>
       </div>
     </div>
-    <div class="graph-title">
-      응급실 가용병상 추이
-      <small>(최근 ${HISTORY.beds.length}회 갱신 기록)</small>
-    </div>
-    <div class="graph-wrap" id="graphWrap" style="position:relative;height:140px;background:var(--card2);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
-      <canvas style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
-      <div class="graph-empty" style="position:absolute;inset:0;display:${HISTORY.beds.length<2?'flex':'none'};align-items:center;justify-content:center;font-size:12px;color:var(--text3);">
-        데이터 수집 중... 3분 후 그래프가 나타나요 📈
-      </div>
+    <div class="graph-title">응급실 가용병상 추이 <small>(최근 ${HISTORY.beds.length}회 기록)</small></div>
+    <div class="graph-wrap" id="graphWrap">
+      <canvas></canvas>
+      <div class="graph-empty" style="display:${HISTORY.beds.length<2?'flex':'none'}">데이터 수집 중... 3분 후 그래프가 나타나요 📈</div>
     </div>
   `;
   setTimeout(drawGraph, 60);
 }
 
-function renderCompare(all) {
-  const others = all.filter(h=>!h.main);
-  const maxBed  = Math.max(...all.map(h=>h.rt?.hvec??0), 1);
+function renderCompare(results) {
+  const others = results.filter(r=>!r.main);
+  const maxBed = Math.max(...results.map(r=>r.rt?.hvec??0),1);
 
-  document.getElementById('compareGrid').innerHTML = others.map(h=>{
-    const beds=h.rt?.hvec??null;
+  document.getElementById('compareGrid').innerHTML = others.map(r=>{
+    const beds=r.rt?.hvec??null;
     const pct=beds===null?0:Math.min(100,Math.round(beds/maxBed*100));
     return `
       <div class="compare-card">
         <div class="cc-header">
           <div>
-            <div class="cc-name">${h.name}</div>
-            <div class="cc-addr">${h.addr}</div>
+            <div class="cc-name">${shortName(r.keyword)}</div>
+            <div class="cc-addr">${r.addr}</div>
           </div>
           <div>
             <div class="cc-beds" style="color:${bedColor(beds)}">${beds??'?'}</div>
@@ -399,16 +305,14 @@ function renderCompare(all) {
       </div>`;
   }).join('');
 
-  document.getElementById('barChart').innerHTML = all.map(h=>{
-    const beds=h.rt?.hvec??null;
+  document.getElementById('barChart').innerHTML = results.map(r=>{
+    const beds=r.rt?.hvec??null;
     const pct=beds===null?0:Math.min(100,Math.round(beds/maxBed*100));
     return `
       <div class="bar-row">
-        <div class="bar-name" style="${h.main?'color:var(--main);font-weight:700':''}">${h.main?'⭐ ':''}${h.name}</div>
+        <div class="bar-name" style="${r.main?'color:var(--main);font-weight:700':''}">${r.main?'⭐ ':''}${shortName(r.keyword)}</div>
         <div class="bar-track">
-          <div class="bar-fill" style="width:${pct}%;background:${bedColor(beds)}">
-            ${pct>12?(beds??'?'):''}
-          </div>
+          <div class="bar-fill" style="width:${pct}%;background:${bedColor(beds)}">${pct>12?(beds??'?'):''}</div>
         </div>
         <div class="bar-num" style="color:${bedColor(beds)}">${beds??'?'}</div>
       </div>`;
@@ -421,17 +325,28 @@ async function loadAll() {
   document.getElementById('errBox').classList.remove('show');
 
   try {
-    const results = await Promise.all(
-      HOSPITALS.map(async h=>({ ...h, rt: await fetchRT(h.id) }))
-    );
-    const main=results.find(h=>h.main);
+    // 지역별로 한 번씩만 API 호출 (중복 제거)
+    const sidos = [...new Set(TARGETS.map(t=>t.sido))];
+    const regionMaps = {};
+    await Promise.all(sidos.map(async sido => {
+      try { regionMaps[sido] = await fetchRegion(sido); }
+      catch(e) { regionMaps[sido] = {}; }
+    }));
+
+    // 각 병원 매칭
+    const results = TARGETS.map(t => ({
+      ...t,
+      rt: matchHospital(regionMaps[t.sido]||{}, t.keyword)
+    }));
+
+    const main = results.find(r=>r.main);
     renderHero(main, main.rt);
     renderCompare(results);
-    document.getElementById('updatedTime').textContent=new Date().toLocaleTimeString('ko-KR');
+    document.getElementById('updatedTime').textContent = new Date().toLocaleTimeString('ko-KR');
 
-    const allNull=results.every(h=>h.rt===null);
-    if(allNull){
-      document.getElementById('errBox').textContent='⚠️ 실시간 데이터를 받지 못했어요. API 승인까지 최대 1~2시간 걸릴 수 있어요. 잠시 후 새로고침해보세요!';
+    const allNull = results.every(r=>r.rt===null);
+    if(allNull) {
+      document.getElementById('errBox').textContent='⚠️ 실시간 데이터를 받지 못했어요. API 승인까지 최대 1~2시간 걸릴 수 있어요.';
       document.getElementById('errBox').classList.add('show');
     }
   } catch(e) {
