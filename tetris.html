@@ -145,8 +145,9 @@ function fits(cells, x, y) {
     for (let c=0; c<cells[r].length; c++)
       if (cells[r][c]) {
         const nx=x+c, ny=y+r;
-        if (nx<0||nx>=COLS||ny>=ROWS) return false;
-        if (ny>=0 && board[ny][nx]) return false;
+        if (nx<0||nx>=COLS) return false;
+        if (ny>=ROWS) return false;
+        if (ny>=0 && board[ny] && board[ny][nx]) return false;
       }
   return true;
 }
@@ -221,7 +222,8 @@ function lock() {
   next = mkPiece();
   drawNext();
 
-  if (!fits(cur.cells, cur.x, cur.y)) { endGame(); return; }
+  // 새 블록이 보드 안에서 충돌할 때만 게임오버
+  if (!fits(cur.cells, cur.x, 0)) { endGame(); return; }
 
   clearInterval(timer);
   timer = setInterval(tick, Math.max(80, 800-(level-1)*70));
