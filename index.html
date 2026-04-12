@@ -545,30 +545,22 @@ const VISITOR_KEY = '$2a$10$j9dLi5DIogSkjVnGiKwCWuGfP7Bhq8F8y0p/QZci76k4EP4SYhBu
 
 async function updateVisitor() {
   try {
-    // 오늘 이미 방문했으면 카운트 안 올림
-    const today = new Date().toDateString();
-    const lastVisit = localStorage.getItem('visit_date');
-
     // 현재 카운트 가져오기
     const res = await fetch('https://api.jsonbin.io/v3/b/' + VISITOR_BIN + '/latest', {
       headers: { 'X-Master-Key': VISITOR_KEY }
     });
     const data = await res.json();
-    let count = data.record.count || 0;
+    let count = (data.record.count || 0) + 1;
 
-    if (lastVisit !== today) {
-      // 새 방문 → 카운트 올리기
-      count++;
-      localStorage.setItem('visit_date', today);
-      await fetch('https://api.jsonbin.io/v3/b/' + VISITOR_BIN, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Master-Key': VISITOR_KEY
-        },
-        body: JSON.stringify({ count })
-      });
-    }
+    // 접속할 때마다 카운트 올리기
+    await fetch('https://api.jsonbin.io/v3/b/' + VISITOR_BIN, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': VISITOR_KEY
+      },
+      body: JSON.stringify({ count })
+    });
 
     document.getElementById('visitorCount').textContent = count.toLocaleString();
   } catch(e) {
