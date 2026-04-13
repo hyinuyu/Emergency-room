@@ -141,12 +141,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
   <div class="err" id="errBox"></div>
 
-  <!-- 방문자 수 -->
-  <div style="text-align:center;margin-bottom:14px;">
-    <span style="font-size:11px;color:var(--text3);font-family:var(--mono);">👀 누적 방문자 </span>
-    <span style="font-size:13px;font-weight:700;color:var(--main);font-family:var(--mono);" id="visitorCount">—</span>
-    <span style="font-size:11px;color:var(--text3);font-family:var(--mono);"> 명</span>
-  </div>
+
 
   <!-- 화산 메인 카드 -->
   <div class="volcano-section" id="volcanoSection">
@@ -539,36 +534,6 @@ setInterval(updateClock, 1000);
   document.head.appendChild(script);
 })();
 
-// 방문자 카운터
-const VISITOR_BIN = '69dac65caaba882197eb9b52';
-const VISITOR_KEY = '$2a$10$j9dLi5DIogSkjVnGiKwCWuGfP7Bhq8F8y0p/QZci76k4EP4SYhBuC';
-
-async function updateVisitor() {
-  try {
-    // 현재 카운트 가져오기
-    const res = await fetch('https://api.jsonbin.io/v3/b/' + VISITOR_BIN + '/latest', {
-      headers: { 'X-Master-Key': VISITOR_KEY }
-    });
-    const data = await res.json();
-    let count = (data.record.count || 0) + 1;
-
-    // 접속할 때마다 카운트 올리기
-    await fetch('https://api.jsonbin.io/v3/b/' + VISITOR_BIN, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Master-Key': VISITOR_KEY
-      },
-      body: JSON.stringify({ count })
-    });
-
-    document.getElementById('visitorCount').textContent = count.toLocaleString();
-  } catch(e) {
-    document.getElementById('visitorCount').textContent = '?';
-  }
-}
-updateVisitor();
-
 // 공유 기능
 function copyLink() {
   const url = 'https://hyinuyu.github.io/Emergency-room/';
@@ -587,26 +552,7 @@ function copyLink() {
   });
 }
 
-function kakaoShare() {
-  const url = 'https://hyinuyu.github.io/Emergency-room/';
-  const kakaoUrl = 'https://sharer.kakao.com/talk/friends/picker/link?app_key=NONE&validation_action=default&validation_params=%7B%7D';
-  // 카카오 SDK 없이 링크 공유
-  const shareUrl = 'https://sharer.kakao.com/talk/friends/picker/easylink?app_key=none&link_ver=4.0&template_id=0&template_args=%7B%7D';
-  // 모바일이면 카카오앱으로, 아니면 안내
-  if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
-    window.open('kakaolink://send?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent('구미차병원 응급실 현황 + 테트리스 🌋'), '_blank');
-    setTimeout(function() {
-      // 앱이 없으면 복사로 대체
-      navigator.clipboard.writeText('구미차병원 응급실 현황 확인 + 테트리스 게임! 🌋\n' + url).then(function() {
-        alert('카카오 앱이 없어서 링크를 복사했어요!\n카카오톡에 붙여넣기 해주세요 😊');
-      });
-    }, 1500);
-  } else {
-    navigator.clipboard.writeText('구미차병원 응급실 현황 확인 + 테트리스 게임! 🌋\n' + url).then(function() {
-      alert('링크를 복사했어요!\n카카오톡에 붙여넣기 해주세요 😊');
-    });
-  }
-}
+
 
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js');
