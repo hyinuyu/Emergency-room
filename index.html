@@ -235,6 +235,15 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
         <div class="vnum-label">총 병상</div>
       </div>
     </div>
+
+    <!-- 대기시간 안내 -->
+    <div id="waitBox" style="margin-top:16px;background:var(--card2);border-radius:12px;padding:14px 16px;display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-size:12px;color:var(--text2);font-weight:600;">⏱️ 예상 대기시간</span>
+        <span id="waitTime" style="font-size:15px;font-weight:700;font-family:var(--mono);"></span>
+      </div>
+      <div id="waitMsg" style="font-size:12px;color:var(--text2);line-height:1.6;text-align:left;"></div>
+    </div>
   </div>
 
   <!-- 소아 카드 -->
@@ -430,6 +439,36 @@ function updateVolcano(avail) {
 
   // 연기
   animateSmoke(state.smokeAnim);
+
+  // 대기시간 안내
+  updateWaitBox(stateKey);
+}
+
+function updateWaitBox(stateKey) {
+  const box = document.getElementById('waitBox');
+  const timeEl = document.getElementById('waitTime');
+  const msgEl = document.getElementById('waitMsg');
+  if (!box) return;
+
+  if (stateKey === 'calm') {
+    box.style.display = 'block';
+    box.style.borderLeft = '3px solid var(--green)';
+    timeEl.textContent = '30분 이내';
+    timeEl.style.color = 'var(--green)';
+    msgEl.innerHTML = '😊 지금은 여유로운 편이에요!<br>빠르게 진료받으실 수 있을 거예요.';
+  } else if (stateKey === 'busy') {
+    box.style.display = 'block';
+    box.style.borderLeft = '3px solid var(--orange)';
+    timeEl.textContent = '1시간 이내';
+    timeEl.style.color = 'var(--orange)';
+    msgEl.innerHTML = '😤 응급실이 바쁜 상태예요.<br>가벼운 증상이라면 잠시 기다리실 수 있어요.';
+  } else if (stateKey === 'full') {
+    box.style.display = 'block';
+    box.style.borderLeft = '3px solid var(--red)';
+    timeEl.textContent = '1시간 이상';
+    timeEl.style.color = 'var(--red)';
+    msgEl.innerHTML = '🚨 응급실이 매우 혼잡해요!<br>긴급하지 않다면 다른 병원도 확인해보세요.';
+  }
 }
 
 function bedColor(n, total) {
