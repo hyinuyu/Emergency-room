@@ -84,8 +84,8 @@ h1 span{color:var(--main);}
       <div class="panel-title">다음</div>
       <canvas id="nextCanvas" width="80" height="80"></canvas>
     </div>
-    <button class="pause-btn" id="pauseBtn" onclick="togglePause()">일시정지</button>
-    <button class="pause-btn" onclick="showLeaderboard()" style="border-color:rgba(255,170,0,0.3);color:#ffaa00;">🏆 기록</button>
+    <button class="pause-btn" id="pauseBtn">일시정지</button>
+    <button class="pause-btn" id="leaderBtn" style="border-color:rgba(255,170,0,0.3);color:#ffaa00;">🏆 기록</button>
   </div>
 </div>
 
@@ -120,7 +120,7 @@ h1 span{color:var(--main);}
       종료되던 버그를 고쳤어요!<br><br>
       이제 더 안정적으로 즐기실 수 있어요 😊
     </div>
-    <button class="popup-btn" onclick="closePopup()">확인!</button>
+    <button class="popup-btn" id="closePopupBtn">확인!</button>
   </div>
 </div>
 
@@ -420,11 +420,23 @@ async function showLeaderboard() {
 
 // 키보드document.getElementById('startBtn').addEventListener('click', startGame);
 
-// 모듈에서 전역 함수 등록
+// innerHTML로 생성되는 버튼들을 위해 window에 등록
 window.startGame = startGame;
-window.togglePause = togglePause;
 window.showLeaderboard = showLeaderboard;
-window.closePopup = closePopup;
+
+// 버튼 이벤트 등록
+document.getElementById('pauseBtn').addEventListener('click', togglePause);
+document.getElementById('leaderBtn').addEventListener('click', showLeaderboard);
+document.getElementById('closePopupBtn') && document.getElementById('closePopupBtn').addEventListener('click', closePopup);
+
+// 팝업 닫기
+function closePopup() {
+  document.getElementById('updatePopup').style.display = 'none';
+  localStorage.setItem('tetris_patch_v2', '1');
+}
+if (!localStorage.getItem('tetris_patch_v2')) {
+  document.getElementById('updatePopup').style.display = 'flex';
+}
 
 function addBtn(id, fn) {
   const el = document.getElementById(id);
