@@ -124,7 +124,20 @@ h1 span{color:var(--main);}
   </div>
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc, orderBy, query, limit } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAu9lEDOwLgtiO3FE-bI7mXanF-F7E9RJk",
+  authDomain: "gumi-er-tetris.firebaseapp.com",
+  projectId: "gumi-er-tetris",
+  storageBucket: "gumi-er-tetris.firebasestorage.app",
+  messagingSenderId: "421677764064",
+  appId: "1:421677764064:web:35fb5b795c94e5226def85"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 function closePopup() {
   document.getElementById('updatePopup').style.display = 'none';
   localStorage.setItem('tetris_patch_v2', '1');
@@ -342,73 +355,48 @@ function saveAndShow() {
   showLeaderboard();
 }
 
-const API_KEY = '$2a$10$j9dLi5DIogSkjVnGiKwCWuGfP7Bhq8F8y0p/QZci76k4EP4SYhBuC';
-const BIN_ID = '69dab36b856a682189231598';
-
-async function getBinId() {
-  return BIN_ID;
-}
-
 async function fetchRecords() {
   try {
-    const id = await getBinId();
-    const res = await fetch('https://api.jsonbin.io/v3/b/' + id + '/latest', {
-      headers: { 'X-Master-Key': API_KEY }
-    });
-    const data = await res.json();
-    return data.record.records || [];
+    const q = query(collection(db, 'leaderboard'), orderBy('score','desc'), limit(20));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => d.data());
   } catch(e) {
-    return JSON.parse(localStorage.getItem('tetris_records_backup') || '[]');
+    return JSON.parse(localStorage.getItem('tetris_backup') || '[]');
   }
 }
 
 async function saveRecord(name, sc, lv, ln, mg) {
   try {
-    const id = await getBinId();
-    let records = await fetchRecords();
-    records.push({
-      name,
-      score: sc,
-      level: lv,
-      lines: ln,
-      msg: mg || '',
-      date: new Date().toLocaleDateString('ko-KR')
+    await addDoc(collection(db, 'leaderboard'), {
+      name, score:sc, level:lv, lines:ln,
+      msg: mg||'',
+      date: new Date().toLocaleDateString('ko-KR'),
+      createdAt: Date.now()
     });
-    records.sort((a,b) => b.score - a.score);
-    records = records.slice(0, 20);
-    await fetch('https://api.jsonbin.io/v3/b/' + id, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Master-Key': API_KEY
-      },
-      body: JSON.stringify({ records })
-    });
-    localStorage.setItem('tetris_records_backup', JSON.stringify(records));
+    // 백업
+    const records = await fetchRecords();
+    localStorage.setItem('tetris_backup', JSON.stringify(records));
   } catch(e) {
     // 로컬 폴백
-    let records = JSON.parse(localStorage.getItem('tetris_records_backup') || '[]');
-    records.push({ name, score:sc, level:lv, lines:ln, date: new Date().toLocaleDateString('ko-KR') });
-    records.sort((a,b) => b.score - a.score);
-    records = records.slice(0, 20);
-    localStorage.setItem('tetris_records_backup', JSON.stringify(records));
+    let records = JSON.parse(localStorage.getItem('tetris_backup')||'[]');
+    records.push({name, score:sc, level:lv, lines:ln, msg:mg||'', date:new Date().toLocaleDateString('ko-KR')});
+    records.sort((a,b)=>b.score-a.score);
+    records = records.slice(0,20);
+    localStorage.setItem('tetris_backup', JSON.stringify(records));
   }
 }
 
 async function showLeaderboard() {
   const ov = document.getElementById('overlay');
   ov.style.display = 'flex';
-  ov.innerHTML = `
-    <div class="overlay-title">🏆 담벼락 기록</div>
-    <div style="color:#6a8aaa;font-size:12px;padding:20px;">불러오는 중... ⏳</div>
-  `;
+  ov.innerHTML = '<div class="overlay-title">🏆 담벼락 기록</div><div style="color:#6a8aaa;font-size:12px;padding:20px;">불러오는 중... ⏳</div>';
 
   const records = await fetchRecords();
   const medals = ['🥇','🥈','🥉'];
   const rows = records.map((r,i) => `
     <div style="padding:7px 0;border-bottom:1px solid #1c2a3a;font-size:12px;">
       <div style="display:flex;align-items:center;gap:8px;">
-        <span style="width:24px;text-align:center;font-size:${i<3?'15':'12'}px;color:#2d4055;">${medals[i] || (i+1)}</span>
+        <span style="width:24px;text-align:center;font-size:${i<3?'15':'12'}px;color:#2d4055;">${medals[i]||(i+1)}</span>
         <span style="flex:1;color:#ddeeff;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.name}</span>
         <span style="color:#3b9eff;font-family:'DM Mono',monospace;">${r.score.toLocaleString()}</span>
         <span style="color:#2d4055;font-size:10px;margin-left:4px;">Lv${r.level}</span>
@@ -421,7 +409,7 @@ async function showLeaderboard() {
     <div class="overlay-title">🏆 담벼락 기록</div>
     <div style="font-size:11px;color:#6a8aaa;margin-top:-8px;margin-bottom:8px;">누구나 볼 수 있어요 · 상위 20명</div>
     <div style="width:230px;max-height:260px;overflow-y:auto;border:1px solid #1c2a3a;border-radius:10px;padding:4px 12px;">
-      ${rows || '<div style="color:#6a8aaa;font-size:12px;padding:20px;text-align:center;">아직 기록이 없어요!<br>🔥 첫 주인공이 되세요</div>'}
+      ${rows||'<div style="color:#6a8aaa;font-size:12px;padding:20px;text-align:center;">아직 기록이 없어요!<br>🔥 첫 주인공이 되세요</div>'}
     </div>
     <div style="display:flex;gap:6px;margin-top:8px;">
       <button class="start-btn" onclick="startGame()" style="padding:7px 14px;font-size:12px;">도전!</button>
@@ -430,27 +418,7 @@ async function showLeaderboard() {
   `;
 }
 
-function togglePause() {
-  if (!running) return;
-  paused=!paused;
-  document.getElementById('pauseBtn').textContent = paused?'계속하기':'일시정지';
-  if (!paused) { clearInterval(timer); timer=setInterval(tick,Math.max(80,800-(level-1)*70)); }
-  else clearInterval(timer);
-}
-
-// 키보드
-document.addEventListener('keydown', e=>{
-  if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A'){move(-1);e.preventDefault();}
-  else if(e.key==='ArrowRight'||e.key==='d'||e.key==='D'){move(1);e.preventDefault();}
-  else if(e.key==='ArrowDown'||e.key==='s'||e.key==='S'){tick();e.preventDefault();}
-  else if(e.key==='ArrowUp'||e.key==='w'||e.key==='W'){rotatePiece();e.preventDefault();}
-  else if(e.key===' '){hardDrop();e.preventDefault();}
-  else if(e.key==='p'||e.key==='P') togglePause();
-});
-
-
-
-document.getElementById('startBtn').addEventListener('click', startGame);
+// 키보드document.getElementById('startBtn').addEventListener('click', startGame);
 
 function addBtn(id, fn) {
   const el = document.getElementById(id);
