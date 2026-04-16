@@ -420,6 +420,12 @@ async function showLeaderboard() {
 
 // 키보드document.getElementById('startBtn').addEventListener('click', startGame);
 
+// 모듈에서 전역 함수 등록
+window.startGame = startGame;
+window.togglePause = togglePause;
+window.showLeaderboard = showLeaderboard;
+window.closePopup = closePopup;
+
 function addBtn(id, fn) {
   const el = document.getElementById(id);
   if (!el) return;
