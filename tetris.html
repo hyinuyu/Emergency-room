@@ -134,7 +134,7 @@ async function showLeaderboard() {
     <div style="padding:7px 0;border-bottom:1px solid #1c2a3a;font-size:12px;">
       <div style="display:flex;align-items:center;gap:8px;">
         <span style="width:24px;text-align:center;font-size:${i<3?'15':'12'}px;color:#2d4055;">${medals[i]||(i+1)}</span>
-        <span style="flex:1;color:#ddeeff;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.name}</span>
+        <span style="flex:1;color:#ddeeff;font-weight:600;word-break:break-all;">${r.name}</span>
         <span style="color:#3b9eff;font-family:'DM Mono',monospace;">${r.score.toLocaleString()}</span>
         <span style="color:#2d4055;font-size:10px;margin-left:4px;">Lv${r.level}</span>
       </div>
