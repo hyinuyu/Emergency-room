@@ -102,6 +102,38 @@ h1 span{color:var(--main);}
   <button class="cbtn" id="btnDrop" style="width:200px;font-size:13px;font-weight:700;color:var(--main);border-color:rgba(59,158,255,0.3);">⬇ 바로 드롭</button>
 </div>
 
+<style>
+.popup-overlay{position:fixed;inset:0;background:rgba(6,9,16,0.85);z-index:999;display:flex;align-items:center;justify-content:center;}
+.popup-box{background:#0d1117;border:1px solid #243447;border-radius:16px;padding:24px;max-width:300px;width:90%;text-align:center;}
+.popup-title{font-size:16px;font-weight:700;color:#fff;margin-bottom:8px;}
+.popup-sub{font-size:12px;color:#6a8aaa;line-height:1.8;margin-bottom:16px;}
+.popup-btn{background:#3b9eff;color:#000;border:none;padding:10px 24px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;}
+</style>
+
+<!-- 업데이트 팝업 -->
+<div class="popup-overlay" id="updatePopup" style="display:none;">
+  <div class="popup-box">
+    <div style="font-size:32px;margin-bottom:12px;">🔧</div>
+    <div class="popup-title">버그 수정 완료!</div>
+    <div class="popup-sub">
+      드롭/회전 시 게임이 갑자기<br>
+      종료되던 버그를 고쳤어요!<br><br>
+      이제 더 안정적으로 즐기실 수 있어요 😊
+    </div>
+    <button class="popup-btn" onclick="closePopup()">확인!</button>
+  </div>
+</div>
+
+<script>
+function closePopup() {
+  document.getElementById('updatePopup').style.display = 'none';
+  localStorage.setItem('tetris_patch_v2', '1');
+}
+if (!localStorage.getItem('tetris_patch_v2')) {
+  document.getElementById('updatePopup').style.display = 'flex';
+}
+</script>
+
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -196,7 +228,13 @@ function drawNext() {
     if(s[r][c]) drawBlock(nctx, ox+c, oy+r, next.color);
 }
 
+let locking = false;
+
 function lock() {
+  if (locking) return;
+  locking = true;
+  clearInterval(timer);
+
   for (let r=0;r<cur.cells.length;r++) for (let c=0;c<cur.cells[r].length;c++)
     if(cur.cells[r][c] && cur.y+r>=0) board[cur.y+r][cur.x+c] = cur.color;
 
@@ -222,37 +260,45 @@ function lock() {
   next = mkPiece();
   drawNext();
 
+  locking = false;
+
   // 새 블록 스폰 위치에서 충돌하면 게임오버
   if (!fits(cur.cells, cur.x, cur.y)) { endGame(); return; }
 
-  clearInterval(timer);
   timer = setInterval(tick, Math.max(50, 700-(level-1)*100));
+  drawBoard();
 }
 
 function tick() {
-  if (!running||paused) return;
+  if (!running || paused || locking) return;
   if (fits(cur.cells, cur.x, cur.y+1)) { cur.y++; drawBoard(); }
   else lock();
 }
 
 function move(dx) {
-  if (!running||paused) return;
+  if (!running || paused || locking) return;
   if (fits(cur.cells, cur.x+dx, cur.y)) { cur.x+=dx; drawBoard(); }
 }
 
 function rotatePiece() {
-  if (!running||paused) return;
+  if (!running || paused || locking) return;
   const r = rotate(cur.cells);
-  if (fits(r, cur.x, cur.y)) { cur.cells=r; drawBoard(); }
-  else if (fits(r, cur.x+1, cur.y)) { cur.cells=r; cur.x++; drawBoard(); }
-  else if (fits(r, cur.x-1, cur.y)) { cur.cells=r; cur.x--; drawBoard(); }
+  // 벽 킥 - 여러 위치 시도
+  const kicks = [0, 1, -1, 2, -2];
+  for (const kick of kicks) {
+    if (fits(r, cur.x+kick, cur.y)) {
+      cur.cells = r;
+      cur.x += kick;
+      drawBoard();
+      return;
+    }
+  }
 }
 
 function hardDrop() {
-  if (!running||paused) return;
+  if (!running || paused || locking) return;
   while (fits(cur.cells, cur.x, cur.y+1)) cur.y++;
-  drawBoard();
-  setTimeout(function(){ lock(); }, 0);
+  lock();
 }
 
 function startGame() {
