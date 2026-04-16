@@ -10,36 +10,28 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px 40px;}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 20%,rgba(59,158,255,0.04) 0%,transparent 70%);pointer-events:none;}
-
 .back-btn{align-self:flex-start;display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);color:var(--text2);padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer;text-decoration:none;margin-bottom:16px;transition:all 0.2s;position:relative;z-index:1;}
 .back-btn:hover{border-color:var(--main);color:var(--main);}
-
 h1{font-size:18px;font-weight:900;margin-bottom:4px;position:relative;z-index:1;}
 h1 span{color:var(--main);}
 .subtitle{font-size:11px;color:var(--text2);margin-bottom:16px;text-align:center;position:relative;z-index:1;}
-
 .game-area{display:flex;gap:14px;align-items:flex-start;justify-content:center;position:relative;z-index:1;}
-
 #gameCanvas{border:2px solid var(--border);border-radius:10px;background:#070c14;display:block;touch-action:none;}
-
 .side{display:flex;flex-direction:column;gap:8px;min-width:90px;}
 .panel{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
 .panel-title{font-size:9px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
 .panel-val{font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:var(--text);}
 #nextCanvas{border:1px solid var(--border);border-radius:6px;background:#070c14;display:block;}
-
 .pause-btn{background:var(--card);border:1px solid var(--border);color:var(--text2);padding:7px;border-radius:8px;font-size:11px;cursor:pointer;font-family:inherit;width:100%;transition:all 0.2s;}
 .pause-btn:hover{border-color:var(--main);color:var(--main);}
-
 .overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(6,9,16,0.9);border-radius:10px;gap:12px;z-index:10;}
 .overlay-title{font-size:20px;font-weight:900;}
 .overlay-sub{font-size:12px;color:var(--text2);text-align:center;line-height:1.8;}
 .start-btn{background:var(--main);color:#000;border:none;padding:10px 28px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
-
-.hint-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 20px;margin-top:14px;text-align:center;line-height:2;position:relative;z-index:1;}
-.hint-box div{font-size:11px;color:var(--text2);}
 .cbtn{background:var(--card);border:2px solid var(--border);border-radius:12px;color:var(--text);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;width:64px;height:56px;transition:all 0.1s;-webkit-tap-highlight-color:transparent;user-select:none;}
 .cbtn:active{background:var(--border);transform:scale(0.92);}
+.popup-overlay{position:fixed;inset:0;background:rgba(6,9,16,0.85);z-index:999;display:flex;align-items:center;justify-content:center;}
+.popup-box{background:#0d1117;border:1px solid #243447;border-radius:16px;padding:24px;max-width:300px;width:90%;text-align:center;}
 </style>
 </head>
 <body>
@@ -54,346 +46,91 @@ h1 span{color:var(--main);}
     <div class="overlay" id="overlay">
       <div class="overlay-title">🌋 테트리스</div>
       <div class="overlay-sub">
-        🖱️ <b style="color:var(--text)">버튼</b>으로 조작하세요<br><br>
-        ⌨️ <b style="color:var(--text)">키보드</b> 조작법<br>
-        <span style="font-size:10px;color:var(--text3);">
-        A / D → 좌우 이동<br>
-        W / S → 회전 / 한칸 내리기<br>
-        Space → 바로 드롭<br>
-        P → 일시정지
-        </span>
+        ⌨️ 키보드 조작<br>
+        <span style="font-size:10px;color:var(--text3);">A/D 또는 ←→ 이동 · W/↑ 회전<br>S/↓ 내리기 · Space 드롭 · P 일시정지</span>
       </div>
       <button class="start-btn" id="startBtn">게임 시작!</button>
     </div>
   </div>
-
   <div class="side">
-    <div class="panel">
-      <div class="panel-title">점수</div>
-      <div class="panel-val" id="score">0</div>
-    </div>
-    <div class="panel">
-      <div class="panel-title">레벨</div>
-      <div class="panel-val" id="level">1</div>
-    </div>
-    <div class="panel">
-      <div class="panel-title">라인</div>
-      <div class="panel-val" id="lines">0</div>
-    </div>
-    <div class="panel">
-      <div class="panel-title">다음</div>
-      <canvas id="nextCanvas" width="80" height="80"></canvas>
-    </div>
+    <div class="panel"><div class="panel-title">점수</div><div class="panel-val" id="score">0</div></div>
+    <div class="panel"><div class="panel-title">레벨</div><div class="panel-val" id="level">1</div></div>
+    <div class="panel"><div class="panel-title">라인</div><div class="panel-val" id="lines">0</div></div>
+    <div class="panel"><div class="panel-title">다음</div><canvas id="nextCanvas" width="80" height="80"></canvas></div>
     <button class="pause-btn" id="pauseBtn">일시정지</button>
     <button class="pause-btn" id="leaderBtn" style="border-color:rgba(255,170,0,0.3);color:#ffaa00;">🏆 기록</button>
   </div>
 </div>
 
 <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:14px;position:relative;z-index:1;">
-  <!-- 회전 -->
   <button class="cbtn" id="btnUp" style="width:200px;font-size:16px;">↻ 회전</button>
-  <!-- 좌우 + 아래 -->
   <div style="display:flex;gap:8px;">
     <button class="cbtn" id="btnLeft" style="width:80px;font-size:24px;">←</button>
     <button class="cbtn" id="btnDown" style="width:40px;font-size:18px;">↓</button>
     <button class="cbtn" id="btnRight" style="width:80px;font-size:24px;">→</button>
   </div>
-  <!-- 드롭 -->
   <button class="cbtn" id="btnDrop" style="width:200px;font-size:13px;font-weight:700;color:var(--main);border-color:rgba(59,158,255,0.3);">⬇ 바로 드롭</button>
 </div>
 
-<style>
-.popup-overlay{position:fixed;inset:0;background:rgba(6,9,16,0.85);z-index:999;display:flex;align-items:center;justify-content:center;}
-.popup-box{background:#0d1117;border:1px solid #243447;border-radius:16px;padding:24px;max-width:300px;width:90%;text-align:center;}
-.popup-title{font-size:16px;font-weight:700;color:#fff;margin-bottom:8px;}
-.popup-sub{font-size:12px;color:#6a8aaa;line-height:1.8;margin-bottom:16px;}
-.popup-btn{background:#3b9eff;color:#000;border:none;padding:10px 24px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;}
-</style>
-
-<!-- 업데이트 팝업 -->
+<!-- 버그 수정 팝업 -->
 <div class="popup-overlay" id="updatePopup" style="display:none;">
   <div class="popup-box">
     <div style="font-size:32px;margin-bottom:12px;">🔧</div>
-    <div class="popup-title">버그 수정 완료!</div>
-    <div class="popup-sub">
-      드롭/회전 시 게임이 갑자기<br>
-      종료되던 버그를 고쳤어요!<br><br>
-      이제 더 안정적으로 즐기실 수 있어요 😊
-    </div>
-    <button class="popup-btn" id="closePopupBtn">확인!</button>
+    <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:8px;">버그 수정 완료!</div>
+    <div style="font-size:12px;color:#6a8aaa;line-height:1.8;margin-bottom:16px;">드롭/회전 시 게임이 갑자기<br>종료되던 버그를 고쳤어요!<br><br>이제 더 안정적으로 즐기실 수 있어요 😊</div>
+    <button class="start-btn" id="closePopupBtn">확인!</button>
   </div>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs, addDoc, orderBy, query, limit } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-const firebaseConfig = {
+<script>
+// Firebase 초기화
+firebase.initializeApp({
   apiKey: "AIzaSyAu9lEDOwLgtiO3FE-bI7mXanF-F7E9RJk",
   authDomain: "gumi-er-tetris.firebaseapp.com",
   projectId: "gumi-er-tetris",
   storageBucket: "gumi-er-tetris.firebasestorage.app",
   messagingSenderId: "421677764064",
   appId: "1:421677764064:web:35fb5b795c94e5226def85"
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-function closePopup() {
-  document.getElementById('updatePopup').style.display = 'none';
-  localStorage.setItem('tetris_patch_v2', '1');
-}
-if (!localStorage.getItem('tetris_patch_v2')) {
-  document.getElementById('updatePopup').style.display = 'flex';
-}
-</script>
+});
+const db = firebase.firestore();
 
-<script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const nextCanvas = document.getElementById('nextCanvas');
-const nctx = nextCanvas.getContext('2d');
-
-const COLS = 10, ROWS = 20, SZ = 20;
-
-const SHAPES = [
-  { cells: [[1,1,1,1]], color: '#00d4ff' },
-  { cells: [[1,1],[1,1]], color: '#ffaa00' },
-  { cells: [[0,1,0],[1,1,1]], color: '#a78bfa' },
-  { cells: [[1,0,0],[1,1,1]], color: '#3b9eff' },
-  { cells: [[0,0,1],[1,1,1]], color: '#ff8800' },
-  { cells: [[0,1,1],[1,1,0]], color: '#22d47a' },
-  { cells: [[1,1,0],[0,1,1]], color: '#ff4466' },
-];
-
-let board, cur, next, score, level, lines, timer, running, paused;
-
-function mkBoard() {
-  return Array.from({length:ROWS}, ()=>new Array(COLS).fill(null));
-}
-
-function mkPiece() {
-  const s = SHAPES[Math.floor(Math.random()*SHAPES.length)];
-  return {
-    cells: s.cells.map(r=>[...r]),
-    color: s.color,
-    x: Math.floor(COLS/2) - Math.floor(s.cells[0].length/2),
-    y: 0
-  };
-}
-
-function rotate(cells) {
-  return cells[0].map((_,i)=>cells.map(r=>r[i]).reverse());
-}
-
-function fits(cells, x, y) {
-  for (let r=0; r<cells.length; r++)
-    for (let c=0; c<cells[r].length; c++)
-      if (cells[r][c]) {
-        const nx=x+c, ny=y+r;
-        if (nx<0 || nx>=COLS) return false;
-        if (ny>=ROWS) return false;
-        if (ny>=0 && board[ny] && board[ny][nx] !== null) return false;
-      }
-  return true;
-}
-
-function drawBlock(c, x, y, color, alpha) {
-  alpha = alpha||1;
-  c.globalAlpha = alpha;
-  c.fillStyle = color;
-  c.fillRect(x*SZ+1, y*SZ+1, SZ-2, SZ-2);
-  c.fillStyle = 'rgba(255,255,255,0.2)';
-  c.fillRect(x*SZ+1, y*SZ+1, SZ-2, 3);
-  c.fillStyle = 'rgba(0,0,0,0.15)';
-  c.fillRect(x*SZ+1, y*SZ+SZ-4, SZ-2, 3);
-  c.globalAlpha = 1;
-}
-
-function drawBoard() {
-  ctx.fillStyle = '#070c14';
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-
-  ctx.strokeStyle = 'rgba(28,42,58,0.4)';
-  ctx.lineWidth = 0.5;
-  for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) ctx.strokeRect(c*SZ,r*SZ,SZ,SZ);
-
-  for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) if(board[r][c]) drawBlock(ctx,c,r,board[r][c]);
-
-  // 고스트
-  let gy = cur.y;
-  while (fits(cur.cells, cur.x, gy+1)) gy++;
-  if (gy !== cur.y)
-    for (let r=0;r<cur.cells.length;r++) for (let c=0;c<cur.cells[r].length;c++)
-      if(cur.cells[r][c]) drawBlock(ctx, cur.x+c, gy+r, cur.color, 0.15);
-
-  // 현재 블록
-  for (let r=0;r<cur.cells.length;r++) for (let c=0;c<cur.cells[r].length;c++)
-    if(cur.cells[r][c]) drawBlock(ctx, cur.x+c, cur.y+r, cur.color);
-}
-
-function drawNext() {
-  nctx.fillStyle = '#070c14';
-  nctx.fillRect(0,0,80,80);
-  const s = next.cells;
-  const ox = Math.floor((4-s[0].length)/2);
-  const oy = Math.floor((4-s.length)/2);
-  for (let r=0;r<s.length;r++) for (let c=0;c<s[r].length;c++)
-    if(s[r][c]) drawBlock(nctx, ox+c, oy+r, next.color);
-}
-
-let locking = false;
-
-function lock() {
-  if (locking) return;
-  locking = true;
-  clearInterval(timer);
-
-  for (let r=0;r<cur.cells.length;r++) for (let c=0;c<cur.cells[r].length;c++)
-    if(cur.cells[r][c] && cur.y+r>=0) board[cur.y+r][cur.x+c] = cur.color;
-
-  let cleared=0;
-  for (let r=ROWS-1;r>=0;r--) {
-    if (board[r].every(c=>c!==null)) {
-      board.splice(r,1);
-      board.unshift(new Array(COLS).fill(null));
-      cleared++; r++;
-    }
-  }
-
-  const pts=[0,100,300,500,800];
-  score += (pts[Math.min(cleared,4)]||0)*level;
-  lines += cleared;
-  level = Math.floor(lines/10)+1;
-
-  document.getElementById('score').textContent = score.toLocaleString();
-  document.getElementById('level').textContent = level;
-  document.getElementById('lines').textContent = lines;
-
-  cur = next;
-  next = mkPiece();
-  drawNext();
-
-  locking = false;
-
-  // 새 블록 스폰 위치에서 충돌하면 게임오버
-  if (!fits(cur.cells, cur.x, cur.y)) { endGame(); return; }
-
-  timer = setInterval(tick, Math.max(50, 700-(level-1)*100));
-  drawBoard();
-}
-
-function tick() {
-  if (!running || paused || locking) return;
-  if (fits(cur.cells, cur.x, cur.y+1)) { cur.y++; drawBoard(); }
-  else lock();
-}
-
-function move(dx) {
-  if (!running || paused || locking) return;
-  if (fits(cur.cells, cur.x+dx, cur.y)) { cur.x+=dx; drawBoard(); }
-}
-
-function rotatePiece() {
-  if (!running || paused || locking) return;
-  const r = rotate(cur.cells);
-  // 벽 킥 - 여러 위치 시도
-  const kicks = [0, 1, -1, 2, -2];
-  for (const kick of kicks) {
-    if (fits(r, cur.x+kick, cur.y)) {
-      cur.cells = r;
-      cur.x += kick;
-      drawBoard();
-      return;
-    }
-  }
-}
-
-function hardDrop() {
-  if (!running || paused || locking) return;
-  while (fits(cur.cells, cur.x, cur.y+1)) cur.y++;
-  lock();
-}
-
-function startGame() {
-  board = mkBoard();
-  score=0; level=1; lines=0; running=true; paused=false;
-  cur = mkPiece();
-  next = mkPiece();
-  document.getElementById('score').textContent='0';
-  document.getElementById('level').textContent='1';
-  document.getElementById('lines').textContent='0';
-  document.getElementById('overlay').style.display='none';
-  document.getElementById('pauseBtn').textContent='일시정지';
-  clearInterval(timer);
-  timer = setInterval(tick, 700);
-  drawNext(); drawBoard();
-}
-
-function endGame() {
-  running=false; clearInterval(timer);
-  const ov = document.getElementById('overlay');
-  ov.style.display='flex';
-  ov.innerHTML = `
-    <div class="overlay-title">💀 게임 오버</div>
-    <div class="overlay-sub">점수: <b style="color:var(--main)">${score.toLocaleString()}</b> · 레벨 ${level} · ${lines}라인</div>
-    <div style="display:flex;flex-direction:column;gap:8px;width:190px;">
-      <input id="nameInput" type="text" maxlength="10" placeholder="✏️ 이름 (10자 이내)" style="background:#131a24;border:1px solid #243447;border-radius:8px;padding:8px 12px;color:#ddeeff;font-size:13px;font-family:inherit;outline:none;text-align:center;">
-      <input id="msgInput" type="text" maxlength="20" placeholder="💬 한마디 (20자 이내)" style="background:#131a24;border:1px solid #243447;border-radius:8px;padding:8px 12px;color:#ddeeff;font-size:13px;font-family:inherit;outline:none;text-align:center;">
-      <button class="start-btn" onclick="saveAndShow()">🏆 기록 저장!</button>
-    </div>
-    <button onclick="startGame()" style="background:none;border:none;color:#6a8aaa;font-size:12px;cursor:pointer;font-family:inherit;">저장 없이 다시하기</button>
-  `;
-  setTimeout(()=>{ const inp=document.getElementById('nameInput'); if(inp) inp.focus(); },100);
-}
-
-function saveAndShow() {
-  const inp = document.getElementById('nameInput');
-  const msgInp = document.getElementById('msgInput');
-  const name = (inp ? inp.value.trim() : '') || '익명';
-  const msg = (msgInp ? msgInp.value.trim() : '') || '';
-  saveRecord(name, score, level, lines, msg);
-  showLeaderboard();
-}
-
+// 리더보드
 async function fetchRecords() {
   try {
-    const q = query(collection(db, 'leaderboard'), orderBy('score','desc'), limit(20));
-    const snap = await getDocs(q);
+    const snap = await db.collection('leaderboard').orderBy('score','desc').limit(20).get();
     return snap.docs.map(d => d.data());
   } catch(e) {
-    return JSON.parse(localStorage.getItem('tetris_backup') || '[]');
+    return JSON.parse(localStorage.getItem('tetris_backup')||'[]');
   }
 }
 
 async function saveRecord(name, sc, lv, ln, mg) {
   try {
-    await addDoc(collection(db, 'leaderboard'), {
+    await db.collection('leaderboard').add({
       name, score:sc, level:lv, lines:ln,
       msg: mg||'',
       date: new Date().toLocaleDateString('ko-KR'),
       createdAt: Date.now()
     });
-    // 백업
-    const records = await fetchRecords();
-    localStorage.setItem('tetris_backup', JSON.stringify(records));
   } catch(e) {
-    // 로컬 폴백
-    let records = JSON.parse(localStorage.getItem('tetris_backup')||'[]');
-    records.push({name, score:sc, level:lv, lines:ln, msg:mg||'', date:new Date().toLocaleDateString('ko-KR')});
-    records.sort((a,b)=>b.score-a.score);
-    records = records.slice(0,20);
-    localStorage.setItem('tetris_backup', JSON.stringify(records));
+    let r = JSON.parse(localStorage.getItem('tetris_backup')||'[]');
+    r.push({name, score:sc, level:lv, lines:ln, msg:mg||'', date:new Date().toLocaleDateString('ko-KR')});
+    r.sort((a,b)=>b.score-a.score);
+    localStorage.setItem('tetris_backup', JSON.stringify(r.slice(0,20)));
   }
 }
 
 async function showLeaderboard() {
   const ov = document.getElementById('overlay');
-  ov.style.display = 'flex';
-  ov.innerHTML = '<div class="overlay-title">🏆 담벼락 기록</div><div style="color:#6a8aaa;font-size:12px;padding:20px;">불러오는 중... ⏳</div>';
-
+  ov.style.display='flex';
+  ov.innerHTML='<div class="overlay-title">🏆 담벼락 기록</div><div style="color:#6a8aaa;font-size:12px;padding:20px;">불러오는 중... ⏳</div>';
   const records = await fetchRecords();
-  const medals = ['🥇','🥈','🥉'];
-  const rows = records.map((r,i) => `
+  const medals=['🥇','🥈','🥉'];
+  const rows=records.map((r,i)=>`
     <div style="padding:7px 0;border-bottom:1px solid #1c2a3a;font-size:12px;">
       <div style="display:flex;align-items:center;gap:8px;">
         <span style="width:24px;text-align:center;font-size:${i<3?'15':'12'}px;color:#2d4055;">${medals[i]||(i+1)}</span>
@@ -401,11 +138,9 @@ async function showLeaderboard() {
         <span style="color:#3b9eff;font-family:'DM Mono',monospace;">${r.score.toLocaleString()}</span>
         <span style="color:#2d4055;font-size:10px;margin-left:4px;">Lv${r.level}</span>
       </div>
-      ${r.msg ? '<div style="font-size:11px;color:#4a6a8a;padding-left:32px;margin-top:2px;">💬 '+r.msg+'</div>' : ''}
-    </div>
-  `).join('');
-
-  ov.innerHTML = `
+      ${r.msg?'<div style="font-size:11px;color:#4a6a8a;padding-left:32px;margin-top:2px;">💬 '+r.msg+'</div>':''}
+    </div>`).join('');
+  ov.innerHTML=`
     <div class="overlay-title">🏆 담벼락 기록</div>
     <div style="font-size:11px;color:#6a8aaa;margin-top:-8px;margin-bottom:8px;">누구나 볼 수 있어요 · 상위 20명</div>
     <div style="width:230px;max-height:260px;overflow-y:auto;border:1px solid #1c2a3a;border-radius:10px;padding:4px 12px;">
@@ -414,41 +149,181 @@ async function showLeaderboard() {
     <div style="display:flex;gap:6px;margin-top:8px;">
       <button class="start-btn" onclick="startGame()" style="padding:7px 14px;font-size:12px;">도전!</button>
       <button onclick="showLeaderboard()" style="background:none;border:1px solid #1c2a3a;border-radius:8px;padding:7px 12px;color:#6a8aaa;font-size:12px;cursor:pointer;font-family:inherit;">새로고침</button>
+    </div>`;
+}
+
+// 테트리스 게임
+const canvas=document.getElementById('gameCanvas');
+const ctx=canvas.getContext('2d');
+const nextCanvas=document.getElementById('nextCanvas');
+const nctx=nextCanvas.getContext('2d');
+const COLS=10,ROWS=20,SZ=20;
+
+const SHAPES=[
+  {cells:[[1,1,1,1]],color:'#00d4ff'},
+  {cells:[[1,1],[1,1]],color:'#ffaa00'},
+  {cells:[[0,1,0],[1,1,1]],color:'#a78bfa'},
+  {cells:[[1,0,0],[1,1,1]],color:'#3b9eff'},
+  {cells:[[0,0,1],[1,1,1]],color:'#ff8800'},
+  {cells:[[0,1,1],[1,1,0]],color:'#22d47a'},
+  {cells:[[1,1,0],[0,1,1]],color:'#ff4466'},
+];
+
+let board,cur,next,score,level,lines,timer,running,paused,locking;
+
+function mkBoard(){return Array.from({length:ROWS},()=>new Array(COLS).fill(null));}
+function mkPiece(){
+  const s=SHAPES[Math.floor(Math.random()*SHAPES.length)];
+  return{cells:s.cells.map(r=>[...r]),color:s.color,x:Math.floor(COLS/2)-Math.floor(s.cells[0].length/2),y:0};
+}
+function rotate(cells){return cells[0].map((_,i)=>cells.map(r=>r[i]).reverse());}
+function fits(cells,x,y){
+  for(let r=0;r<cells.length;r++)for(let c=0;c<cells[r].length;c++)if(cells[r][c]){
+    const nx=x+c,ny=y+r;
+    if(nx<0||nx>=COLS)return false;
+    if(ny>=ROWS)return false;
+    if(ny>=0&&board[ny]&&board[ny][nx]!==null)return false;
+  }
+  return true;
+}
+
+function drawBlock(c,x,y,color,alpha){
+  alpha=alpha||1;
+  c.globalAlpha=alpha;
+  c.fillStyle=color;
+  c.fillRect(x*SZ+1,y*SZ+1,SZ-2,SZ-2);
+  c.fillStyle='rgba(255,255,255,0.2)';
+  c.fillRect(x*SZ+1,y*SZ+1,SZ-2,3);
+  c.globalAlpha=1;
+}
+
+function drawBoard(){
+  ctx.fillStyle='#070c14';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle='rgba(28,42,58,0.4)';
+  ctx.lineWidth=0.5;
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)ctx.strokeRect(c*SZ,r*SZ,SZ,SZ);
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(board[r][c])drawBlock(ctx,c,r,board[r][c]);
+  let gy=cur.y;
+  while(fits(cur.cells,cur.x,gy+1))gy++;
+  if(gy!==cur.y)for(let r=0;r<cur.cells.length;r++)for(let c=0;c<cur.cells[r].length;c++)
+    if(cur.cells[r][c])drawBlock(ctx,cur.x+c,gy+r,cur.color,0.15);
+  for(let r=0;r<cur.cells.length;r++)for(let c=0;c<cur.cells[r].length;c++)
+    if(cur.cells[r][c])drawBlock(ctx,cur.x+c,cur.y+r,cur.color);
+}
+
+function drawNext(){
+  nctx.fillStyle='#070c14';nctx.fillRect(0,0,80,80);
+  const s=next.cells,ox=Math.floor((4-s[0].length)/2),oy=Math.floor((4-s.length)/2);
+  for(let r=0;r<s.length;r++)for(let c=0;c<s[r].length;c++)if(s[r][c])drawBlock(nctx,ox+c,oy+r,next.color);
+}
+
+function lock(){
+  if(locking)return;
+  locking=true;
+  clearInterval(timer);
+  for(let r=0;r<cur.cells.length;r++)for(let c=0;c<cur.cells[r].length;c++)
+    if(cur.cells[r][c]&&cur.y+r>=0)board[cur.y+r][cur.x+c]=cur.color;
+  let cleared=0;
+  for(let r=ROWS-1;r>=0;r--){
+    if(board[r].every(c=>c!==null)){board.splice(r,1);board.unshift(new Array(COLS).fill(null));cleared++;r++;}
+  }
+  const pts=[0,100,300,500,800];
+  score+=(pts[Math.min(cleared,4)]||0)*level;
+  lines+=cleared;
+  level=Math.floor(lines/10)+1;
+  document.getElementById('score').textContent=score.toLocaleString();
+  document.getElementById('level').textContent=level;
+  document.getElementById('lines').textContent=lines;
+  cur=next;next=mkPiece();drawNext();
+  locking=false;
+  if(!fits(cur.cells,cur.x,cur.y)){endGame();return;}
+  timer=setInterval(tick,Math.max(50,700-(level-1)*100));
+  drawBoard();
+}
+
+function tick(){if(!running||paused||locking)return;if(fits(cur.cells,cur.x,cur.y+1)){cur.y++;drawBoard();}else lock();}
+function move(dx){if(!running||paused||locking)return;if(fits(cur.cells,cur.x+dx,cur.y)){cur.x+=dx;drawBoard();}}
+function rotatePiece(){
+  if(!running||paused||locking)return;
+  const r=rotate(cur.cells);
+  const kicks=[0,1,-1,2,-2];
+  for(const k of kicks){if(fits(r,cur.x+k,cur.y)){cur.cells=r;cur.x+=k;drawBoard();return;}}
+}
+function hardDrop(){if(!running||paused||locking)return;while(fits(cur.cells,cur.x,cur.y+1))cur.y++;lock();}
+
+function startGame(){
+  board=mkBoard();score=0;level=1;lines=0;running=true;paused=false;locking=false;
+  cur=mkPiece();next=mkPiece();
+  document.getElementById('score').textContent='0';
+  document.getElementById('level').textContent='1';
+  document.getElementById('lines').textContent='0';
+  document.getElementById('overlay').style.display='none';
+  document.getElementById('pauseBtn').textContent='일시정지';
+  clearInterval(timer);
+  timer=setInterval(tick,700);
+  drawNext();drawBoard();
+}
+
+function endGame(){
+  running=false;clearInterval(timer);
+  const ov=document.getElementById('overlay');
+  ov.style.display='flex';
+  ov.innerHTML=`
+    <div class="overlay-title">💀 게임 오버</div>
+    <div class="overlay-sub">점수: <b style="color:var(--main)">${score.toLocaleString()}</b> · 레벨 ${level} · ${lines}라인</div>
+    <div style="display:flex;flex-direction:column;gap:8px;width:190px;">
+      <input id="nameInput" type="text" maxlength="10" placeholder="✏️ 이름 (10자 이내)" style="background:#131a24;border:1px solid #243447;border-radius:8px;padding:8px 12px;color:#ddeeff;font-size:13px;font-family:inherit;outline:none;text-align:center;">
+      <input id="msgInput" type="text" maxlength="20" placeholder="💬 한마디 (20자 이내)" style="background:#131a24;border:1px solid #243447;border-radius:8px;padding:8px 12px;color:#ddeeff;font-size:13px;font-family:inherit;outline:none;text-align:center;">
+      <button class="start-btn" onclick="saveAndShow()">🏆 기록 저장!</button>
     </div>
-  `;
+    <button onclick="startGame()" style="background:none;border:none;color:#6a8aaa;font-size:12px;cursor:pointer;font-family:inherit;">저장 없이 다시하기</button>`;
+  setTimeout(()=>{const i=document.getElementById('nameInput');if(i)i.focus();},100);
 }
 
-// 키보드document.getElementById('startBtn').addEventListener('click', startGame);
-
-// innerHTML로 생성되는 버튼들을 위해 window에 등록
-window.startGame = startGame;
-window.showLeaderboard = showLeaderboard;
-
-// 버튼 이벤트 등록
-document.getElementById('pauseBtn').addEventListener('click', togglePause);
-document.getElementById('leaderBtn').addEventListener('click', showLeaderboard);
-document.getElementById('closePopupBtn') && document.getElementById('closePopupBtn').addEventListener('click', closePopup);
-
-// 팝업 닫기
-function closePopup() {
-  document.getElementById('updatePopup').style.display = 'none';
-  localStorage.setItem('tetris_patch_v2', '1');
-}
-if (!localStorage.getItem('tetris_patch_v2')) {
-  document.getElementById('updatePopup').style.display = 'flex';
+function saveAndShow(){
+  const name=(document.getElementById('nameInput')?.value.trim())||'익명';
+  const msg=document.getElementById('msgInput')?.value.trim()||'';
+  saveRecord(name,score,level,lines,msg);
+  showLeaderboard();
 }
 
-function addBtn(id, fn) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.addEventListener('touchstart', function(e){ fn(); e.preventDefault(); }, {passive:false});
-  el.addEventListener('mousedown', function(e){ fn(); });
+function togglePause(){
+  if(!running)return;
+  paused=!paused;
+  document.getElementById('pauseBtn').textContent=paused?'계속하기':'일시정지';
+  if(!paused){clearInterval(timer);timer=setInterval(tick,Math.max(50,700-(level-1)*100));}
+  else clearInterval(timer);
 }
-addBtn('btnLeft',  function(){ move(-1); });
-addBtn('btnRight', function(){ move(1); });
-addBtn('btnUp',    function(){ rotatePiece(); });
-addBtn('btnDown',  function(){ tick(); });
-addBtn('btnDrop',  function(){ hardDrop(); });
+
+// 키보드
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A'){move(-1);e.preventDefault();}
+  else if(e.key==='ArrowRight'||e.key==='d'||e.key==='D'){move(1);e.preventDefault();}
+  else if(e.key==='ArrowDown'||e.key==='s'||e.key==='S'){tick();e.preventDefault();}
+  else if(e.key==='ArrowUp'||e.key==='w'||e.key==='W'){rotatePiece();e.preventDefault();}
+  else if(e.key===' '){hardDrop();e.preventDefault();}
+  else if(e.key==='p'||e.key==='P')togglePause();
+});
+
+// 버튼
+document.getElementById('startBtn').addEventListener('click',startGame);
+document.getElementById('pauseBtn').addEventListener('click',togglePause);
+document.getElementById('leaderBtn').addEventListener('click',showLeaderboard);
+document.getElementById('btnUp').addEventListener('click',rotatePiece);
+document.getElementById('btnLeft').addEventListener('click',()=>move(-1));
+document.getElementById('btnRight').addEventListener('click',()=>move(1));
+document.getElementById('btnDown').addEventListener('click',tick);
+document.getElementById('btnDrop').addEventListener('click',hardDrop);
+
+// 팝업
+document.getElementById('closePopupBtn').addEventListener('click',()=>{
+  document.getElementById('updatePopup').style.display='none';
+  localStorage.setItem('tetris_patch_v2','1');
+});
+if(!localStorage.getItem('tetris_patch_v2')){
+  document.getElementById('updatePopup').style.display='flex';
+}
 </script>
 </body>
 </html>
