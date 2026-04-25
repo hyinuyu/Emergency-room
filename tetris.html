@@ -292,8 +292,23 @@ function togglePause(){
   if(!running)return;
   paused=!paused;
   document.getElementById('pauseBtn').textContent=paused?'계속하기':'일시정지';
-  if(!paused){clearInterval(timer);timer=setInterval(tick,Math.max(50,700-(level-1)*100));}
-  else clearInterval(timer);
+  if(!paused){
+    clearInterval(timer);
+    timer=setInterval(tick,Math.max(50,700-(level-1)*100));
+    drawBoard();
+  } else {
+    clearInterval(timer);
+    // 일시정지 시 화면 가리기
+    ctx.fillStyle='rgba(6,9,16,0.92)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='#ddeeff';
+    ctx.font='bold 16px Noto Sans KR';
+    ctx.textAlign='center';
+    ctx.fillText('⏸ 일시정지', canvas.width/2, canvas.height/2 - 10);
+    ctx.font='12px Noto Sans KR';
+    ctx.fillStyle='#6a8aaa';
+    ctx.fillText('P 또는 일시정지 버튼', canvas.width/2, canvas.height/2 + 16);
+  }
 }
 
 // 키보드
