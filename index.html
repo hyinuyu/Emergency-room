@@ -288,29 +288,34 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <span style="font-size:18px;color:var(--main);">→</span>
   </a>
 
-  <!-- 테트리스 버튼 -->
-  <a href="./tetris.html" style="text-decoration:none;display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 18px;margin-bottom:8px;transition:all 0.2s;" onmouseover="this.style.borderColor='#a78bfa'" onmouseout="this.style.borderColor='var(--border)'">
-    <div style="display:flex;align-items:center;gap:12px;">
-      <span style="font-size:26px;">🎮</span>
-      <div>
-        <div style="font-size:13px;font-weight:700;color:var(--text);">응급실 테트리스</div>
-        <div style="font-size:11px;color:var(--text2);margin-top:2px;">대기하는 동안 한 판 어때요? 😂</div>
-      </div>
+  <!-- 게임 모음 -->
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:8px;">
+    <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+      🎮 대기하는 동안 한 판 어때요?
     </div>
-    <span style="font-size:18px;color:#a78bfa;">→</span>
-  </a>
-
-  <!-- 2048 버튼 -->
-  <a href="./2048.html" style="text-decoration:none;display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 18px;margin-bottom:8px;transition:all 0.2s;" onmouseover="this.style.borderColor='#ffaa00'" onmouseout="this.style.borderColor='var(--border)'">
-    <div style="display:flex;align-items:center;gap:12px;">
-      <span style="font-size:26px;">🎯</span>
-      <div>
-        <div style="font-size:13px;font-weight:700;color:var(--text);">응급실 2048</div>
-        <div style="font-size:11px;color:var(--text2);margin-top:2px;">숫자 합쳐서 2048 만들기! 🔢</div>
-      </div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;">
+      <a href="./tetris.html" style="text-decoration:none;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 4px;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='#a78bfa'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:22px;line-height:1;">🧩</div>
+        <div style="font-size:10px;color:var(--text2);margin-top:5px;font-weight:600;">테트리스</div>
+      </a>
+      <a href="./2048.html" style="text-decoration:none;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 4px;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='#ffaa00'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:22px;line-height:1;">🎯</div>
+        <div style="font-size:10px;color:var(--text2);margin-top:5px;font-weight:600;">2048</div>
+      </a>
+      <a href="./minesweeper.html" style="text-decoration:none;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 4px;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='#ff4466'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:22px;line-height:1;">🚩</div>
+        <div style="font-size:10px;color:var(--text2);margin-top:5px;font-weight:600;">지뢰찾기</div>
+      </a>
+      <a href="./breakout.html" style="text-decoration:none;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 4px;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='#3b9eff'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:22px;line-height:1;">🧱</div>
+        <div style="font-size:10px;color:var(--text2);margin-top:5px;font-weight:600;">벽돌깨기</div>
+      </a>
+      <a href="./snake.html" style="text-decoration:none;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 4px;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='#22d47a'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:22px;line-height:1;">🐍</div>
+        <div style="font-size:10px;color:var(--text2);margin-top:5px;font-weight:600;">스네이크</div>
+      </a>
     </div>
-    <span style="font-size:18px;color:#ffaa00;">→</span>
-  </a>
+  </div>
 
   <!-- 공유하기 -->
   <button onclick="copyLink()" id="copyBtn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 18px;margin-bottom:8px;font-size:13px;font-weight:700;color:var(--text2);cursor:pointer;font-family:inherit;transition:all 0.2s;">
