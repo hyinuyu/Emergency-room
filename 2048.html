@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>응급실 2048</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#060910;--card:#0d1117;--border:#1c2a3a;--main:#3b9eff;--text:#ddeeff;--text2:#6a8aaa;--text3:#2d4055;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px 40px;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 20%,rgba(59,158,255,0.04) 0%,transparent 70%);pointer-events:none;}
+
+.back-btn{align-self:flex-start;display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);color:var(--text2);padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer;text-decoration:none;margin-bottom:16px;transition:all 0.2s;position:relative;z-index:1;}
+.back-btn:hover{border-color:var(--main);color:var(--main);}
+
+h1{font-size:18px;font-weight:900;margin-bottom:4px;position:relative;z-index:1;}
+h1 span{color:var(--main);}
+.subtitle{font-size:11px;color:var(--text2);margin-bottom:16px;text-align:center;position:relative;z-index:1;}
+
+.score-row{display:flex;gap:8px;margin-bottom:14px;position:relative;z-index:1;}
+.score-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 16px;text-align:center;min-width:75px;}
+.score-label{font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;}
+.score-val{font-family:'DM Mono',monospace;font-size:20px;font-weight:700;color:var(--text);}
+
+#board{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:8px;
+  display:grid;grid-template-columns:repeat(4,70px);grid-template-rows:repeat(4,70px);
+  gap:8px;position:relative;z-index:1;touch-action:none;
+}
+.cell{
+  background:#131a24;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'DM Mono',monospace;font-weight:700;font-size:24px;
+  transition:all 0.15s ease;
+}
+.cell-2{background:#1e2a40;color:#aab8cc;}
+.cell-4{background:#2a3a55;color:#c0d0e8;}
+.cell-8{background:#3b9eff;color:#fff;}
+.cell-16{background:#a78bfa;color:#fff;}
+.cell-32{background:#ffaa00;color:#fff;font-size:22px;}
+.cell-64{background:#ff8800;color:#fff;font-size:22px;}
+.cell-128{background:#ff6633;color:#fff;font-size:20px;}
+.cell-256{background:#ff4466;color:#fff;font-size:20px;}
+.cell-512{background:#ff2266;color:#fff;font-size:18px;box-shadow:0 0 20px rgba(255,34,102,0.4);}
+.cell-1024{background:#22d47a;color:#fff;font-size:16px;box-shadow:0 0 25px rgba(34,212,122,0.5);}
+.cell-2048{background:gold;color:#000;font-size:16px;box-shadow:0 0 30px gold;animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+.controls{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,56px);gap:8px;margin-top:18px;position:relative;z-index:1;}
+.controls > div{}
+.cbtn{background:var(--card);border:2px solid var(--border);border-radius:12px;color:var(--text);font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;height:56px;transition:all 0.1s;}
+.cbtn:active{background:var(--border);transform:scale(0.92);}
+
+.action-row{display:flex;gap:8px;margin-top:14px;position:relative;z-index:1;}
+.action-btn{background:var(--card);border:1px solid var(--border);color:var(--text2);padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.2s;}
+.action-btn:hover{border-color:var(--main);color:var(--main);}
+.action-btn.gold{border-color:rgba(255,170,0,0.3);color:#ffaa00;}
+
+.overlay{position:fixed;inset:0;background:rgba(6,9,16,0.92);display:none;align-items:center;justify-content:center;z-index:100;}
+.overlay-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:300px;width:90%;text-align:center;}
+.overlay-title{font-size:20px;font-weight:900;margin-bottom:6px;}
+.overlay-sub{font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6;}
+.start-btn{background:var(--main);color:#000;border:none;padding:10px 24px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;}
+.in-input{background:#131a24;border:1px solid #243447;border-radius:8px;padding:8px 12px;color:#ddeeff;font-size:13px;font-family:inherit;outline:none;text-align:center;width:100%;margin-bottom:6px;}
+
+.hint{font-size:11px;color:var(--text3);margin-top:12px;line-height:1.7;text-align:center;position:relative;z-index:1;}
+
+@media(max-width:380px){
+  #board{grid-template-columns:repeat(4,64px);grid-template-rows:repeat(4,64px);}
+  .cell{font-size:20px;}
+  .cell-32,.cell-64{font-size:18px;}
+  .cell-128,.cell-256{font-size:16px;}
+}
+</style>
+</head>
+<body>
+
+<a class="back-btn" href="./index.html">← 응급실 현황</a>
+<h1>🎮 <span>응급실</span> 2048</h1>
+<p class="subtitle">2048 만들면 승리! 같은 숫자를 합쳐보세요 🎯</p>
+
+<div class="score-row">
+  <div class="score-box">
+    <div class="score-label">점수</div>
+    <div class="score-val" id="score">0</div>
+  </div>
+  <div class="score-box">
+    <div class="score-label">최고점</div>
+    <div class="score-val" id="best">0</div>
+  </div>
+</div>
+
+<div id="board"></div>
+
+<!-- 모바일 컨트롤 -->
+<div class="controls">
+  <div></div>
+  <button class="cbtn" id="btnUp">↑</button>
+  <div></div>
+  <button class="cbtn" id="btnLeft">←</button>
+  <button class="cbtn" id="btnDown">↓</button>
+  <button class="cbtn" id="btnRight">→</button>
+</div>
+
+<div class="action-row">
+  <button class="action-btn" id="newGameBtn">🔄 새 게임</button>
+  <button class="action-btn gold" id="leaderBtn">🏆 기록</button>
+</div>
+
+<p class="hint">⌨️ 방향키 또는 WASD<br>📱 스와이프 / 버튼</p>
+
+<!-- 오버레이 -->
+<div class="overlay" id="overlay">
+  <div class="overlay-box" id="overlayBox"></div>
+</div>
+
+<!-- Firebase -->
+<script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.min.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyAu9lEDOwLgtiO3FE-bI7mXanF-F7E9RJk",
+  authDomain: "gumi-er-tetris.firebaseapp.com",
+  projectId: "gumi-er-tetris",
+  storageBucket: "gumi-er-tetris.firebasestorage.app",
+  messagingSenderId: "421677764064",
+  appId: "1:421677764064:web:35fb5b795c94e5226def85"
+});
+const db = firebase.firestore();
+
+// 게임 상태
+const SIZE = 4;
+let grid, score, best, gameOver, highestTile;
+best = parseInt(localStorage.getItem('best_2048') || '0');
+document.getElementById('best').textContent = best;
+
+function newGrid() {
+  return Array.from({length:SIZE}, ()=>new Array(SIZE).fill(0));
+}
+
+function addRandomTile() {
+  const empty = [];
+  for (let r=0;r<SIZE;r++) for (let c=0;c<SIZE;c++) if (grid[r][c]===0) empty.push([r,c]);
+  if (empty.length === 0) return;
+  const [r,c] = empty[Math.floor(Math.random()*empty.length)];
+  grid[r][c] = Math.random() < 0.9 ? 2 : 4;
+}
+
+function draw() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  for (let r=0;r<SIZE;r++) for (let c=0;c<SIZE;c++) {
+    const v = grid[r][c];
+    const cell = document.createElement('div');
+    cell.className = 'cell' + (v ? ' cell-'+v : '');
+    cell.textContent = v || '';
+    board.appendChild(cell);
+  }
+  document.getElementById('score').textContent = score;
+  if (score > best) {
+    best = score;
+    localStorage.setItem('best_2048', best);
+    document.getElementById('best').textContent = best;
+  }
+}
+
+function compress(row) {
+  const filtered = row.filter(v => v !== 0);
+  const merged = [];
+  let i = 0;
+  while (i < filtered.length) {
+    if (i+1 < filtered.length && filtered[i] === filtered[i+1]) {
+      const newVal = filtered[i] * 2;
+      merged.push(newVal);
+      score += newVal;
+      if (newVal > highestTile) highestTile = newVal;
+      i += 2;
+    } else {
+      merged.push(filtered[i]);
+      i++;
+    }
+  }
+  while (merged.length < SIZE) merged.push(0);
+  return merged;
+}
+
+function moveLeft() {
+  let moved = false;
+  for (let r=0;r<SIZE;r++) {
+    const newRow = compress(grid[r]);
+    if (newRow.join() !== grid[r].join()) moved = true;
+    grid[r] = newRow;
+  }
+  return moved;
+}
+
+function rotateGrid() {
+  const newGrid = newGrid_();
+  for (let r=0;r<SIZE;r++) for (let c=0;c<SIZE;c++) newGrid[c][SIZE-1-r] = grid[r][c];
+  grid = newGrid;
+}
+
+function newGrid_() {
+  return Array.from({length:SIZE}, ()=>new Array(SIZE).fill(0));
+}
+
+function move(dir) {
+  if (gameOver) return;
+  let moved = false;
+  if (dir === 'left') {
+    moved = moveLeft();
+  } else if (dir === 'right') {
+    rotateGrid(); rotateGrid();
+    moved = moveLeft();
+    rotateGrid(); rotateGrid();
+  } else if (dir === 'up') {
+    rotateGrid(); rotateGrid(); rotateGrid();
+    moved = moveLeft();
+    rotateGrid();
+  } else if (dir === 'down') {
+    rotateGrid();
+    moved = moveLeft();
+    rotateGrid(); rotateGrid(); rotateGrid();
+  }
+  if (moved) {
+    addRandomTile();
+    draw();
+    if (highestTile >= 2048 && !localStorage.getItem('won_2048')) {
+      localStorage.setItem('won_2048', '1');
+      showWin();
+    } else if (isGameOver()) {
+      showGameOver();
+    }
+  }
+}
+
+function isGameOver() {
+  for (let r=0;r<SIZE;r++) for (let c=0;c<SIZE;c++) {
+    if (grid[r][c] === 0) return false;
+    if (c+1 < SIZE && grid[r][c] === grid[r][c+1]) return false;
+    if (r+1 < SIZE && grid[r][c] === grid[r+1][c]) return false;
+  }
+  return true;
+}
+
+function newGame() {
+  grid = newGrid();
+  score = 0;
+  highestTile = 0;
+  gameOver = false;
+  addRandomTile();
+  addRandomTile();
+  draw();
+  document.getElementById('overlay').style.display='none';
+}
+
+function showWin() {
+  document.getElementById('overlay').style.display='flex';
+  document.getElementById('overlayBox').innerHTML = `
+    <div style="font-size:40px;margin-bottom:8px;">🎉</div>
+    <div class="overlay-title">2048 달성!</div>
+    <div class="overlay-sub">축하해요! 계속 플레이할 수 있어요</div>
+    <button class="start-btn" onclick="document.getElementById('overlay').style.display='none'">계속하기</button>
+  `;
+}
+
+function showGameOver() {
+  gameOver = true;
+  document.getElementById('overlay').style.display='flex';
+  document.getElementById('overlayBox').innerHTML = `
+    <div style="font-size:40px;margin-bottom:8px;">💀</div>
+    <div class="overlay-title">게임 오버</div>
+    <div class="overlay-sub">점수: <b style="color:var(--main)">${score.toLocaleString()}</b><br>최고타일: <b style="color:#ffaa00">${highestTile}</b></div>
+    <input id="nameInput" class="in-input" type="text" maxlength="10" placeholder="✏️ 이름 (10자 이내)">
+    <input id="msgInput" class="in-input" type="text" maxlength="20" placeholder="💬 한마디 (20자 이내)">
+    <button class="start-btn" onclick="saveAndShow()">🏆 기록 저장!</button>
+    <button onclick="newGame()" style="background:none;border:none;color:#6a8aaa;font-size:12px;cursor:pointer;font-family:inherit;margin-top:8px;">저장 없이 다시하기</button>
+  `;
+  setTimeout(()=>document.getElementById('nameInput')?.focus(),100);
+}
+
+async function saveAndShow() {
+  const name = document.getElementById('nameInput')?.value.trim() || '익명';
+  const msg = document.getElementById('msgInput')?.value.trim() || '';
+  try {
+    await db.collection('leaderboard2048').add({
+      name, score, highestTile, msg,
+      date: new Date().toLocaleDateString('ko-KR'),
+      createdAt: Date.now()
+    });
+  } catch(e) {}
+  showLeaderboard();
+}
+
+async function showLeaderboard() {
+  document.getElementById('overlay').style.display='flex';
+  document.getElementById('overlayBox').innerHTML = '<div class="overlay-title">🏆 담벼락 기록</div><div style="color:#6a8aaa;font-size:12px;padding:20px;">불러오는 중... ⏳</div>';
+
+  let records = [];
+  try {
+    const snap = await db.collection('leaderboard2048').orderBy('score','desc').limit(20).get();
+    records = snap.docs.map(d=>d.data());
+  } catch(e) {}
+
+  const medals = ['🥇','🥈','🥉'];
+  const rows = records.map((r,i)=>`
+    <div style="padding:7px 0;border-bottom:1px solid #1c2a3a;font-size:12px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:24px;text-align:center;font-size:${i<3?'15':'12'}px;color:#2d4055;">${medals[i]||(i+1)}</span>
+        <span style="flex:1;color:#ddeeff;font-weight:600;word-break:break-all;">${r.name}</span>
+        <span style="color:#3b9eff;font-family:'DM Mono',monospace;">${r.score.toLocaleString()}</span>
+        <span style="color:#ffaa00;font-size:10px;margin-left:4px;font-family:'DM Mono',monospace;">${r.highestTile||'?'}</span>
+      </div>
+      ${r.msg?'<div style="font-size:11px;color:#4a6a8a;padding-left:32px;margin-top:2px;">💬 '+r.msg+'</div>':''}
+    </div>
+  `).join('');
+
+  document.getElementById('overlayBox').innerHTML = `
+    <div class="overlay-title">🏆 2048 담벼락</div>
+    <div style="font-size:11px;color:#6a8aaa;margin-bottom:8px;">누구나 볼 수 있어요 · 상위 20명</div>
+    <div style="max-height:260px;overflow-y:auto;border:1px solid #1c2a3a;border-radius:10px;padding:4px 12px;text-align:left;">
+      ${rows||'<div style="color:#6a8aaa;font-size:12px;padding:20px;text-align:center;">아직 기록이 없어요!<br>🔥 첫 주인공이 되세요</div>'}
+    </div>
+    <div style="display:flex;gap:6px;margin-top:10px;">
+      <button class="start-btn" onclick="newGame()" style="padding:7px 14px;font-size:12px;">새 게임</button>
+      <button onclick="showLeaderboard()" style="background:none;border:1px solid #1c2a3a;border-radius:8px;padding:7px 12px;color:#6a8aaa;font-size:12px;cursor:pointer;font-family:inherit;">새로고침</button>
+    </div>
+  `;
+}
+
+// 키보드
+document.addEventListener('keydown', e=>{
+  if(['ArrowLeft','a','A'].includes(e.key)){move('left');e.preventDefault();}
+  else if(['ArrowRight','d','D'].includes(e.key)){move('right');e.preventDefault();}
+  else if(['ArrowUp','w','W'].includes(e.key)){move('up');e.preventDefault();}
+  else if(['ArrowDown','s','S'].includes(e.key)){move('down');e.preventDefault();}
+});
+
+// 버튼
+document.getElementById('btnUp').addEventListener('click',()=>move('up'));
+document.getElementById('btnDown').addEventListener('click',()=>move('down'));
+document.getElementById('btnLeft').addEventListener('click',()=>move('left'));
+document.getElementById('btnRight').addEventListener('click',()=>move('right'));
+document.getElementById('newGameBtn').addEventListener('click',newGame);
+document.getElementById('leaderBtn').addEventListener('click',showLeaderboard);
+
+// 스와이프
+const board = document.getElementById('board');
+let tx=0,ty=0;
+board.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY;e.preventDefault();},{passive:false});
+board.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
+board.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-tx;
+  const dy=e.changedTouches[0].clientY-ty;
+  if(Math.abs(dx)<20&&Math.abs(dy)<20)return;
+  if(Math.abs(dx)>Math.abs(dy)){move(dx>0?'right':'left');}
+  else{move(dy>0?'down':'up');}
+  e.preventDefault();
+},{passive:false});
+
+// 시작
+newGame();
+</script>
+</body>
+</html>
