@@ -88,18 +88,20 @@ const db = firebase.firestore();
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const W = 320, H = 400;
-const PADDLE_W = 60, PADDLE_H = 8, BALL_R = 6;
+const PADDLE_W = 55, PADDLE_H = 8, BALL_R = 5;
 const COLORS = ['#ff4466','#ffaa00','#22d47a','#3b9eff','#a78bfa'];
+let combo = 0, comboTimer = 0;
 
 let paddle, ball, bricks, score, lives, level, running, animId;
 let lastSavedScore = 0, lastSavedLevel = 0;
 
 function resetBall() {
+  const baseSpeed = 5 + level * 0.6;
   ball = {
     x: paddle.x + PADDLE_W/2,
     y: paddle.y - BALL_R - 1,
-    vx: (Math.random() < 0.5 ? -1 : 1) * (3 + level * 0.3),
-    vy: -3 - level * 0.3,
+    vx: (Math.random() < 0.5 ? -1 : 1) * baseSpeed,
+    vy: -baseSpeed,
     r: BALL_R
   };
 }
@@ -108,16 +110,20 @@ function newLevel() {
   paddle = { x: W/2 - PADDLE_W/2, y: H - 25 };
   resetBall();
   bricks = [];
-  const cols = 8, rows = 5;
+  const cols = 9, rows = Math.min(7, 5 + Math.floor(level/2));
   const bw = (W - 20) / cols;
-  const bh = 16;
+  const bh = 14;
   for (let r=0;r<rows;r++) for (let c=0;c<cols;c++) {
+    // 윗줄일수록 더 단단하게
+    const hp = level >= 3 && r === 0 ? 3 : (r < 2 ? 2 : 1);
     bricks.push({
       x: 10 + c*bw + 2,
       y: 30 + r*(bh+4),
       w: bw - 4,
       h: bh,
       color: COLORS[r % COLORS.length],
+      hp: hp,
+      maxHp: hp,
       alive: true
     });
   }
@@ -125,7 +131,7 @@ function newLevel() {
 }
 
 function init() {
-  score = 0; lives = 3; level = 1;
+  score = 0; lives = 3; level = 1; combo = 0; comboTimer = 0;
   newLevel();
   running = false;
   draw();
@@ -147,10 +153,22 @@ function draw() {
 
   bricks.forEach(b=>{
     if (!b.alive) return;
+    // HP에 따라 밝기 조절
+    const opacity = 0.4 + 0.6 * (b.hp / b.maxHp);
+    ctx.globalAlpha = opacity;
     ctx.fillStyle = b.color;
     ctx.fillRect(b.x, b.y, b.w, b.h);
     ctx.fillStyle = 'rgba(255,255,255,0.2)';
     ctx.fillRect(b.x, b.y, b.w, 2);
+    // HP 2 이상이면 숫자 표시
+    if (b.hp > 1) {
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.font = 'bold 9px DM Mono';
+      ctx.textAlign = 'center';
+      ctx.fillText(b.hp, b.x + b.w/2, b.y + b.h/2 + 3);
+    }
+    ctx.globalAlpha = 1;
   });
 
   ctx.fillStyle = '#3b9eff';
@@ -165,6 +183,16 @@ function draw() {
   ctx.shadowBlur = 10;
   ctx.fill();
   ctx.shadowBlur = 0;
+
+  // 콤보 표시
+  if (combo >= 3) {
+    ctx.fillStyle = combo >= 10 ? '#ff4466' : combo >= 5 ? '#ffaa00' : '#22d47a';
+    ctx.font = 'bold 24px Noto Sans KR';
+    ctx.textAlign = 'center';
+    ctx.globalAlpha = Math.min(1, comboTimer / 30);
+    ctx.fillText(`COMBO x${combo}!`, W/2, H/2 - 20);
+    ctx.globalAlpha = 1;
+  }
 
   if (!running) {
     ctx.fillStyle = 'rgba(255,255,255,0.7)';
@@ -185,24 +213,44 @@ function update() {
   if (ball.y + ball.r >= paddle.y && ball.y + ball.r <= paddle.y + PADDLE_H + 4 &&
       ball.x >= paddle.x && ball.x <= paddle.x + PADDLE_W && ball.vy > 0) {
     ball.y = paddle.y - ball.r - 1;
-    ball.vy = -Math.abs(ball.vy);
+    const speed = Math.sqrt(ball.vx*ball.vx + ball.vy*ball.vy);
     const hit = (ball.x - paddle.x) / PADDLE_W;
-    ball.vx = (hit - 0.5) * 8;
+    const angle = (hit - 0.5) * Math.PI * 0.7; // 좌우 끝에서 ±63도
+    ball.vx = speed * Math.sin(angle);
+    ball.vy = -Math.abs(speed * Math.cos(angle));
   }
 
-  bricks.forEach(b=>{
-    if (!b.alive) return;
+  for (const b of bricks) {
+    if (!b.alive) continue;
     if (ball.x + ball.r > b.x && ball.x - ball.r < b.x + b.w &&
         ball.y + ball.r > b.y && ball.y - ball.r < b.y + b.h) {
-      b.alive = false;
-      score += 10 * level;
+      b.hp--;
+      if (b.hp <= 0) {
+        b.alive = false;
+        combo++;
+        comboTimer = 60; // 1초 동안 콤보 유지
+        const comboBonus = Math.min(combo * 5, 50);
+        score += (10 + comboBonus) * level;
+        // 공 살짝 가속 (벽돌 깰때마다 미세하게)
+        const speedUp = 1.02;
+        ball.vx *= speedUp; ball.vy *= speedUp;
+        // 최대 속도 제한
+        const maxV = 12 + level;
+        if (Math.abs(ball.vx) > maxV) ball.vx = ball.vx > 0 ? maxV : -maxV;
+        if (Math.abs(ball.vy) > maxV) ball.vy = ball.vy > 0 ? maxV : -maxV;
+      } else {
+        score += 5 * level;
+      }
       const ox = (ball.x < b.x) ? b.x - ball.x : ball.x - (b.x + b.w);
       const oy = (ball.y < b.y) ? b.y - ball.y : ball.y - (b.y + b.h);
       if (Math.abs(ox) < Math.abs(oy)) ball.vy = -ball.vy;
       else ball.vx = -ball.vx;
       updateUI();
+      break; // 한 번에 한 벽돌만
     }
-  });
+  }
+  // 콤보 타이머
+  if (comboTimer > 0) { comboTimer--; if (comboTimer === 0) combo = 0; }
 
   if (ball.y - ball.r > H) {
     lives--;
