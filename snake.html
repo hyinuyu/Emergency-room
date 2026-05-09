@@ -6,7 +6,7 @@
 <title>응급실 스네이크</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#060910;--card:#0d1117;--border:#1c2a3a;--main:#3b9eff;--text:#ddeeff;--text2:#6a8aaa;--text3:#2d4055;}
+:root{--bg:#060910;--card:#0d1117;--card2:#131a24;--border:#1c2a3a;--main:#3b9eff;--text:#ddeeff;--text2:#6a8aaa;--text3:#2d4055;}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
 body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px 40px;}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 20%,rgba(59,158,255,0.04) 0%,transparent 70%);pointer-events:none;}
@@ -21,7 +21,7 @@ h1 span{color:var(--main);}
 .score-label{font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;}
 .score-val{font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--text);}
 
-#gameCanvas{border:2px solid var(--border);border-radius:10px;background:#070c14;display:block;touch-action:none;position:relative;z-index:1;}
+#gameCanvas{border:2px solid var(--border);border-radius:10px;background:#070c14;display:block;touch-action:none;}
 
 .controls{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,56px);gap:8px;margin-top:14px;position:relative;z-index:1;}
 .cbtn{background:var(--card);border:2px solid var(--border);border-radius:12px;color:var(--text);font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;height:56px;transition:all 0.1s;}
@@ -33,13 +33,13 @@ h1 span{color:var(--main);}
 
 .hint{font-size:11px;color:var(--text3);margin-top:10px;text-align:center;line-height:1.7;position:relative;z-index:1;}
 
-.overlay{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(6,9,16,0.92);border-radius:10px;gap:10px;padding:20px;}
-.overlay-title{font-size:20px;font-weight:900;}
-.overlay-sub{font-size:13px;color:var(--text2);text-align:center;line-height:1.6;}
-.start-btn{background:var(--main);color:#000;border:none;padding:10px 24px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
-.in-input{background:#131a24;border:1px solid #243447;border-radius:8px;padding:8px 12px;color:#ddeeff;font-size:13px;font-family:inherit;outline:none;text-align:center;width:180px;}
-
-.board-wrap{position:relative;}
+.overlay{position:fixed;inset:0;background:rgba(6,9,16,0.92);display:none;align-items:center;justify-content:center;z-index:100;}
+.overlay-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:320px;width:90%;text-align:center;}
+.overlay-title{font-size:20px;font-weight:900;margin-bottom:6px;}
+.overlay-sub{font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6;}
+.start-btn{background:var(--main);color:#000;border:none;padding:10px 24px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;margin-bottom:6px;}
+.in-input{background:#131a24;border:1px solid #243447;border-radius:8px;padding:8px 12px;color:#ddeeff;font-size:13px;font-family:inherit;outline:none;text-align:center;width:100%;margin-bottom:6px;}
+.skip-btn{background:none;border:none;color:#6a8aaa;font-size:12px;cursor:pointer;font-family:inherit;margin-top:4px;}
 </style>
 </head>
 <body>
@@ -59,14 +59,7 @@ h1 span{color:var(--main);}
   </div>
 </div>
 
-<div class="board-wrap">
-  <canvas id="gameCanvas" width="320" height="320"></canvas>
-  <div class="overlay" id="overlay">
-    <div class="overlay-title">🐍 스네이크</div>
-    <div class="overlay-sub">사과 🍎 를 먹고<br>벽이나 자기 몸에 부딪히지 않게!</div>
-    <button class="start-btn" id="startBtn">게임 시작!</button>
-  </div>
-</div>
+<canvas id="gameCanvas" width="320" height="320"></canvas>
 
 <div class="controls">
   <div></div>
@@ -78,11 +71,14 @@ h1 span{color:var(--main);}
 </div>
 
 <div class="action-row">
+  <button class="action-btn" id="startBtn">🎮 시작</button>
   <button class="action-btn" id="newGameBtn">🔄 새 게임</button>
   <button class="action-btn gold" id="leaderBtn">🏆 기록</button>
 </div>
 
 <p class="hint">⌨️ 방향키 또는 WASD · 📱 버튼 또는 스와이프</p>
+
+<div class="overlay" id="overlay"><div class="overlay-box" id="overlayBox"></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.min.js"></script>
@@ -103,6 +99,8 @@ const W = 320, H = 320, GRID = 20;
 const COLS = W / GRID, ROWS = H / GRID;
 
 let snake, dir, nextDir, food, score, best, running, timer;
+let lastSavedScore = 0, lastSavedLength = 0;
+
 best = parseInt(localStorage.getItem('snake_best') || '0');
 document.getElementById('best').textContent = best;
 
@@ -136,14 +134,8 @@ function tick() {
   dir = nextDir;
   const head = {x: snake[0].x + dir.x, y: snake[0].y + dir.y};
 
-  // 벽 충돌
-  if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) {
-    return endGame();
-  }
-  // 자기 몸 충돌
-  if (snake.some(s => s.x===head.x && s.y===head.y)) {
-    return endGame();
-  }
+  if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) return endGame();
+  if (snake.some(s => s.x===head.x && s.y===head.y)) return endGame();
 
   snake.unshift(head);
 
@@ -156,7 +148,6 @@ function tick() {
       document.getElementById('best').textContent = best;
     }
     placeFood();
-    // 속도 빨라짐
     if (snake.length % 5 === 0) {
       clearInterval(timer);
       timer = setInterval(tick, Math.max(60, 120 - Math.floor(snake.length/5)*8));
@@ -171,34 +162,29 @@ function draw() {
   ctx.fillStyle = '#070c14';
   ctx.fillRect(0,0,W,H);
 
-  // 그리드
   ctx.strokeStyle = 'rgba(28,42,58,0.3)';
   ctx.lineWidth = 0.5;
-  for (let i=0;i<=COLS;i++) {
-    ctx.beginPath(); ctx.moveTo(i*GRID,0); ctx.lineTo(i*GRID,H); ctx.stroke();
-  }
-  for (let i=0;i<=ROWS;i++) {
-    ctx.beginPath(); ctx.moveTo(0,i*GRID); ctx.lineTo(W,i*GRID); ctx.stroke();
+  for (let i=0;i<=COLS;i++) { ctx.beginPath(); ctx.moveTo(i*GRID,0); ctx.lineTo(i*GRID,H); ctx.stroke(); }
+  for (let i=0;i<=ROWS;i++) { ctx.beginPath(); ctx.moveTo(0,i*GRID); ctx.lineTo(W,i*GRID); ctx.stroke(); }
+
+  if (food) {
+    ctx.fillStyle = '#ff4466';
+    ctx.beginPath();
+    ctx.arc(food.x*GRID + GRID/2, food.y*GRID + GRID/2, GRID/2 - 2, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#22d47a';
+    ctx.fillRect(food.x*GRID + GRID/2 - 1, food.y*GRID + 2, 2, 4);
   }
 
-  // 음식
-  ctx.fillStyle = '#ff4466';
-  ctx.beginPath();
-  ctx.arc(food.x*GRID + GRID/2, food.y*GRID + GRID/2, GRID/2 - 2, 0, Math.PI*2);
-  ctx.fill();
-  ctx.fillStyle = '#22d47a';
-  ctx.fillRect(food.x*GRID + GRID/2 - 1, food.y*GRID + 2, 2, 4);
-
-  // 뱀
-  snake.forEach((s, i)=>{
+  if (snake) snake.forEach((s, i)=>{
     if (i === 0) {
-      // 머리
       ctx.fillStyle = '#3b9eff';
       ctx.fillRect(s.x*GRID+1, s.y*GRID+1, GRID-2, GRID-2);
-      // 눈
       ctx.fillStyle = '#fff';
-      const ex = s.x*GRID + GRID/2 + dir.x*4;
-      const ey = s.y*GRID + GRID/2 + dir.y*4;
+      const cx = s.x*GRID + GRID/2;
+      const cy = s.y*GRID + GRID/2;
+      const ex = cx + (dir?dir.x:1)*4;
+      const ey = cy + (dir?dir.y:0)*4;
       ctx.beginPath();
       ctx.arc(ex - (dir.y!==0?3:0), ey - (dir.x!==0?3:0), 2, 0, Math.PI*2);
       ctx.fill();
@@ -211,67 +197,96 @@ function draw() {
       ctx.fillRect(s.x*GRID+2, s.y*GRID+2, GRID-4, GRID-4);
     }
   });
+
+  if (!running) {
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.font = 'bold 14px Noto Sans KR';
+    ctx.textAlign = 'center';
+    ctx.fillText('🎮 시작 버튼을 눌러주세요', W/2, H/2);
+  }
 }
 
 function endGame() {
   running = false;
   clearInterval(timer);
-  document.getElementById('overlay').style.display='flex';
-  document.getElementById('overlay').innerHTML = `
-    <div class="overlay-title">💀 게임 오버</div>
+  lastSavedScore = score;
+  lastSavedLength = snake.length;
+  const ov = document.getElementById('overlay');
+  const box = document.getElementById('overlayBox');
+  box.innerHTML = `
+    <div style="font-size:40px;margin-bottom:8px;">💀</div>
+    <div class="overlay-title">게임 오버</div>
     <div class="overlay-sub">점수: <b style="color:var(--main)">${score}</b><br>길이: <b style="color:#ffaa00">${snake.length}</b></div>
-    <input id="nameInput" class="in-input" type="text" maxlength="10" placeholder="✏️ 이름">
-    <input id="msgInput" class="in-input" type="text" maxlength="20" placeholder="💬 한마디">
-    <button class="start-btn" onclick="saveAndShow()">🏆 기록 저장!</button>
-    <button onclick="newGame()" style="background:none;border:none;color:#6a8aaa;font-size:12px;cursor:pointer;font-family:inherit;">저장 없이 다시</button>
+    <input id="nameInput" class="in-input" type="text" maxlength="10" placeholder="✏️ 이름 (10자 이내)">
+    <input id="msgInput" class="in-input" type="text" maxlength="20" placeholder="💬 한마디 (20자 이내)">
+    <button class="start-btn" id="saveBtn">🏆 기록 저장!</button>
+    <button class="skip-btn" id="skipBtn">저장 없이 다시</button>
   `;
+  ov.style.display='flex';
+  setTimeout(()=>{
+    document.getElementById('nameInput')?.focus();
+    document.getElementById('saveBtn').addEventListener('click', saveAndShow);
+    document.getElementById('skipBtn').addEventListener('click', newGame);
+  }, 50);
 }
 
 async function saveAndShow() {
   const name = document.getElementById('nameInput')?.value.trim() || '익명';
   const msg = document.getElementById('msgInput')?.value.trim() || '';
+  const saveBtn = document.getElementById('saveBtn');
+  if (saveBtn) {
+    saveBtn.textContent = '저장 중...';
+    saveBtn.disabled = true;
+  }
   try {
     await db.collection('leaderboardSnake').add({
-      name, score, length:snake.length, msg,
+      name, score: lastSavedScore, length: lastSavedLength, msg,
       date: new Date().toLocaleDateString('ko-KR'),
       createdAt: Date.now()
     });
-  } catch(e) {}
+  } catch(e) {
+    console.error(e);
+  }
   showLeaderboard();
 }
 
 async function showLeaderboard() {
-  document.getElementById('overlay').style.display='flex';
-  document.getElementById('overlay').innerHTML = '<div class="overlay-title">🏆 담벼락</div><div style="color:#6a8aaa;font-size:12px;padding:20px;">불러오는 중... ⏳</div>';
+  const ov = document.getElementById('overlay');
+  const box = document.getElementById('overlayBox');
+  box.innerHTML = '<div class="overlay-title">🏆 담벼락</div><div style="color:#6a8aaa;font-size:12px;padding:20px;">불러오는 중... ⏳</div>';
+  ov.style.display='flex';
 
   let records = [];
   try {
     const snap = await db.collection('leaderboardSnake').orderBy('score','desc').limit(20).get();
     records = snap.docs.map(d=>d.data());
-  } catch(e) {}
+  } catch(e) { console.error(e); }
 
   const medals = ['🥇','🥈','🥉'];
   const rows = records.map((r,i)=>`
-    <div style="padding:6px 0;border-bottom:1px solid #1c2a3a;font-size:11px;">
+    <div style="padding:6px 0;border-bottom:1px solid #1c2a3a;font-size:12px;">
       <div style="display:flex;align-items:center;gap:6px;">
-        <span style="width:20px;text-align:center;font-size:${i<3?'14':'11'}px;color:#2d4055;">${medals[i]||(i+1)}</span>
-        <span style="flex:1;color:#ddeeff;font-weight:600;word-break:break-all;">${r.name}</span>
+        <span style="width:22px;text-align:center;font-size:${i<3?'14':'11'}px;color:#2d4055;">${medals[i]||(i+1)}</span>
+        <span style="flex:1;color:#ddeeff;font-weight:600;word-break:break-all;text-align:left;">${r.name}</span>
         <span style="color:#3b9eff;font-family:'DM Mono',monospace;">${r.score}</span>
       </div>
-      ${r.msg?'<div style="font-size:10px;color:#4a6a8a;padding-left:26px;">💬 '+r.msg+'</div>':''}
+      ${r.msg?'<div style="font-size:10px;color:#4a6a8a;padding-left:28px;text-align:left;">💬 '+r.msg+'</div>':''}
     </div>
   `).join('');
 
-  document.getElementById('overlay').innerHTML = `
+  box.innerHTML = `
     <div class="overlay-title">🏆 스네이크 기록</div>
-    <div style="width:280px;max-height:240px;overflow-y:auto;border:1px solid #1c2a3a;border-radius:10px;padding:4px 12px;text-align:left;">
+    <div style="font-size:11px;color:#6a8aaa;margin-bottom:8px;">상위 20명</div>
+    <div style="max-height:240px;overflow-y:auto;border:1px solid #1c2a3a;border-radius:10px;padding:4px 12px;">
       ${rows||'<div style="color:#6a8aaa;font-size:12px;padding:20px;text-align:center;">아직 기록이 없어요!</div>'}
     </div>
-    <div style="display:flex;gap:6px;">
-      <button class="start-btn" onclick="newGame()" style="padding:7px 14px;font-size:12px;">새 게임</button>
-      <button onclick="showLeaderboard()" style="background:none;border:1px solid #1c2a3a;border-radius:8px;padding:7px 12px;color:#6a8aaa;font-size:12px;cursor:pointer;font-family:inherit;">새로고침</button>
+    <div style="display:flex;gap:6px;margin-top:10px;">
+      <button id="lbNewBtn" class="start-btn" style="flex:1;margin:0;">새 게임</button>
+      <button id="lbRefreshBtn" style="background:none;border:1px solid #1c2a3a;border-radius:8px;padding:7px 12px;color:#6a8aaa;font-size:12px;cursor:pointer;font-family:inherit;">🔄</button>
     </div>
   `;
+  document.getElementById('lbNewBtn').addEventListener('click', newGame);
+  document.getElementById('lbRefreshBtn').addEventListener('click', showLeaderboard);
 }
 
 function changeDir(dx, dy) {
@@ -296,7 +311,6 @@ document.getElementById('startBtn').addEventListener('click', newGame);
 document.getElementById('newGameBtn').addEventListener('click', newGame);
 document.getElementById('leaderBtn').addEventListener('click', showLeaderboard);
 
-// 스와이프
 let tx=0, ty=0;
 canvas.addEventListener('touchstart', e=>{ tx=e.touches[0].clientX; ty=e.touches[0].clientY; e.preventDefault(); }, {passive:false});
 canvas.addEventListener('touchmove', e=>e.preventDefault(), {passive:false});
@@ -309,8 +323,10 @@ canvas.addEventListener('touchend', e=>{
   e.preventDefault();
 }, {passive:false});
 
-// 초기 화면 그리기
-snake=[{x:10,y:8}]; dir={x:1,y:0}; food={x:15,y:8};
+// 초기 화면
+snake = [{x:10,y:8}];
+dir = {x:1,y:0};
+food = {x:15,y:8};
 draw();
 </script>
 </body>
