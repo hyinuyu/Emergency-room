@@ -25,7 +25,7 @@ h1 span{color:var(--main);}
 .mode-btn{background:var(--card);border:1px solid var(--border);color:var(--text2);padding:6px 12px;border-radius:8px;font-size:11px;cursor:pointer;font-family:inherit;}
 .mode-btn.active{border-color:var(--main);color:var(--main);background:rgba(59,158,255,0.08);}
 
-#board{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:6px;display:grid;gap:2px;position:relative;z-index:1;width:100%;max-width:min(95vw,420px);transition:border-color 0.2s,box-shadow 0.2s;}
+#board{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:4px;display:grid;gap:2px;position:relative;z-index:1;width:100%;max-width:calc(100vw - 32px);transition:border-color 0.2s,box-shadow 0.2s;}
 .cell{
   background:#1a2236;border-radius:4px;
   display:flex;align-items:center;justify-content:center;
@@ -185,7 +185,9 @@ function draw() {
   const el = document.getElementById('board');
   el.style.gridTemplateColumns = `repeat(${s},1fr)`;
   // 폰트 크기를 셀 크기에 맞춰 자동 조정
-  const cellFontSize = Math.max(10, Math.min(16, 360/s - 4));
+  const boardWidth = el.clientWidth;
+  const cellSize = (boardWidth - 8 - (s-1)*2) / s;  // padding 4px*2, gap 2px
+  const cellFontSize = Math.max(8, Math.min(16, cellSize * 0.55));
   el.style.fontSize = cellFontSize + 'px';
   el.innerHTML = '';
   for (let r=0;r<s;r++) for (let c=0;c<s;c++) {
@@ -411,6 +413,8 @@ document.getElementById('board').addEventListener('touchend', e=>{
   if (pressTimer) clearTimeout(pressTimer);
 });
 
+// 화면 회전/리사이즈 시 다시 그리기
+window.addEventListener('resize', () => { if (board) draw(); });
 newGame();
 </script>
 </body>
