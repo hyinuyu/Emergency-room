@@ -59,7 +59,7 @@ h1 span{color:var(--main);}
   </div>
 </div>
 
-<canvas id="gameCanvas" width="320" height="320"></canvas>
+<canvas id="gameCanvas" width="400" height="400"></canvas>
 
 <div class="controls">
   <div></div>
@@ -95,7 +95,7 @@ const db = firebase.firestore();
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-const W = 320, H = 320, GRID = 20;
+const W = 400, H = 400, GRID = 20;
 const COLS = W / GRID, ROWS = H / GRID;
 
 let snake, dir, nextDir, food, goldenFood, score, best, running, timer, goldenTimer;
@@ -105,18 +105,46 @@ best = parseInt(localStorage.getItem('snake_best') || '0');
 document.getElementById('best').textContent = best;
 
 function newGame() {
-  snake = [{x:10, y:8},{x:9, y:8},{x:8, y:8}];
+  snake = [{x:10, y:10},{x:9, y:10},{x:8, y:10}];
   dir = {x:1, y:0};
   nextDir = dir;
   score = 0;
   goldenFood = null;
   placeFood();
-  running = true;
   document.getElementById('overlay').style.display='none';
   document.getElementById('score').textContent = '0';
   clearInterval(timer);
-  timer = setInterval(tick, 100);
   draw();
+  // 카운트다운 후 시작
+  startCountdown();
+}
+
+function startCountdown() {
+  running = false;
+  let count = 3;
+  const showCount = () => {
+    draw();
+    ctx.fillStyle = 'rgba(6,9,16,0.6)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#3b9eff';
+    ctx.font = 'bold 80px Noto Sans KR';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = '#3b9eff';
+    ctx.shadowBlur = 30;
+    ctx.fillText(count > 0 ? count : 'GO!', W/2, H/2 + 30);
+    ctx.shadowBlur = 0;
+  };
+  showCount();
+  const cdTimer = setInterval(() => {
+    count--;
+    if (count >= 0) {
+      showCount();
+    } else {
+      clearInterval(cdTimer);
+      running = true;
+      timer = setInterval(tick, 100);
+    }
+  }, 700);
 }
 
 function placeFood() {
@@ -368,9 +396,9 @@ canvas.addEventListener('touchend', e=>{
 }, {passive:false});
 
 // 초기 화면
-snake = [{x:10,y:8}];
+snake = [{x:10,y:10}];
 dir = {x:1,y:0};
-food = {x:15,y:8};
+food = {x:15,y:10};
 draw();
 </script>
 </body>
