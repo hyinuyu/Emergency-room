@@ -47,6 +47,12 @@ h1 span{color:var(--main);}
 .cell-1024{background:#22d47a;color:#fff;font-size:16px;box-shadow:0 0 25px rgba(34,212,122,0.5);}
 .cell-2048{background:gold;color:#000;font-size:16px;box-shadow:0 0 30px gold;animation:pulse 1s infinite;}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes comboFly{
+  0%{opacity:0;transform:translate(-50%,-30%) scale(0.5);}
+  20%{opacity:1;transform:translate(-50%,-50%) scale(1.2);}
+  80%{opacity:1;transform:translate(-50%,-50%) scale(1);}
+  100%{opacity:0;transform:translate(-50%,-70%) scale(1);}
+}
 
 .controls{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,56px);gap:8px;margin-top:18px;position:relative;z-index:1;}
 .controls > div{}
@@ -132,7 +138,7 @@ const db = firebase.firestore();
 
 // 게임 상태
 const SIZE = 4;
-let grid, score, best, gameOver, highestTile;
+let grid, score, best, gameOver, highestTile, combo, comboTimer;
 best = parseInt(localStorage.getItem('best_2048') || '0');
 document.getElementById('best').textContent = best;
 
@@ -166,6 +172,7 @@ function draw() {
   }
 }
 
+let mergeCount = 0;
 function compress(row) {
   const filtered = row.filter(v => v !== 0);
   const merged = [];
@@ -174,7 +181,10 @@ function compress(row) {
     if (i+1 < filtered.length && filtered[i] === filtered[i+1]) {
       const newVal = filtered[i] * 2;
       merged.push(newVal);
-      score += newVal;
+      // 콤보 보너스
+      const bonus = combo > 0 ? Math.floor(newVal * combo * 0.2) : 0;
+      score += newVal + bonus;
+      mergeCount++;
       if (newVal > highestTile) highestTile = newVal;
       i += 2;
     } else {
@@ -209,6 +219,7 @@ function newGrid_() {
 function move(dir) {
   if (gameOver) return;
   let moved = false;
+  mergeCount = 0;
   if (dir === 'left') {
     moved = moveLeft();
   } else if (dir === 'right') {
@@ -225,8 +236,16 @@ function move(dir) {
     rotateGrid(); rotateGrid(); rotateGrid();
   }
   if (moved) {
+    if (mergeCount > 0) {
+      combo += mergeCount;
+      comboTimer = 3;
+    } else {
+      comboTimer--;
+      if (comboTimer <= 0) combo = 0;
+    }
     addRandomTile();
     draw();
+    if (combo >= 3) showComboToast();
     if (highestTile >= 2048 && !localStorage.getItem('won_2048')) {
       localStorage.setItem('won_2048', '1');
       showWin();
@@ -234,6 +253,24 @@ function move(dir) {
       showGameOver();
     }
   }
+}
+
+function showComboToast() {
+  const existing = document.getElementById('comboToast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.id = 'comboToast';
+  toast.style.cssText = `
+    position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+    font-size:32px;font-weight:900;font-family:'DM Mono',monospace;
+    color:${combo>=10?'#ff4466':combo>=6?'#ffaa00':'#22d47a'};
+    pointer-events:none;z-index:50;
+    text-shadow:0 0 20px currentColor;
+    animation:comboFly 0.8s ease-out forwards;
+  `;
+  toast.textContent = `COMBO x${combo}!`;
+  document.body.appendChild(toast);
+  setTimeout(()=>toast.remove(), 800);
 }
 
 function isGameOver() {
@@ -250,6 +287,8 @@ function newGame() {
   score = 0;
   highestTile = 0;
   gameOver = false;
+  combo = 0;
+  comboTimer = 0;
   addRandomTile();
   addRandomTile();
   draw();
