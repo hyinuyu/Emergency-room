@@ -157,6 +157,8 @@ function newGame() {
   flagMode = false;
   document.getElementById('time').style.color = '';
   document.getElementById('flagModeBtn').classList.remove('active');
+  document.getElementById('flagModeBtn').textContent = '🚩 깃발 모드';
+  document.getElementById('board').classList.remove('flag-mode');
   clearInterval(timer);
   document.getElementById('time').textContent = speedMode ? MODES[mode].timeLimit+'초' : '0초';
 
@@ -415,8 +417,12 @@ async function showLeaderboard() {
       <button id="lbRefreshBtn" style="background:none;border:1px solid #1c2a3a;border-radius:8px;padding:7px 12px;color:#6a8aaa;font-size:12px;cursor:pointer;font-family:inherit;">새로고침</button>
     </div>
   `;
-  document.getElementById('lbNewBtn').addEventListener('click', newGame);
-  document.getElementById('lbRefreshBtn').addEventListener('click', showLeaderboard);
+  setTimeout(() => {
+    const nb = document.getElementById('lbNewBtn');
+    const rb = document.getElementById('lbRefreshBtn');
+    if (nb) nb.addEventListener('click', newGame);
+    if (rb) rb.addEventListener('click', showLeaderboard);
+  }, 50);
 }
 
 // 이벤트
