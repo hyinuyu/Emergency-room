@@ -334,8 +334,9 @@ function showTimeOver() {
     <div style="font-size:40px;margin-bottom:8px;">⏰💥</div>
     <div class="overlay-title">시간 초과!</div>
     <div class="overlay-sub">시간 안에 못 깼어요!<br>지뢰가 폭발했어요 💣</div>
-    <button class="start-btn" onclick="newGame()">다시 하기</button>
+    <button id="retryBtn" class="start-btn">다시 하기</button>
   `;
+  setTimeout(()=>document.getElementById('retryBtn')?.addEventListener('click', newGame), 50);
 }
 
 function showGameOver() {
@@ -344,8 +345,9 @@ function showGameOver() {
     <div style="font-size:40px;margin-bottom:8px;">💥</div>
     <div class="overlay-title">게임 오버</div>
     <div class="overlay-sub">지뢰를 밟았어요!<br>다시 도전해보세요</div>
-    <button class="start-btn" onclick="newGame()">다시 하기</button>
+    <button id="retryBtn" class="start-btn">다시 하기</button>
   `;
+  setTimeout(()=>document.getElementById('retryBtn')?.addEventListener('click', newGame), 50);
 }
 
 function showWin() {
@@ -357,8 +359,8 @@ function showWin() {
     <div class="overlay-sub">난이도: <b style="color:var(--main)">${mode==='easy'?'쉬움':mode==='medium'?'보통':'어려움'}</b>${speedMode?' <span style="color:#ff4466">[스피드]</span>':''}<br>시간: <b style="color:#ffaa00">${sec}초</b></div>
     <input id="nameInput" class="in-input" type="text" maxlength="10" placeholder="✏️ 이름 (10자 이내)">
     <input id="msgInput" class="in-input" type="text" maxlength="20" placeholder="💬 한마디 (20자 이내)">
-    <button class="start-btn" onclick="saveAndShow(${sec})">🏆 기록 저장!</button>
-    <button onclick="newGame()" style="background:none;border:none;color:#6a8aaa;font-size:12px;cursor:pointer;font-family:inherit;margin-top:8px;">저장 없이 다시</button>
+    <button class="start-btn" id="saveBtn" data-sec="${sec}">🏆 기록 저장!</button>
+    <button id="skipBtn" style="background:none;border:none;color:#6a8aaa;font-size:12px;cursor:pointer;font-family:inherit;margin-top:8px;">저장 없이 다시</button>
   `;
 }
 
@@ -409,10 +411,12 @@ async function showLeaderboard() {
       ${rows||'<div style="color:#6a8aaa;font-size:12px;padding:20px;text-align:center;">아직 기록이 없어요!</div>'}
     </div>
     <div style="display:flex;gap:6px;margin-top:10px;">
-      <button class="start-btn" onclick="newGame()" style="padding:7px 14px;font-size:12px;">새 게임</button>
-      <button onclick="showLeaderboard()" style="background:none;border:1px solid #1c2a3a;border-radius:8px;padding:7px 12px;color:#6a8aaa;font-size:12px;cursor:pointer;font-family:inherit;">새로고침</button>
+      <button id="lbNewBtn" class="start-btn" style="padding:7px 14px;font-size:12px;">새 게임</button>
+      <button id="lbRefreshBtn" style="background:none;border:1px solid #1c2a3a;border-radius:8px;padding:7px 12px;color:#6a8aaa;font-size:12px;cursor:pointer;font-family:inherit;">새로고침</button>
     </div>
   `;
+  document.getElementById('lbNewBtn').addEventListener('click', newGame);
+  document.getElementById('lbRefreshBtn').addEventListener('click', showLeaderboard);
 }
 
 // 이벤트
