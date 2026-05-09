@@ -98,7 +98,7 @@ const ctx = canvas.getContext('2d');
 const W = 320, H = 320, GRID = 20;
 const COLS = W / GRID, ROWS = H / GRID;
 
-let snake, dir, nextDir, food, score, best, running, timer;
+let snake, dir, nextDir, food, goldenFood, score, best, running, timer, goldenTimer;
 let lastSavedScore = 0, lastSavedLength = 0;
 
 best = parseInt(localStorage.getItem('snake_best') || '0');
@@ -109,12 +109,13 @@ function newGame() {
   dir = {x:1, y:0};
   nextDir = dir;
   score = 0;
+  goldenFood = null;
   placeFood();
   running = true;
   document.getElementById('overlay').style.display='none';
   document.getElementById('score').textContent = '0';
   clearInterval(timer);
-  timer = setInterval(tick, 120);
+  timer = setInterval(tick, 100);
   draw();
 }
 
@@ -122,10 +123,25 @@ function placeFood() {
   while (true) {
     const x = Math.floor(Math.random()*COLS);
     const y = Math.floor(Math.random()*ROWS);
-    if (!snake.some(s => s.x===x && s.y===y)) {
+    if (!snake.some(s => s.x===x && s.y===y) && !(goldenFood && goldenFood.x===x && goldenFood.y===y)) {
       food = {x, y};
       return;
     }
+  }
+}
+
+function placeGoldenFood() {
+  // 30% 확률로 황금 사과 등장
+  if (Math.random() > 0.3 || goldenFood) return;
+  let attempts = 0;
+  while (attempts < 50) {
+    const x = Math.floor(Math.random()*COLS);
+    const y = Math.floor(Math.random()*ROWS);
+    if (!snake.some(s => s.x===x && s.y===y) && !(food.x===x && food.y===y)) {
+      goldenFood = {x, y, life: 50}; // 50틱 동안 유지
+      return;
+    }
+    attempts++;
   }
 }
 
@@ -141,19 +157,30 @@ function tick() {
 
   if (head.x === food.x && head.y === food.y) {
     score += 10;
-    document.getElementById('score').textContent = score;
-    if (score > best) {
-      best = score;
-      localStorage.setItem('snake_best', best);
-      document.getElementById('best').textContent = best;
-    }
     placeFood();
-    if (snake.length % 5 === 0) {
+    placeGoldenFood();
+    if (snake.length % 3 === 0) {
       clearInterval(timer);
-      timer = setInterval(tick, Math.max(60, 120 - Math.floor(snake.length/5)*8));
+      timer = setInterval(tick, Math.max(40, 100 - Math.floor(snake.length/3)*6));
     }
+  } else if (goldenFood && head.x === goldenFood.x && head.y === goldenFood.y) {
+    score += 50;
+    snake.push({...snake[snake.length-1]}); // 보너스로 한 칸 더
+    snake.push({...snake[snake.length-1]});
+    goldenFood = null;
   } else {
     snake.pop();
+  }
+  // 황금 사과 시간 줄이기
+  if (goldenFood) {
+    goldenFood.life--;
+    if (goldenFood.life <= 0) goldenFood = null;
+  }
+  document.getElementById('score').textContent = score;
+  if (score > best) {
+    best = score;
+    localStorage.setItem('snake_best', best);
+    document.getElementById('best').textContent = best;
   }
   draw();
 }
@@ -174,6 +201,23 @@ function draw() {
     ctx.fill();
     ctx.fillStyle = '#22d47a';
     ctx.fillRect(food.x*GRID + GRID/2 - 1, food.y*GRID + 2, 2, 4);
+  }
+  if (goldenFood) {
+    // 깜빡임
+    const blink = goldenFood.life < 20 ? Math.sin(Date.now()/100) * 0.5 + 0.5 : 1;
+    ctx.globalAlpha = blink;
+    ctx.fillStyle = '#ffd700';
+    ctx.shadowColor = '#ffaa00';
+    ctx.shadowBlur = 15;
+    ctx.beginPath();
+    ctx.arc(goldenFood.x*GRID + GRID/2, goldenFood.y*GRID + GRID/2, GRID/2 - 1, 0, Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 10px DM Mono';
+    ctx.textAlign = 'center';
+    ctx.fillText('★', goldenFood.x*GRID + GRID/2, goldenFood.y*GRID + GRID/2 + 3);
+    ctx.globalAlpha = 1;
   }
 
   if (snake) snake.forEach((s, i)=>{
