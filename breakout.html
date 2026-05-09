@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>응급실 벽돌깨기</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#060910;--card:#0d1117;--border:#1c2a3a;--main:#3b9eff;--text:#ddeeff;--text2:#6a8aaa;--text3:#2d4055;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px 40px;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 20%,rgba(59,158,255,0.04) 0%,transparent 70%);pointer-events:none;}
+
+.back-btn{align-self:flex-start;display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);color:var(--text2);padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer;text-decoration:none;margin-bottom:16px;transition:all 0.2s;position:relative;z-index:1;}
+h1{font-size:18px;font-weight:900;margin-bottom:4px;position:relative;z-index:1;}
+h1 span{color:var(--main);}
+.subtitle{font-size:11px;color:var(--text2);margin-bottom:14px;text-align:center;position:relative;z-index:1;}
+
+.score-row{display:flex;gap:8px;margin-bottom:12px;position:relative;z-index:1;}
+.score-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 14px;text-align:center;min-width:75px;}
+.score-label{font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;}
+.score-val{font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--text);}
+
+#gameCanvas{border:2px solid var(--border);border-radius:10px;background:#070c14;display:block;touch-action:none;position:relative;z-index:1;}
+
+.action-row{display:flex;gap:8px;margin-top:14px;position:relative;z-index:1;}
+.action-btn{background:var(--card);border:1px solid var(--border);color:var(--text2);padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;}
+.action-btn.gold{border-color:rgba(255,170,0,0.3);color:#ffaa00;}
+
+.hint{font-size:11px;color:var(--text3);margin-top:10px;text-align:center;line-height:1.7;position:relative;z-index:1;}
+
+.overlay{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(6,9,16,0.92);border-radius:10px;gap:10px;}
+.overlay-title{font-size:20px;font-weight:900;}
+.overlay-sub{font-size:13px;color:var(--text2);text-align:center;line-height:1.6;}
+.start-btn{background:var(--main);color:#000;border:none;padding:10px 24px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+.in-input{background:#131a24;border:1px solid #243447;border-radius:8px;padding:8px 12px;color:#ddeeff;font-size:13px;font-family:inherit;outline:none;text-align:center;width:180px;}
+
+.board-wrap{position:relative;}
+</style>
+</head>
+<body>
+
+<a class="back-btn" href="./index.html">← 응급실 현황</a>
+<h1>🧱 <span>응급실</span> 벽돌깨기</h1>
+<p class="subtitle">공으로 모든 벽돌을 부숴보세요!</p>
+
+<div class="score-row">
+  <div class="score-box">
+    <div class="score-label">점수</div>
+    <div class="score-val" id="score">0</div>
+  </div>
+  <div class="score-box">
+    <div class="score-label">생명</div>
+    <div class="score-val" id="lives">3</div>
+  </div>
+  <div class="score-box">
+    <div class="score-label">레벨</div>
+    <div class="score-val" id="level">1</div>
+  </div>
+</div>
+
+<div class="board-wrap">
+  <canvas id="gameCanvas" width="320" height="400"></canvas>
+  <div class="overlay" id="overlay">
+    <div class="overlay-title" id="ovTitle">🧱 벽돌깨기</div>
+    <div class="overlay-sub" id="ovSub">공이 떨어지지 않게<br>패들로 막아내세요!</div>
+    <div id="ovButtons">
+      <button class="start-btn" id="startBtn">게임 시작!</button>
+    </div>
+  </div>
+</div>
+
+<div class="action-row">
+  <button class="action-btn" id="newGameBtn">🔄 새 게임</button>
+  <button class="action-btn gold" id="leaderBtn">🏆 기록</button>
+</div>
+
+<p class="hint">⌨️ ←→ 또는 A/D · 📱 화면을 손으로 드래그</p>
+
+<script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.min.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyAu9lEDOwLgtiO3FE-bI7mXanF-F7E9RJk",
+  authDomain: "gumi-er-tetris.firebaseapp.com",
+  projectId: "gumi-er-tetris",
+  storageBucket: "gumi-er-tetris.firebasestorage.app",
+  messagingSenderId: "421677764064",
+  appId: "1:421677764064:web:35fb5b795c94e5226def85"
+});
+const db = firebase.firestore();
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+const PADDLE_W = 60, PADDLE_H = 8, BALL_R = 6;
+const BRICK_ROWS = 5, BRICK_COLS = 8;
+const COLORS = ['#ff4466','#ffaa00','#22d47a','#3b9eff','#a78bfa'];
+
+let paddle, ball, bricks, score, lives, level, running, paused, animId;
+
+function init() {
+  score = 0; lives = 3; level = 1;
+  running = false; paused = false;
+  newLevel();
+}
+
+function newLevel() {
+  paddle = { x: W/2 - PADDLE_W/2, y: H - 20 };
+  ball = { x: W/2, y: H - 35, vx: 3 + level*0.3, vy: -3 - level*0.3, r: BALL_R };
+  bricks = [];
+  const bw = (W - 20) / BRICK_COLS;
+  const bh = 16;
+  for (let r=0;r<BRICK_ROWS;r++) for (let c=0;c<BRICK_COLS;c++) {
+    bricks.push({
+      x: 10 + c*bw + 2, y: 30 + r*(bh+4),
+      w: bw - 4, h: bh,
+      color: COLORS[r % COLORS.length],
+      alive: true
+    });
+  }
+  updateUI();
+}
+
+function updateUI() {
+  document.getElementById('score').textContent = score;
+  document.getElementById('lives').textContent = lives;
+  document.getElementById('level').textContent = level;
+}
+
+function draw() {
+  ctx.fillStyle = '#070c14';
+  ctx.fillRect(0,0,W,H);
+
+  // 그리드
+  ctx.strokeStyle = 'rgba(28,42,58,0.3)';
+  ctx.lineWidth = 0.5;
+  for (let i=0;i<W;i+=20) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,H); ctx.stroke(); }
+  for (let i=0;i<H;i+=20) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(W,i); ctx.stroke(); }
+
+  // 벽돌
+  bricks.forEach(b=>{
+    if (!b.alive) return;
+    ctx.fillStyle = b.color;
+    ctx.fillRect(b.x, b.y, b.w, b.h);
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.fillRect(b.x, b.y, b.w, 2);
+  });
+
+  // 패들
+  ctx.fillStyle = '#3b9eff';
+  ctx.fillRect(paddle.x, paddle.y, PADDLE_W, PADDLE_H);
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.fillRect(paddle.x, paddle.y, PADDLE_W, 2);
+
+  // 공
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  ctx.shadowColor = '#3b9eff';
+  ctx.shadowBlur = 10;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+function update() {
+  if (!running || paused) return;
+
+  ball.x += ball.vx;
+  ball.y += ball.vy;
+
+  // 벽 충돌
+  if (ball.x - ball.r < 0) { ball.x = ball.r; ball.vx = -ball.vx; }
+  if (ball.x + ball.r > W) { ball.x = W - ball.r; ball.vx = -ball.vx; }
+  if (ball.y - ball.r < 0) { ball.y = ball.r; ball.vy = -ball.vy; }
+
+  // 패들 충돌
+  if (ball.y + ball.r >= paddle.y && ball.y - ball.r <= paddle.y + PADDLE_H &&
+      ball.x >= paddle.x && ball.x <= paddle.x + PADDLE_W) {
+    ball.y = paddle.y - ball.r;
+    ball.vy = -Math.abs(ball.vy);
+    // 패들 위치에 따라 공 방향 조정
+    const hit = (ball.x - paddle.x) / PADDLE_W;
+    ball.vx = (hit - 0.5) * 8;
+  }
+
+  // 벽돌 충돌
+  bricks.forEach(b=>{
+    if (!b.alive) return;
+    if (ball.x + ball.r > b.x && ball.x - ball.r < b.x + b.w &&
+        ball.y + ball.r > b.y && ball.y - ball.r < b.y + b.h) {
+      b.alive = false;
+      score += 10 * level;
+      // 어느 면에 맞았는지
+      const ox = (ball.x < b.x) ? b.x - ball.x : ball.x - (b.x + b.w);
+      const oy = (ball.y < b.y) ? b.y - ball.y : ball.y - (b.y + b.h);
+      if (Math.abs(ox) < Math.abs(oy)) ball.vy = -ball.vy;
+      else ball.vx = -ball.vx;
+      updateUI();
+    }
+  });
+
+  // 떨어짐
+  if (ball.y - ball.r > H) {
+    lives--;
+    updateUI();
+    if (lives <= 0) {
+      running = false;
+      showGameOver();
+    } else {
+      ball.x = W/2; ball.y = H - 35;
+      ball.vx = 3 + level*0.3;
+      ball.vy = -3 - level*0.3;
+    }
+  }
+
+  // 모든 벽돌 파괴
+  if (bricks.every(b => !b.alive)) {
+    level++;
+    newLevel();
+  }
+}
+
+function loop() {
+  update();
+  draw();
+  animId = requestAnimationFrame(loop);
+}
+
+function startGame() {
+  init();
+  running = true;
+  document.getElementById('overlay').style.display='none';
+  cancelAnimationFrame(animId);
+  loop();
+}
+
+function showGameOver() {
+  document.getElementById('overlay').style.display='flex';
+  document.getElementById('overlay').innerHTML = `
+    <div class="overlay-title">💀 게임 오버</div>
+    <div class="overlay-sub">점수: <b style="color:var(--main)">${score}</b><br>레벨: <b style="color:#ffaa00">${level}</b></div>
+    <input id="nameInput" class="in-input" type="text" maxlength="10" placeholder="✏️ 이름">
+    <input id="msgInput" class="in-input" type="text" maxlength="20" placeholder="💬 한마디">
+    <button class="start-btn" onclick="saveAndShow()">🏆 기록 저장!</button>
+    <button onclick="startGame()" style="background:none;border:none;color:#6a8aaa;font-size:12px;cursor:pointer;font-family:inherit;">저장 없이 다시</button>
+  `;
+}
+
+async function saveAndShow() {
+  const name = document.getElementById('nameInput')?.value.trim() || '익명';
+  const msg = document.getElementById('msgInput')?.value.trim() || '';
+  try {
+    await db.collection('leaderboardBreakout').add({
+      name, score, level, msg,
+      date: new Date().toLocaleDateString('ko-KR'),
+      createdAt: Date.now()
+    });
+  } catch(e) {}
+  showLeaderboard();
+}
+
+async function showLeaderboard() {
+  document.getElementById('overlay').style.display='flex';
+  document.getElementById('overlay').innerHTML = '<div class="overlay-title">🏆 담벼락</div><div style="color:#6a8aaa;font-size:12px;padding:20px;">불러오는 중... ⏳</div>';
+
+  let records = [];
+  try {
+    const snap = await db.collection('leaderboardBreakout').orderBy('score','desc').limit(20).get();
+    records = snap.docs.map(d=>d.data());
+  } catch(e) {}
+
+  const medals = ['🥇','🥈','🥉'];
+  const rows = records.map((r,i)=>`
+    <div style="padding:6px 0;border-bottom:1px solid #1c2a3a;font-size:11px;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="width:20px;text-align:center;font-size:${i<3?'14':'11'}px;color:#2d4055;">${medals[i]||(i+1)}</span>
+        <span style="flex:1;color:#ddeeff;font-weight:600;word-break:break-all;">${r.name}</span>
+        <span style="color:#3b9eff;font-family:'DM Mono',monospace;">${r.score}</span>
+        <span style="color:#ffaa00;font-size:9px;">Lv${r.level}</span>
+      </div>
+      ${r.msg?'<div style="font-size:10px;color:#4a6a8a;padding-left:26px;">💬 '+r.msg+'</div>':''}
+    </div>
+  `).join('');
+
+  document.getElementById('overlay').innerHTML = `
+    <div class="overlay-title">🏆 벽돌깨기 기록</div>
+    <div style="width:280px;max-height:240px;overflow-y:auto;border:1px solid #1c2a3a;border-radius:10px;padding:4px 12px;text-align:left;">
+      ${rows||'<div style="color:#6a8aaa;font-size:12px;padding:20px;text-align:center;">아직 기록이 없어요!</div>'}
+    </div>
+    <div style="display:flex;gap:6px;">
+      <button class="start-btn" onclick="startGame()" style="padding:7px 14px;font-size:12px;">새 게임</button>
+      <button onclick="showLeaderboard()" style="background:none;border:1px solid #1c2a3a;border-radius:8px;padding:7px 12px;color:#6a8aaa;font-size:12px;cursor:pointer;font-family:inherit;">새로고침</button>
+    </div>
+  `;
+}
+
+// 입력
+document.addEventListener('keydown', e=>{
+  if (!running || paused) return;
+  if (e.key==='ArrowLeft' || e.key==='a' || e.key==='A') {
+    paddle.x = Math.max(0, paddle.x - 25);
+  } else if (e.key==='ArrowRight' || e.key==='d' || e.key==='D') {
+    paddle.x = Math.min(W - PADDLE_W, paddle.x + 25);
+  }
+});
+
+// 마우스/터치
+function movePaddle(clientX) {
+  if (!running || paused) return;
+  const rect = canvas.getBoundingClientRect();
+  const x = clientX - rect.left;
+  paddle.x = Math.max(0, Math.min(W - PADDLE_W, x - PADDLE_W/2));
+}
+canvas.addEventListener('mousemove', e=>movePaddle(e.clientX));
+canvas.addEventListener('touchmove', e=>{
+  movePaddle(e.touches[0].clientX);
+  e.preventDefault();
+}, {passive:false});
+
+document.getElementById('startBtn').addEventListener('click', startGame);
+document.getElementById('newGameBtn').addEventListener('click', startGame);
+document.getElementById('leaderBtn').addEventListener('click', showLeaderboard);
+
+init();
+draw();
+</script>
+</body>
+</html>

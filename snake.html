@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>응급실 스네이크</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#060910;--card:#0d1117;--border:#1c2a3a;--main:#3b9eff;--text:#ddeeff;--text2:#6a8aaa;--text3:#2d4055;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px 40px;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 20%,rgba(59,158,255,0.04) 0%,transparent 70%);pointer-events:none;}
+
+.back-btn{align-self:flex-start;display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);color:var(--text2);padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer;text-decoration:none;margin-bottom:16px;transition:all 0.2s;position:relative;z-index:1;}
+h1{font-size:18px;font-weight:900;margin-bottom:4px;position:relative;z-index:1;}
+h1 span{color:var(--main);}
+.subtitle{font-size:11px;color:var(--text2);margin-bottom:14px;text-align:center;position:relative;z-index:1;}
+
+.score-row{display:flex;gap:8px;margin-bottom:12px;position:relative;z-index:1;}
+.score-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 14px;text-align:center;min-width:75px;}
+.score-label{font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;}
+.score-val{font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--text);}
+
+#gameCanvas{border:2px solid var(--border);border-radius:10px;background:#070c14;display:block;touch-action:none;position:relative;z-index:1;}
+
+.controls{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,56px);gap:8px;margin-top:14px;position:relative;z-index:1;}
+.cbtn{background:var(--card);border:2px solid var(--border);border-radius:12px;color:var(--text);font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;height:56px;transition:all 0.1s;}
+.cbtn:active{background:var(--border);transform:scale(0.92);}
+
+.action-row{display:flex;gap:8px;margin-top:12px;position:relative;z-index:1;}
+.action-btn{background:var(--card);border:1px solid var(--border);color:var(--text2);padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;}
+.action-btn.gold{border-color:rgba(255,170,0,0.3);color:#ffaa00;}
+
+.hint{font-size:11px;color:var(--text3);margin-top:10px;text-align:center;line-height:1.7;position:relative;z-index:1;}
+
+.overlay{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(6,9,16,0.92);border-radius:10px;gap:10px;padding:20px;}
+.overlay-title{font-size:20px;font-weight:900;}
+.overlay-sub{font-size:13px;color:var(--text2);text-align:center;line-height:1.6;}
+.start-btn{background:var(--main);color:#000;border:none;padding:10px 24px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+.in-input{background:#131a24;border:1px solid #243447;border-radius:8px;padding:8px 12px;color:#ddeeff;font-size:13px;font-family:inherit;outline:none;text-align:center;width:180px;}
+
+.board-wrap{position:relative;}
+</style>
+</head>
+<body>
+
+<a class="back-btn" href="./index.html">← 응급실 현황</a>
+<h1>🐍 <span>응급실</span> 스네이크</h1>
+<p class="subtitle">사과를 먹어서 길이를 늘려보세요!</p>
+
+<div class="score-row">
+  <div class="score-box">
+    <div class="score-label">점수</div>
+    <div class="score-val" id="score">0</div>
+  </div>
+  <div class="score-box">
+    <div class="score-label">최고점</div>
+    <div class="score-val" id="best">0</div>
+  </div>
+</div>
+
+<div class="board-wrap">
+  <canvas id="gameCanvas" width="320" height="320"></canvas>
+  <div class="overlay" id="overlay">
+    <div class="overlay-title">🐍 스네이크</div>
+    <div class="overlay-sub">사과 🍎 를 먹고<br>벽이나 자기 몸에 부딪히지 않게!</div>
+    <button class="start-btn" id="startBtn">게임 시작!</button>
+  </div>
+</div>
+
+<div class="controls">
+  <div></div>
+  <button class="cbtn" id="btnUp">↑</button>
+  <div></div>
+  <button class="cbtn" id="btnLeft">←</button>
+  <button class="cbtn" id="btnDown">↓</button>
+  <button class="cbtn" id="btnRight">→</button>
+</div>
+
+<div class="action-row">
+  <button class="action-btn" id="newGameBtn">🔄 새 게임</button>
+  <button class="action-btn gold" id="leaderBtn">🏆 기록</button>
+</div>
+
+<p class="hint">⌨️ 방향키 또는 WASD · 📱 버튼 또는 스와이프</p>
+
+<script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.min.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyAu9lEDOwLgtiO3FE-bI7mXanF-F7E9RJk",
+  authDomain: "gumi-er-tetris.firebaseapp.com",
+  projectId: "gumi-er-tetris",
+  storageBucket: "gumi-er-tetris.firebasestorage.app",
+  messagingSenderId: "421677764064",
+  appId: "1:421677764064:web:35fb5b795c94e5226def85"
+});
+const db = firebase.firestore();
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const W = 320, H = 320, GRID = 20;
+const COLS = W / GRID, ROWS = H / GRID;
+
+let snake, dir, nextDir, food, score, best, running, timer;
+best = parseInt(localStorage.getItem('snake_best') || '0');
+document.getElementById('best').textContent = best;
+
+function newGame() {
+  snake = [{x:10, y:8},{x:9, y:8},{x:8, y:8}];
+  dir = {x:1, y:0};
+  nextDir = dir;
+  score = 0;
+  placeFood();
+  running = true;
+  document.getElementById('overlay').style.display='none';
+  document.getElementById('score').textContent = '0';
+  clearInterval(timer);
+  timer = setInterval(tick, 120);
+  draw();
+}
+
+function placeFood() {
+  while (true) {
+    const x = Math.floor(Math.random()*COLS);
+    const y = Math.floor(Math.random()*ROWS);
+    if (!snake.some(s => s.x===x && s.y===y)) {
+      food = {x, y};
+      return;
+    }
+  }
+}
+
+function tick() {
+  if (!running) return;
+  dir = nextDir;
+  const head = {x: snake[0].x + dir.x, y: snake[0].y + dir.y};
+
+  // 벽 충돌
+  if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) {
+    return endGame();
+  }
+  // 자기 몸 충돌
+  if (snake.some(s => s.x===head.x && s.y===head.y)) {
+    return endGame();
+  }
+
+  snake.unshift(head);
+
+  if (head.x === food.x && head.y === food.y) {
+    score += 10;
+    document.getElementById('score').textContent = score;
+    if (score > best) {
+      best = score;
+      localStorage.setItem('snake_best', best);
+      document.getElementById('best').textContent = best;
+    }
+    placeFood();
+    // 속도 빨라짐
+    if (snake.length % 5 === 0) {
+      clearInterval(timer);
+      timer = setInterval(tick, Math.max(60, 120 - Math.floor(snake.length/5)*8));
+    }
+  } else {
+    snake.pop();
+  }
+  draw();
+}
+
+function draw() {
+  ctx.fillStyle = '#070c14';
+  ctx.fillRect(0,0,W,H);
+
+  // 그리드
+  ctx.strokeStyle = 'rgba(28,42,58,0.3)';
+  ctx.lineWidth = 0.5;
+  for (let i=0;i<=COLS;i++) {
+    ctx.beginPath(); ctx.moveTo(i*GRID,0); ctx.lineTo(i*GRID,H); ctx.stroke();
+  }
+  for (let i=0;i<=ROWS;i++) {
+    ctx.beginPath(); ctx.moveTo(0,i*GRID); ctx.lineTo(W,i*GRID); ctx.stroke();
+  }
+
+  // 음식
+  ctx.fillStyle = '#ff4466';
+  ctx.beginPath();
+  ctx.arc(food.x*GRID + GRID/2, food.y*GRID + GRID/2, GRID/2 - 2, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = '#22d47a';
+  ctx.fillRect(food.x*GRID + GRID/2 - 1, food.y*GRID + 2, 2, 4);
+
+  // 뱀
+  snake.forEach((s, i)=>{
+    if (i === 0) {
+      // 머리
+      ctx.fillStyle = '#3b9eff';
+      ctx.fillRect(s.x*GRID+1, s.y*GRID+1, GRID-2, GRID-2);
+      // 눈
+      ctx.fillStyle = '#fff';
+      const ex = s.x*GRID + GRID/2 + dir.x*4;
+      const ey = s.y*GRID + GRID/2 + dir.y*4;
+      ctx.beginPath();
+      ctx.arc(ex - (dir.y!==0?3:0), ey - (dir.x!==0?3:0), 2, 0, Math.PI*2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(ex + (dir.y!==0?3:0), ey + (dir.x!==0?3:0), 2, 0, Math.PI*2);
+      ctx.fill();
+    } else {
+      const fade = Math.max(0.3, 1 - i*0.04);
+      ctx.fillStyle = `rgba(59,158,255,${fade})`;
+      ctx.fillRect(s.x*GRID+2, s.y*GRID+2, GRID-4, GRID-4);
+    }
+  });
+}
+
+function endGame() {
+  running = false;
+  clearInterval(timer);
+  document.getElementById('overlay').style.display='flex';
+  document.getElementById('overlay').innerHTML = `
+    <div class="overlay-title">💀 게임 오버</div>
+    <div class="overlay-sub">점수: <b style="color:var(--main)">${score}</b><br>길이: <b style="color:#ffaa00">${snake.length}</b></div>
+    <input id="nameInput" class="in-input" type="text" maxlength="10" placeholder="✏️ 이름">
+    <input id="msgInput" class="in-input" type="text" maxlength="20" placeholder="💬 한마디">
+    <button class="start-btn" onclick="saveAndShow()">🏆 기록 저장!</button>
+    <button onclick="newGame()" style="background:none;border:none;color:#6a8aaa;font-size:12px;cursor:pointer;font-family:inherit;">저장 없이 다시</button>
+  `;
+}
+
+async function saveAndShow() {
+  const name = document.getElementById('nameInput')?.value.trim() || '익명';
+  const msg = document.getElementById('msgInput')?.value.trim() || '';
+  try {
+    await db.collection('leaderboardSnake').add({
+      name, score, length:snake.length, msg,
+      date: new Date().toLocaleDateString('ko-KR'),
+      createdAt: Date.now()
+    });
+  } catch(e) {}
+  showLeaderboard();
+}
+
+async function showLeaderboard() {
+  document.getElementById('overlay').style.display='flex';
+  document.getElementById('overlay').innerHTML = '<div class="overlay-title">🏆 담벼락</div><div style="color:#6a8aaa;font-size:12px;padding:20px;">불러오는 중... ⏳</div>';
+
+  let records = [];
+  try {
+    const snap = await db.collection('leaderboardSnake').orderBy('score','desc').limit(20).get();
+    records = snap.docs.map(d=>d.data());
+  } catch(e) {}
+
+  const medals = ['🥇','🥈','🥉'];
+  const rows = records.map((r,i)=>`
+    <div style="padding:6px 0;border-bottom:1px solid #1c2a3a;font-size:11px;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="width:20px;text-align:center;font-size:${i<3?'14':'11'}px;color:#2d4055;">${medals[i]||(i+1)}</span>
+        <span style="flex:1;color:#ddeeff;font-weight:600;word-break:break-all;">${r.name}</span>
+        <span style="color:#3b9eff;font-family:'DM Mono',monospace;">${r.score}</span>
+      </div>
+      ${r.msg?'<div style="font-size:10px;color:#4a6a8a;padding-left:26px;">💬 '+r.msg+'</div>':''}
+    </div>
+  `).join('');
+
+  document.getElementById('overlay').innerHTML = `
+    <div class="overlay-title">🏆 스네이크 기록</div>
+    <div style="width:280px;max-height:240px;overflow-y:auto;border:1px solid #1c2a3a;border-radius:10px;padding:4px 12px;text-align:left;">
+      ${rows||'<div style="color:#6a8aaa;font-size:12px;padding:20px;text-align:center;">아직 기록이 없어요!</div>'}
+    </div>
+    <div style="display:flex;gap:6px;">
+      <button class="start-btn" onclick="newGame()" style="padding:7px 14px;font-size:12px;">새 게임</button>
+      <button onclick="showLeaderboard()" style="background:none;border:1px solid #1c2a3a;border-radius:8px;padding:7px 12px;color:#6a8aaa;font-size:12px;cursor:pointer;font-family:inherit;">새로고침</button>
+    </div>
+  `;
+}
+
+function changeDir(dx, dy) {
+  if (!running) return;
+  if (dir.x === -dx && dx !== 0) return;
+  if (dir.y === -dy && dy !== 0) return;
+  nextDir = {x:dx, y:dy};
+}
+
+document.addEventListener('keydown', e=>{
+  if (['ArrowLeft','a','A'].includes(e.key)) { changeDir(-1,0); e.preventDefault(); }
+  else if (['ArrowRight','d','D'].includes(e.key)) { changeDir(1,0); e.preventDefault(); }
+  else if (['ArrowUp','w','W'].includes(e.key)) { changeDir(0,-1); e.preventDefault(); }
+  else if (['ArrowDown','s','S'].includes(e.key)) { changeDir(0,1); e.preventDefault(); }
+});
+
+document.getElementById('btnUp').addEventListener('click',()=>changeDir(0,-1));
+document.getElementById('btnDown').addEventListener('click',()=>changeDir(0,1));
+document.getElementById('btnLeft').addEventListener('click',()=>changeDir(-1,0));
+document.getElementById('btnRight').addEventListener('click',()=>changeDir(1,0));
+document.getElementById('startBtn').addEventListener('click', newGame);
+document.getElementById('newGameBtn').addEventListener('click', newGame);
+document.getElementById('leaderBtn').addEventListener('click', showLeaderboard);
+
+// 스와이프
+let tx=0, ty=0;
+canvas.addEventListener('touchstart', e=>{ tx=e.touches[0].clientX; ty=e.touches[0].clientY; e.preventDefault(); }, {passive:false});
+canvas.addEventListener('touchmove', e=>e.preventDefault(), {passive:false});
+canvas.addEventListener('touchend', e=>{
+  const dx=e.changedTouches[0].clientX-tx;
+  const dy=e.changedTouches[0].clientY-ty;
+  if (Math.abs(dx)<20 && Math.abs(dy)<20) return;
+  if (Math.abs(dx) > Math.abs(dy)) { changeDir(dx>0?1:-1, 0); }
+  else { changeDir(0, dy>0?1:-1); }
+  e.preventDefault();
+}, {passive:false});
+
+// 초기 화면 그리기
+snake=[{x:10,y:8}]; dir={x:1,y:0}; food={x:15,y:8};
+draw();
+</script>
+</body>
+</html>
