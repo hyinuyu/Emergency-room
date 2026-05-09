@@ -95,6 +95,9 @@ h1 span{color:var(--main);}
   <button class="mode-btn" data-mode="medium">보통 12x12</button>
   <button class="mode-btn" data-mode="hard">어려움 16x16</button>
 </div>
+<div class="mode-row" style="margin-top:-6px;">
+  <button class="mode-btn" id="speedModeBtn" style="border-color:rgba(255,68,102,0.3);color:#ff4466;">⏱️ 스피드 모드 OFF</button>
+</div>
 
 <div class="score-row">
   <div class="score-box">
@@ -133,10 +136,11 @@ firebase.initializeApp({
 const db = firebase.firestore();
 
 const MODES = {
-  easy:   { size:9,  mines:10 },
-  medium: { size:12, mines:25 },
-  hard:   { size:16, mines:50 },
+  easy:   { size:9,  mines:10, timeLimit:60 },
+  medium: { size:12, mines:25, timeLimit:120 },
+  hard:   { size:16, mines:50, timeLimit:240 },
 };
+let speedMode = false; // 시간제한 모드
 
 let mode='easy', board, opened, flagged, mines, gameOver, won, startTime, timer, flagMode, totalCells;
 
@@ -151,9 +155,10 @@ function newGame() {
   gameOver = false; won = false;
   startTime = null;
   flagMode = false;
+  document.getElementById('time').style.color = '';
   document.getElementById('flagModeBtn').classList.remove('active');
   clearInterval(timer);
-  document.getElementById('time').textContent = '0초';
+  document.getElementById('time').textContent = speedMode ? MODES[mode].timeLimit+'초' : '0초';
 
   // 지뢰 배치
   let placed = 0;
@@ -253,9 +258,26 @@ function handleClick(r, c) {
   if (gameOver) return;
   if (!startTime) {
     startTime = Date.now();
+    const limit = MODES[mode].timeLimit;
     timer = setInterval(()=>{
       const sec = Math.floor((Date.now()-startTime)/1000);
-      document.getElementById('time').textContent = sec+'초';
+      if (speedMode) {
+        const left = limit - sec;
+        if (left <= 0) {
+          // 시간 초과
+          clearInterval(timer);
+          gameOver = true;
+          for (let i=0;i<MODES[mode].size;i++) for (let j=0;j<MODES[mode].size;j++) if (board[i][j]===-1) opened[i][j]=true;
+          draw();
+          setTimeout(showTimeOver, 300);
+          return;
+        }
+        const el = document.getElementById('time');
+        el.textContent = left+'초';
+        el.style.color = left <= 10 ? '#ff4466' : left <= 30 ? '#ffaa00' : '';
+      } else {
+        document.getElementById('time').textContent = sec+'초';
+      }
     }, 100);
   }
   if (flagMode) {
@@ -280,14 +302,40 @@ function handleRightClick(r, c) {
   if (gameOver || opened[r][c]) return;
   if (!startTime) {
     startTime = Date.now();
+    const limit = MODES[mode].timeLimit;
     timer = setInterval(()=>{
       const sec = Math.floor((Date.now()-startTime)/1000);
-      document.getElementById('time').textContent = sec+'초';
+      if (speedMode) {
+        const left = limit - sec;
+        if (left <= 0) {
+          clearInterval(timer);
+          gameOver = true;
+          for (let i=0;i<MODES[mode].size;i++) for (let j=0;j<MODES[mode].size;j++) if (board[i][j]===-1) opened[i][j]=true;
+          draw();
+          setTimeout(showTimeOver, 300);
+          return;
+        }
+        const el = document.getElementById('time');
+        el.textContent = left+'초';
+        el.style.color = left <= 10 ? '#ff4466' : left <= 30 ? '#ffaa00' : '';
+      } else {
+        document.getElementById('time').textContent = sec+'초';
+      }
     }, 100);
   }
   flagged[r][c] = !flagged[r][c];
   updateFlags();
   draw();
+}
+
+function showTimeOver() {
+  document.getElementById('overlay').style.display='flex';
+  document.getElementById('overlayBox').innerHTML = `
+    <div style="font-size:40px;margin-bottom:8px;">⏰💥</div>
+    <div class="overlay-title">시간 초과!</div>
+    <div class="overlay-sub">시간 안에 못 깼어요!<br>지뢰가 폭발했어요 💣</div>
+    <button class="start-btn" onclick="newGame()">다시 하기</button>
+  `;
 }
 
 function showGameOver() {
@@ -305,8 +353,8 @@ function showWin() {
   document.getElementById('overlay').style.display='flex';
   document.getElementById('overlayBox').innerHTML = `
     <div style="font-size:40px;margin-bottom:8px;">🎉</div>
-    <div class="overlay-title">클리어!</div>
-    <div class="overlay-sub">난이도: <b style="color:var(--main)">${mode==='easy'?'쉬움':mode==='medium'?'보통':'어려움'}</b><br>시간: <b style="color:#ffaa00">${sec}초</b></div>
+    <div class="overlay-title">클리어!${speedMode?' ⚡':''}</div>
+    <div class="overlay-sub">난이도: <b style="color:var(--main)">${mode==='easy'?'쉬움':mode==='medium'?'보통':'어려움'}</b>${speedMode?' <span style="color:#ff4466">[스피드]</span>':''}<br>시간: <b style="color:#ffaa00">${sec}초</b></div>
     <input id="nameInput" class="in-input" type="text" maxlength="10" placeholder="✏️ 이름 (10자 이내)">
     <input id="msgInput" class="in-input" type="text" maxlength="20" placeholder="💬 한마디 (20자 이내)">
     <button class="start-btn" onclick="saveAndShow(${sec})">🏆 기록 저장!</button>
@@ -319,7 +367,7 @@ async function saveAndShow(sec) {
   const msg = document.getElementById('msgInput')?.value.trim() || '';
   try {
     await db.collection('leaderboardMine').add({
-      name, time:sec, mode, msg,
+      name, time:sec, mode, speedMode, msg,
       date:new Date().toLocaleDateString('ko-KR'),
       createdAt:Date.now()
     });
@@ -375,6 +423,20 @@ document.querySelectorAll('.mode-btn').forEach(btn=>{
     mode = btn.dataset.mode;
     newGame();
   });
+});
+
+document.getElementById('speedModeBtn').addEventListener('click',()=>{
+  speedMode = !speedMode;
+  const btn = document.getElementById('speedModeBtn');
+  btn.textContent = speedMode ? '⏱️ 스피드 모드 ON' : '⏱️ 스피드 모드 OFF';
+  if (speedMode) {
+    btn.style.background = '#ff4466';
+    btn.style.color = '#fff';
+  } else {
+    btn.style.background = '';
+    btn.style.color = '#ff4466';
+  }
+  newGame();
 });
 
 document.getElementById('newGameBtn').addEventListener('click', newGame);
