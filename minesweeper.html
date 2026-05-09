@@ -25,12 +25,14 @@ h1 span{color:var(--main);}
 .mode-btn{background:var(--card);border:1px solid var(--border);color:var(--text2);padding:6px 12px;border-radius:8px;font-size:11px;cursor:pointer;font-family:inherit;}
 .mode-btn.active{border-color:var(--main);color:var(--main);background:rgba(59,158,255,0.08);}
 
-#board{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:6px;display:grid;gap:2px;position:relative;z-index:1;}
+#board{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:6px;display:grid;gap:2px;position:relative;z-index:1;width:100%;max-width:min(95vw,420px);transition:border-color 0.2s,box-shadow 0.2s;}
 .cell{
-  width:32px;height:32px;background:#1a2236;border-radius:4px;
+  background:#1a2236;border-radius:4px;
   display:flex;align-items:center;justify-content:center;
-  font-family:'DM Mono',monospace;font-weight:700;font-size:14px;
+  font-family:'DM Mono',monospace;font-weight:700;
+  font-size:inherit;
   cursor:pointer;transition:all 0.1s;
+  aspect-ratio:1;
 }
 .cell:hover{background:#243447;}
 .cell.opened{background:#0a0e15;cursor:default;}
@@ -39,6 +41,30 @@ h1 span{color:var(--main);}
 .c1{color:#3b9eff;}.c2{color:#22d47a;}.c3{color:#ffaa00;}
 .c4{color:#a78bfa;}.c5{color:#ff8800;}.c6{color:#22d4d4;}
 .c7{color:#fff;}.c8{color:#888;}
+
+/* 깃발 모드 - 보드 전체에 빨간 테두리 + 셀 배경 변경 */
+#board.flag-mode{
+  border:2px solid #ff4466;
+  box-shadow:0 0 20px rgba(255,68,102,0.3);
+  animation:flagPulse 1.5s infinite;
+}
+@keyframes flagPulse{
+  0%,100%{box-shadow:0 0 20px rgba(255,68,102,0.3);}
+  50%{box-shadow:0 0 30px rgba(255,68,102,0.6);}
+}
+#board.flag-mode .cell:not(.opened):not(.flag){
+  background:#241820;border:1px solid rgba(255,68,102,0.2);
+}
+#board.flag-mode .cell:not(.opened):not(.flag):hover{
+  background:#3a2030;border-color:#ff4466;
+}
+
+/* 깃발 모드 버튼 강조 */
+.action-btn.flag.active{
+  background:#ff4466;color:#fff;border-color:#ff4466;
+  font-weight:700;
+  box-shadow:0 0 15px rgba(255,68,102,0.5);
+}
 
 .action-row{display:flex;gap:8px;margin-top:14px;position:relative;z-index:1;}
 .action-btn{background:var(--card);border:1px solid var(--border);color:var(--text2);padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;}
@@ -55,7 +81,7 @@ h1 span{color:var(--main);}
 .start-btn{background:var(--main);color:#000;border:none;padding:10px 24px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;}
 .in-input{background:#131a24;border:1px solid #243447;border-radius:8px;padding:8px 12px;color:#ddeeff;font-size:13px;font-family:inherit;outline:none;text-align:center;width:100%;margin-bottom:6px;}
 
-@media(max-width:380px){.cell{width:28px;height:28px;font-size:12px;}}
+
 </style>
 </head>
 <body>
@@ -158,6 +184,9 @@ function draw() {
   const s = MODES[mode].size;
   const el = document.getElementById('board');
   el.style.gridTemplateColumns = `repeat(${s},1fr)`;
+  // 폰트 크기를 셀 크기에 맞춰 자동 조정
+  const cellFontSize = Math.max(10, Math.min(16, 360/s - 4));
+  el.style.fontSize = cellFontSize + 'px';
   el.innerHTML = '';
   for (let r=0;r<s;r++) for (let c=0;c<s;c++) {
     const cell = document.createElement('div');
@@ -351,6 +380,8 @@ document.getElementById('leaderBtn').addEventListener('click', showLeaderboard);
 document.getElementById('flagModeBtn').addEventListener('click',()=>{
   flagMode = !flagMode;
   document.getElementById('flagModeBtn').classList.toggle('active', flagMode);
+  document.getElementById('board').classList.toggle('flag-mode', flagMode);
+  document.getElementById('flagModeBtn').textContent = flagMode ? '🚩 깃발 모드 ON' : '🚩 깃발 모드';
 });
 
 // 보드 클릭 (이벤트 위임)
