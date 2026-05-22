@@ -40,18 +40,15 @@ h1 span{color:var(--main);}
 <h1>🎮 <span>응급실</span> 테트리스</h1>
 <p class="subtitle">대기하는 동안 한 판 어때요? 😂</p>
 
-<!-- 명예의 전당 -->
-<div id="hallOfFame" style="position:relative;z-index:1;background:linear-gradient(135deg,rgba(255,170,0,0.12),rgba(255,68,102,0.08));border:1px solid rgba(255,170,0,0.4);border-radius:12px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px;max-width:340px;width:100%;cursor:pointer;" id="hofBanner">
-  <div style="font-size:28px;line-height:1;animation:trophy 2s ease-in-out infinite;">👑</div>
-  <div style="flex:1;text-align:left;">
-    <div style="font-size:10px;color:#ffaa00;font-weight:700;letter-spacing:1px;">🏆 1대 챔피언 · 명예의 전당</div>
-    <div style="font-size:14px;font-weight:900;color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,0.3);">갓홍</div>
-    <div style="font-size:10px;color:var(--text2);" id="hofScore">불멸의 기록 보유자</div>
-  </div>
-  <div style="font-size:18px;">🌟</div>
+<!-- 명예의 전당 (작은 배지) -->
+<div id="hofBanner" style="position:relative;z-index:1;background:linear-gradient(135deg,rgba(255,170,0,0.12),rgba(255,68,102,0.08));border:1px solid rgba(255,170,0,0.4);border-radius:10px;padding:6px 12px;margin-bottom:12px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:11px;">
+  <span style="font-size:14px;animation:trophy 2s ease-in-out infinite;">👑</span>
+  <span style="color:#ffaa00;font-weight:700;">1대 챔피언</span>
+  <span style="color:#ffd700;font-weight:900;">갓홍</span>
+  <span style="color:var(--text3);font-size:9px;margin-left:auto;">탭하여 전당 보기 →</span>
 </div>
 <style>
-@keyframes trophy{0%,100%{transform:rotate(-10deg) scale(1);}50%{transform:rotate(10deg) scale(1.1);}}
+@keyframes trophy{0%,100%{transform:rotate(-10deg);}50%{transform:rotate(10deg);}}
 </style>
 
 <div class="game-area">
@@ -114,20 +111,6 @@ const db = firebase.firestore();
 
 // 시즌 2 - 새 컬렉션
 const LEADERBOARD = 'leaderboard_s2';
-
-// 갓홍 점수 가져와서 명예의 전당에 표시
-(async () => {
-  try {
-    const snap = await db.collection('leaderboard').orderBy('score','desc').limit(1).get();
-    if (!snap.empty) {
-      const top = snap.docs[0].data();
-      document.getElementById('hofScore').textContent = `🌋 ${top.score.toLocaleString()}점 · Lv${top.level} · ${top.lines}라인`;
-    }
-  } catch(e) {}
-})();
-
-// 명예의 전당 클릭 시 전체 명예의 전당 보기
-document.getElementById('hofBanner').addEventListener('click', showHallOfFame);
 
 async function showHallOfFame() {
   const ov = document.getElementById('overlay');
@@ -409,6 +392,9 @@ document.getElementById('closePopupBtn').addEventListener('click',()=>{
 if(!localStorage.getItem('tetris_patch_v2')){
   document.getElementById('updatePopup').style.display='flex';
 }
+
+// 명예의 전당 이벤트 등록
+document.getElementById('hofBanner').addEventListener('click', showHallOfFame);
 </script>
 </body>
 </html>
