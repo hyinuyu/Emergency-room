@@ -316,6 +316,12 @@ function showWin() {
     <button class="start-btn" id="saveBtn" data-sec="${sec}">🏆 기록 저장!</button>
     <button id="skipBtn" style="background:none;border:none;color:#6a8aaa;font-size:12px;cursor:pointer;font-family:inherit;margin-top:8px;">저장 없이 다시</button>
   `;
+  setTimeout(()=>{
+    document.getElementById('nameInput')?.focus();
+    const sb = document.getElementById('saveBtn');
+    if (sb) sb.addEventListener('click', ()=>saveAndShow(parseInt(sb.dataset.sec)));
+    document.getElementById('skipBtn')?.addEventListener('click', newGame);
+  }, 50);
 }
 
 async function saveAndShow(sec) {
