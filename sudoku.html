@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>응급실 스도쿠</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#060910;--card:#0d1117;--card2:#131a24;--border:#1c2a3a;--main:#3b9eff;--text:#ddeeff;--text2:#6a8aaa;--text3:#2d4055;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px 40px;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 20%,rgba(59,158,255,0.04) 0%,transparent 70%);pointer-events:none;}
+
+.back-btn{align-self:flex-start;display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);color:var(--text2);padding:7px 14px;border-radius:8px;font-size:12px;text-decoration:none;margin-bottom:12px;position:relative;z-index:1;}
+h1{font-size:18px;font-weight:900;margin-bottom:2px;position:relative;z-index:1;}
+h1 span{color:var(--main);}
+.subtitle{font-size:11px;color:var(--text2);margin-bottom:10px;text-align:center;position:relative;z-index:1;}
+
+.mode-row{display:flex;gap:6px;margin-bottom:10px;position:relative;z-index:1;}
+.mode-btn{background:var(--card);border:1px solid var(--border);color:var(--text2);padding:6px 12px;border-radius:8px;font-size:11px;cursor:pointer;font-family:inherit;}
+.mode-btn.active{border-color:var(--main);color:var(--main);background:rgba(59,158,255,0.08);}
+
+.score-row{display:flex;gap:6px;margin-bottom:10px;position:relative;z-index:1;}
+.score-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 12px;text-align:center;min-width:65px;}
+.score-label{font-size:9px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;}
+.score-val{font-family:'DM Mono',monospace;font-size:15px;font-weight:700;color:var(--text);}
+
+#board{
+  background:var(--card);border:2px solid var(--main);border-radius:8px;padding:3px;
+  display:grid;grid-template-columns:repeat(9,1fr);gap:0;
+  width:100%;max-width:min(calc(100vw - 32px), calc(100vh - 380px), 380px);
+  aspect-ratio:1;position:relative;z-index:1;
+}
+.cell{
+  background:#131a24;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'DM Mono',monospace;font-weight:700;
+  font-size:clamp(12px, 4vw, 18px);
+  cursor:pointer;color:var(--main);
+  border:1px solid #1c2a3a;
+}
+.cell.fixed{color:var(--text);background:#0a0e15;cursor:default;}
+.cell.selected{background:rgba(59,158,255,0.2);outline:2px solid var(--main);outline-offset:-2px;z-index:2;}
+.cell.error{background:rgba(255,68,102,0.2);color:#ff4466;}
+.cell.highlight{background:rgba(59,158,255,0.08);}
+.cell.same{background:rgba(59,158,255,0.15);}
+/* 3x3 박스 구분선 */
+.cell:nth-child(3n):not(:nth-child(9n)){border-right:2px solid var(--main);}
+.cell:nth-child(n+19):nth-child(-n+27),
+.cell:nth-child(n+46):nth-child(-n+54){border-bottom:2px solid var(--main);}
+
+.numpad{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:12px;width:100%;max-width:380px;position:relative;z-index:1;}
+.numbtn{background:var(--card);border:2px solid var(--border);border-radius:8px;color:var(--main);font-family:'DM Mono',monospace;font-size:18px;font-weight:700;padding:10px 0;cursor:pointer;}
+.numbtn:active{background:var(--main);color:#000;transform:scale(0.95);}
+.numbtn.erase{color:#ff4466;border-color:rgba(255,68,102,0.3);}
+
+.action-row{display:flex;gap:6px;margin-top:12px;position:relative;z-index:1;}
+.action-btn{background:var(--card);border:1px solid var(--border);color:var(--text2);padding:7px 12px;border-radius:8px;font-size:11px;cursor:pointer;font-family:inherit;}
+.action-btn.gold{border-color:rgba(255,170,0,0.3);color:#ffaa00;}
+
+.hint{font-size:10px;color:var(--text3);margin-top:8px;text-align:center;line-height:1.6;position:relative;z-index:1;}
+
+.overlay{position:fixed;inset:0;background:rgba(6,9,16,0.92);display:none;align-items:center;justify-content:center;z-index:100;}
+.overlay-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;max-width:300px;width:90%;text-align:center;}
+.overlay-title{font-size:20px;font-weight:900;margin-bottom:6px;}
+.overlay-sub{font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6;}
+.start-btn{background:var(--main);color:#000;border:none;padding:10px 24px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;margin-bottom:6px;}
+.in-input{background:#131a24;border:1px solid #243447;border-radius:8px;padding:8px 12px;color:#ddeeff;font-size:13px;font-family:inherit;outline:none;text-align:center;width:100%;margin-bottom:6px;}
+.skip-btn{background:none;border:none;color:#6a8aaa;font-size:12px;cursor:pointer;font-family:inherit;margin-top:4px;}
+</style>
+</head>
+<body>
+
+<a class="back-btn" href="./index.html">← 응급실 현황</a>
+<h1>🔢 <span>응급실</span> 스도쿠</h1>
+<p class="subtitle">가로/세로/3x3에 1~9를 한 번씩!<br><span style="color:#22d4d4;">📅 오늘의 퍼즐 (매일 0시 갱신)</span></p>
+
+<div class="mode-row">
+  <button class="mode-btn active" data-diff="easy">쉬움</button>
+  <button class="mode-btn" data-diff="medium">보통</button>
+  <button class="mode-btn" data-diff="hard">어려움</button>
+</div>
+
+<div class="score-row">
+  <div class="score-box">
+    <div class="score-label">⏱️ 시간</div>
+    <div class="score-val" id="time">0:00</div>
+  </div>
+  <div class="score-box">
+    <div class="score-label">❌ 실수</div>
+    <div class="score-val" id="errors">0/3</div>
+  </div>
+</div>
+
+<div id="board"></div>
+
+<div class="numpad">
+  <button class="numbtn" data-n="1">1</button>
+  <button class="numbtn" data-n="2">2</button>
+  <button class="numbtn" data-n="3">3</button>
+  <button class="numbtn" data-n="4">4</button>
+  <button class="numbtn" data-n="5">5</button>
+  <button class="numbtn" data-n="6">6</button>
+  <button class="numbtn" data-n="7">7</button>
+  <button class="numbtn" data-n="8">8</button>
+  <button class="numbtn" data-n="9">9</button>
+  <button class="numbtn erase" data-n="0">✕</button>
+</div>
+
+<div class="action-row">
+  <button class="action-btn" id="newGameBtn">🔄 새 게임</button>
+  <button class="action-btn gold" id="leaderBtn">🏆 기록</button>
+</div>
+
+<p class="hint">📱 칸 선택 → 숫자 입력 · ⌨️ 키보드 1-9 / Del</p>
+
+<div class="overlay" id="overlay"><div class="overlay-box" id="overlayBox"></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.min.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyAu9lEDOwLgtiO3FE-bI7mXanF-F7E9RJk",
+  authDomain: "gumi-er-tetris.firebaseapp.com",
+  projectId: "gumi-er-tetris",
+  storageBucket: "gumi-er-tetris.firebasestorage.app",
+  messagingSenderId: "421677764064",
+  appId: "1:421677764064:web:35fb5b795c94e5226def85"
+});
+const db = firebase.firestore();
+
+// 스도쿠 퍼즐 (난이도별로 미리 준비)
+// 0은 빈 칸
+// 스도쿠 자동 생성 알고리즘
+// 1. 완성된 보드 생성 → 2. 칸 비우기 → 난이도별 퍼즐
+
+// 시드 기반 랜덤 (같은 날엔 같은 퍼즐)
+let seed = 12345;
+function seedRandom() {
+  seed = (seed * 9301 + 49297) % 233280;
+  return seed / 233280;
+}
+function setSeed(s) { seed = s; }
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i > 0; i--) {
+    const j = Math.floor(seedRandom() * (i+1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// 완성된 스도쿠 보드 생성
+function generateFullBoard() {
+  const board = new Array(81).fill(0);
+  
+  function isValid(b, idx, n) {
+    const r = Math.floor(idx/9), c = idx%9;
+    for (let i=0; i<9; i++) {
+      if (b[r*9+i] === n) return false;
+      if (b[i*9+c] === n) return false;
+    }
+    const br = Math.floor(r/3)*3, bc = Math.floor(c/3)*3;
+    for (let i=br; i<br+3; i++) for (let j=bc; j<bc+3; j++) {
+      if (b[i*9+j] === n) return false;
+    }
+    return true;
+  }
+  
+  function fill(idx) {
+    if (idx >= 81) return true;
+    const nums = shuffle([1,2,3,4,5,6,7,8,9]);
+    for (const n of nums) {
+      if (isValid(board, idx, n)) {
+        board[idx] = n;
+        if (fill(idx+1)) return true;
+        board[idx] = 0;
+      }
+    }
+    return false;
+  }
+  
+  fill(0);
+  return board;
+}
+
+// 난이도별 빈 칸 개수
+const DIFFICULTY_HOLES = {
+  easy: 35,    // 46개 단서
+  medium: 45,  // 36개 단서
+  hard: 55     // 26개 단서
+};
+
+// 퍼즐 생성: 완성된 보드에서 칸 비우기
+function generatePuzzle(diff) {
+  const full = generateFullBoard();
+  const puzzle = [...full];
+  const holes = DIFFICULTY_HOLES[diff];
+  
+  // 랜덤 위치 비우기
+  const positions = shuffle(Array.from({length:81}, (_,i)=>i));
+  for (let i=0; i<holes; i++) {
+    puzzle[positions[i]] = 0;
+  }
+  
+  return { puzzle, solution: full };
+}
+
+// 매일 0시마다 새 퍼즐 (난이도별 다른 시드)
+function getTodaySeed(difficulty) {
+  const now = new Date();
+  const koreaTime = new Date(now.getTime() + (9*60*60*1000) - (now.getTimezoneOffset()*60*1000));
+  const epoch = new Date('2026-01-01T00:00:00Z').getTime();
+  const days = Math.floor((koreaTime.getTime() - epoch) / (1000*60*60*24));
+  // 난이도별로 시드 다르게
+  const diffOffset = difficulty === 'easy' ? 1000 : difficulty === 'medium' ? 5000 : 9000;
+  return days * 7 + diffOffset;
+}
+
+
+
+const SOLUTIONS = {
+  // 정답은 풀이 검증할 때 동적으로 계산
+};
+
+let puzzle, solution, userBoard, fixedCells, selectedCell, difficulty, errors, startTime, timer, gameWon;
+
+function parsePuzzle(str) {
+  return str.split('').map(c => parseInt(c));
+}
+
+// 스도쿠 풀이 (백트래킹)
+function solveSudoku(board) {
+  const b = [...board];
+  function isValid(b, idx, n) {
+    const r = Math.floor(idx/9), c = idx%9;
+    for (let i=0; i<9; i++) {
+      if (b[r*9+i] === n) return false;
+      if (b[i*9+c] === n) return false;
+    }
+    const br = Math.floor(r/3)*3, bc = Math.floor(c/3)*3;
+    for (let i=br; i<br+3; i++) for (let j=bc; j<bc+3; j++) {
+      if (b[i*9+j] === n) return false;
+    }
+    return true;
+  }
+  function solve() {
+    for (let i=0; i<81; i++) {
+      if (b[i] === 0) {
+        for (let n=1; n<=9; n++) {
+          if (isValid(b, i, n)) {
+            b[i] = n;
+            if (solve()) return true;
+            b[i] = 0;
+          }
+        }
+        return false;
+      }
+    }
+    return true;
+  }
+  solve();
+  return b;
+}
+
+function newGame() {
+  // 오늘 날짜 + 난이도 기반 시드 설정
+  setSeed(getTodaySeed(difficulty));
+  // 퍼즐 생성
+  const result = generatePuzzle(difficulty);
+  puzzle = result.puzzle;
+  solution = result.solution;
+  userBoard = [...puzzle];
+  fixedCells = puzzle.map(v => v !== 0);
+  selectedCell = null;
+  errors = 0;
+  gameWon = false;
+  startTime = Date.now();
+  clearInterval(timer);
+  timer = setInterval(updateTime, 1000);
+  document.getElementById('errors').textContent = '0/3';
+  document.getElementById('overlay').style.display = 'none';
+  draw();
+}
+
+function updateTime() {
+  const sec = Math.floor((Date.now() - startTime) / 1000);
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  document.getElementById('time').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+}
+
+function draw() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  const sel = selectedCell;
+  const selVal = sel !== null ? userBoard[sel] : 0;
+
+  for (let i=0; i<81; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    const v = userBoard[i];
+    if (v) cell.textContent = v;
+    if (fixedCells[i]) cell.classList.add('fixed');
+    
+    if (sel !== null) {
+      const sr = Math.floor(sel/9), sc = sel%9;
+      const r = Math.floor(i/9), c = i%9;
+      // 같은 줄/박스 강조
+      if (r === sr || c === sc || (Math.floor(r/3)===Math.floor(sr/3) && Math.floor(c/3)===Math.floor(sc/3))) {
+        cell.classList.add('highlight');
+      }
+      // 같은 숫자
+      if (v !== 0 && v === selVal) cell.classList.add('same');
+      // 선택된 칸
+      if (i === sel) cell.classList.add('selected');
+    }
+    
+    // 오답 표시
+    if (v !== 0 && !fixedCells[i] && v !== solution[i]) {
+      cell.classList.add('error');
+    }
+    
+    cell.dataset.idx = i;
+    board.appendChild(cell);
+  }
+}
+
+function selectCell(idx) {
+  if (gameWon) return;
+  selectedCell = idx;
+  draw();
+}
+
+function inputNumber(n) {
+  if (gameWon || selectedCell === null) return;
+  if (fixedCells[selectedCell]) return;
+  
+  userBoard[selectedCell] = n;
+  
+  // 오답 체크
+  if (n !== 0 && n !== solution[selectedCell]) {
+    errors++;
+    document.getElementById('errors').textContent = errors + '/3';
+    if (errors >= 3) {
+      clearInterval(timer);
+      gameWon = true;
+      setTimeout(showGameOver, 500);
+    }
+  }
+  
+  draw();
+  
+  // 완료 체크
+  if (userBoard.every((v,i) => v === solution[i])) {
+    clearInterval(timer);
+    gameWon = true;
+    setTimeout(showWin, 300);
+  }
+}
+
+function showWin() {
+  const sec = Math.floor((Date.now() - startTime) / 1000);
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  const ov = document.getElementById('overlay');
+  const box = document.getElementById('overlayBox');
+  box.innerHTML = `
+    <div style="font-size:40px;margin-bottom:8px;">🎉</div>
+    <div class="overlay-title">클리어!</div>
+    <div class="overlay-sub">난이도: <b style="color:var(--main)">${difficulty==='easy'?'쉬움':difficulty==='medium'?'보통':'어려움'}</b><br>시간: <b style="color:#ffaa00">${m}:${s.toString().padStart(2,'0')}</b> · 실수: <b>${errors}회</b></div>
+    <input id="nameInput" class="in-input" type="text" maxlength="10" placeholder="✏️ 이름 (10자)">
+    <input id="msgInput" class="in-input" type="text" maxlength="20" placeholder="💬 한마디 (20자)">
+    <button class="start-btn" id="saveBtn" data-sec="${sec}">🏆 기록 저장!</button>
+    <button class="skip-btn" id="skipBtn">저장 없이 다시</button>
+  `;
+  ov.style.display = 'flex';
+  setTimeout(()=>{
+    document.getElementById('nameInput')?.focus();
+    const sb = document.getElementById('saveBtn');
+    if (sb) sb.addEventListener('click', ()=>saveAndShow(parseInt(sb.dataset.sec)));
+    document.getElementById('skipBtn')?.addEventListener('click', newGame);
+  }, 50);
+}
+
+function showGameOver() {
+  const ov = document.getElementById('overlay');
+  const box = document.getElementById('overlayBox');
+  box.innerHTML = `
+    <div style="font-size:40px;margin-bottom:8px;">💥</div>
+    <div class="overlay-title">실수 3회 초과!</div>
+    <div class="overlay-sub">다시 도전해보세요!</div>
+    <button class="start-btn" id="retryBtn">다시 하기</button>
+  `;
+  ov.style.display = 'flex';
+  setTimeout(()=>document.getElementById('retryBtn')?.addEventListener('click', newGame), 50);
+}
+
+async function saveAndShow(sec) {
+  const name = document.getElementById('nameInput')?.value.trim() || '익명';
+  const msg = document.getElementById('msgInput')?.value.trim() || '';
+  const btn = document.getElementById('saveBtn');
+  if (btn) { btn.textContent = '저장 중...'; btn.disabled = true; }
+  try {
+    await db.collection('leaderboardSudoku').add({
+      name, time: sec, difficulty, errors, msg,
+      date: new Date().toLocaleDateString('ko-KR'),
+      createdAt: Date.now()
+    });
+  } catch(e) { console.error(e); }
+  showLeaderboard();
+}
+
+async function showLeaderboard() {
+  const ov = document.getElementById('overlay');
+  const box = document.getElementById('overlayBox');
+  box.innerHTML = '<div class="overlay-title">🏆 담벼락</div><div style="color:#6a8aaa;font-size:12px;padding:20px;">불러오는 중... ⏳</div>';
+  ov.style.display = 'flex';
+
+  let records = [];
+  try {
+    const snap = await db.collection('leaderboardSudoku').where('difficulty','==',difficulty).orderBy('time','asc').limit(20).get();
+    records = snap.docs.map(d=>d.data());
+  } catch(e) {
+    try {
+      const snap = await db.collection('leaderboardSudoku').orderBy('time','asc').limit(50).get();
+      records = snap.docs.map(d=>d.data()).filter(r=>r.difficulty===difficulty).slice(0,20);
+    } catch(e2) { console.error(e2); }
+  }
+
+  const medals = ['🥇','🥈','🥉'];
+  const rows = records.map((r,i)=>{
+    const m = Math.floor(r.time/60), s = r.time%60;
+    return `
+    <div style="padding:7px 0;border-bottom:1px solid #1c2a3a;font-size:12px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:24px;text-align:center;font-size:${i<3?'15':'12'}px;color:#2d4055;">${medals[i]||(i+1)}</span>
+        <span style="flex:1;color:#ddeeff;font-weight:600;word-break:break-all;text-align:left;">${r.name}</span>
+        <span style="color:#3b9eff;font-family:'DM Mono',monospace;">${m}:${s.toString().padStart(2,'0')}</span>
+      </div>
+      ${r.msg?'<div style="font-size:11px;color:#4a6a8a;padding-left:32px;margin-top:2px;text-align:left;">💬 '+r.msg+'</div>':''}
+    </div>`;
+  }).join('');
+
+  box.innerHTML = `
+    <div class="overlay-title">🏆 스도쿠 기록</div>
+    <div style="font-size:11px;color:#6a8aaa;margin-bottom:8px;">난이도: ${difficulty==='easy'?'쉬움':difficulty==='medium'?'보통':'어려움'} · 빠른 순</div>
+    <div style="max-height:240px;overflow-y:auto;border:1px solid #1c2a3a;border-radius:10px;padding:4px 12px;">
+      ${rows||'<div style="color:#6a8aaa;font-size:12px;padding:20px;text-align:center;">아직 기록이 없어요!</div>'}
+    </div>
+    <div style="display:flex;gap:6px;margin-top:10px;">
+      <button id="lbNewBtn" class="start-btn" style="flex:1;margin:0;">새 게임</button>
+      <button id="lbRefreshBtn" style="background:none;border:1px solid #1c2a3a;border-radius:8px;padding:7px 12px;color:#6a8aaa;font-size:12px;cursor:pointer;font-family:inherit;">🔄</button>
+    </div>
+  `;
+  setTimeout(()=>{
+    document.getElementById('lbNewBtn')?.addEventListener('click', newGame);
+    document.getElementById('lbRefreshBtn')?.addEventListener('click', showLeaderboard);
+  }, 50);
+}
+
+// 난이도 버튼
+document.querySelectorAll('.mode-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    difficulty = btn.dataset.diff;
+    newGame();
+  });
+});
+
+// 보드 클릭
+document.getElementById('board').addEventListener('click', e=>{
+  const cell = e.target.closest('.cell');
+  if (cell) selectCell(parseInt(cell.dataset.idx));
+});
+
+// 숫자 패드
+document.querySelectorAll('.numbtn').forEach(btn=>{
+  btn.addEventListener('click', ()=>inputNumber(parseInt(btn.dataset.n)));
+});
+
+// 키보드
+document.addEventListener('keydown', e=>{
+  if (e.key >= '1' && e.key <= '9') {
+    inputNumber(parseInt(e.key));
+    e.preventDefault();
+  } else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') {
+    inputNumber(0);
+    e.preventDefault();
+  } else if (e.key.startsWith('Arrow') && selectedCell !== null) {
+    let r = Math.floor(selectedCell/9), c = selectedCell%9;
+    if (e.key === 'ArrowUp') r = Math.max(0, r-1);
+    else if (e.key === 'ArrowDown') r = Math.min(8, r+1);
+    else if (e.key === 'ArrowLeft') c = Math.max(0, c-1);
+    else if (e.key === 'ArrowRight') c = Math.min(8, c+1);
+    selectCell(r*9+c);
+    e.preventDefault();
+  }
+});
+
+document.getElementById('newGameBtn').addEventListener('click', newGame);
+document.getElementById('leaderBtn').addEventListener('click', showLeaderboard);
+
+// 시작
+difficulty = 'easy';
+newGame();
+</script>
+</body>
+</html>
