@@ -73,7 +73,7 @@ h1 span{color:var(--main);}
 
 <a class="back-btn" href="./index.html">← 응급실 현황</a>
 <h1>🔢 <span>응급실</span> 스도쿠</h1>
-<p class="subtitle">가로/세로/3x3에 1~9를 한 번씩!<br><span style="color:#22d4d4;">📅 오늘의 퍼즐 (매일 0시 갱신)</span></p>
+<p class="subtitle">가로/세로/3x3에 1~9를 한 번씩!<br><span style="color:#22d4d4;">⏰ 1시간마다 새 퍼즐!</span></p>
 
 <div class="mode-row">
   <button class="mode-btn active" data-diff="easy">쉬움</button>
@@ -207,15 +207,16 @@ function generatePuzzle(diff) {
   return { puzzle, solution: full };
 }
 
-// 매일 0시마다 새 퍼즐 (난이도별 다른 시드)
+// 1시간마다 새 퍼즐 (난이도별 다른 시드)
 function getTodaySeed(difficulty) {
   const now = new Date();
   const koreaTime = new Date(now.getTime() + (9*60*60*1000) - (now.getTimezoneOffset()*60*1000));
   const epoch = new Date('2026-01-01T00:00:00Z').getTime();
-  const days = Math.floor((koreaTime.getTime() - epoch) / (1000*60*60*24));
+  // 며칠 X 24 + 몇 시 = 총 시간 단위
+  const hours = Math.floor((koreaTime.getTime() - epoch) / (1000*60*60));
   // 난이도별로 시드 다르게
   const diffOffset = difficulty === 'easy' ? 1000 : difficulty === 'medium' ? 5000 : 9000;
-  return days * 7 + diffOffset;
+  return hours * 13 + diffOffset;
 }
 
 
