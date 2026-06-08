@@ -48,6 +48,12 @@ h1 span{color:var(--main);}
 <h1>🚗 <span>응급실</span> 레이싱</h1>
 <p class="subtitle">차량을 피해 끝까지 살아남으세요! 💨</p>
 
+<div id="hofBanner" style="position:relative;z-index:1;background:linear-gradient(135deg,rgba(255,170,0,0.12),rgba(255,68,102,0.08));border:1px solid rgba(255,170,0,0.4);border-radius:10px;padding:6px 12px;margin-bottom:10px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:11px;">
+  <span style="font-size:14px;">👑</span>
+  <span style="color:#ffaa00;font-weight:700;">시즌 2 진행중!</span>
+  <span style="color:var(--text3);font-size:9px;margin-left:auto;">🏛️ 1대 전당 보기 →</span>
+</div>
+
 <div class="score-row">
   <div class="score-box">
     <div class="score-label">거리</div>
@@ -91,6 +97,47 @@ firebase.initializeApp({
   appId: "1:421677764064:web:35fb5b795c94e5226def85"
 });
 const db = firebase.firestore();
+
+// 시즌 2 - 새 컬렉션 (1대 기록은 leaderboardRacing에 보존)
+const LEADERBOARD = 'leaderboardRacing_s2';
+
+async function showHallOfFame() {
+  const ov = document.getElementById('overlay');
+  const box = document.getElementById('overlayBox');
+  box.innerHTML = '<div class="overlay-title">🏛️ 명예의 전당</div><div style="color:#6a8aaa;font-size:12px;padding:20px;">불러오는 중... ⏳</div>';
+  ov.style.display='flex';
+
+  let records = [];
+  try {
+    const snap = await db.collection('leaderboardRacing').orderBy('distance','desc').limit(20).get();
+    records = snap.docs.map(d=>d.data());
+  } catch(e) { console.error(e); }
+
+  const medals = ['🥇','🥈','🥉'];
+  const rows = records.map((r,i)=>`
+    <div style="padding:6px 0;border-bottom:1px solid #1c2a3a;font-size:12px;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="width:22px;text-align:center;font-size:${i<3?'14':'11'}px;color:${i===0?'#ffd700':'#2d4055'};">${medals[i]||(i+1)}</span>
+        <span style="flex:1;color:${i===0?'#ffd700':'#ddeeff'};font-weight:${i===0?'900':'600'};word-break:break-all;text-align:left;">${r.name}</span>
+        <span style="color:#3b9eff;font-family:'DM Mono',monospace;">${r.distance}m</span>
+        <span style="color:#ffd700;font-size:9px;">💰${r.coins||0}</span>
+      </div>
+      ${r.msg?'<div style="font-size:10px;color:#4a6a8a;padding-left:28px;text-align:left;">💬 '+r.msg+'</div>':''}
+    </div>
+  `).join('');
+
+  box.innerHTML = `
+    <div class="overlay-title">🏛️ 1대 명예의 전당</div>
+    <div style="font-size:11px;color:#ffaa00;margin-bottom:8px;">불멸의 전설들 · 영구 보존</div>
+    <div style="max-height:240px;overflow-y:auto;border:1px solid #1c2a3a;border-radius:10px;padding:4px 12px;">
+      ${rows||'<div style="color:#6a8aaa;font-size:12px;padding:20px;text-align:center;">기록 없음</div>'}
+    </div>
+    <button id="hofCloseBtn" class="start-btn" style="margin-top:10px;">닫기</button>
+  `;
+  setTimeout(()=>document.getElementById('hofCloseBtn')?.addEventListener('click', ()=>{
+    document.getElementById('overlay').style.display='none';
+  }), 50);
+}
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -161,32 +208,34 @@ function spawnPowerUp() {
 function update() {
   if (!gameRunning) return;
 
-  // 거리/속도
-  const effSpeed = slowActive > 0 ? speed * 0.5 : speed;
-  distance += effSpeed * 0.2;
+  // 슬로우 효과: 적 차량과 도로만 느려짐 (거리 점수는 정상 누적)
+  const slowFactor = slowActive > 0 ? 0.4 : 1;
+
+  // 거리/점수는 정상 속도로 계속 누적
+  distance += speed * 0.2;
   if (Math.floor(distance) % 100 === 0 && Math.floor(distance) > 0) {
     speed = Math.min(20, 6 + Math.floor(distance / 200));
   }
   document.getElementById('score').textContent = Math.floor(distance) + 'm';
-  document.getElementById('speed').textContent = Math.floor(speed * 16.67);
+  document.getElementById('speed').textContent = slowActive > 0 ? '🐢SLOW' : Math.floor(speed * 16.67);
 
-  // 도로
-  roadOffset += effSpeed;
+  // 도로 (슬로우 시 느리게 보임)
+  roadOffset += speed * slowFactor;
   if (roadOffset > 40) roadOffset = 0;
 
   // 플레이어 부드러운 이동
   player.x += (player.targetX - player.x) * 0.3;
 
-  // 적 차량
-  enemies.forEach(e => { e.y += e.speed; });
+  // 적 차량 (슬로우 시 느려짐 → 피하기 쉬워짐)
+  enemies.forEach(e => { e.y += e.speed * slowFactor; });
   enemies = enemies.filter(e => e.y < H + 100);
 
   // 코인
-  coins.forEach(c => { c.y += effSpeed; c.rotation += 0.15; });
+  coins.forEach(c => { c.y += speed * slowFactor; c.rotation += 0.15; });
   coins = coins.filter(c => c.y < H + 30);
 
   // 파워업
-  powerUps.forEach(p => { p.y += effSpeed; });
+  powerUps.forEach(p => { p.y += speed * slowFactor; });
   powerUps = powerUps.filter(p => p.y < H + 30);
 
   // 적 스폰
@@ -366,7 +415,7 @@ function draw() {
     ctx.fillText('🎮 시작 버튼을 눌러주세요', W/2, H/2);
     ctx.font = '13px Noto Sans KR';
     ctx.fillStyle = 'rgba(255,255,255,0.6)';
-    ctx.fillText('💰 코인 +5m  🛡 쉴드  🐢 슬로우', W/2, H/2 + 25);
+    ctx.fillText('💰코인+5m  🛡쉴드방어  🐢적느려짐', W/2, H/2 + 25);
   }
 
   // HUD - 코인
@@ -476,7 +525,7 @@ async function saveAndShow() {
   const btn = document.getElementById('saveBtn');
   if (btn) { btn.textContent = '저장 중...'; btn.disabled = true; }
   try {
-    await db.collection('leaderboardRacing').add({
+    await db.collection(LEADERBOARD).add({
       name, distance: savedDist, coins: coinCount, msg,
       date: new Date().toLocaleDateString('ko-KR'),
       createdAt: Date.now()
@@ -493,7 +542,7 @@ async function showLeaderboard() {
 
   let records = [];
   try {
-    const snap = await db.collection('leaderboardRacing').orderBy('distance','desc').limit(20).get();
+    const snap = await db.collection(LEADERBOARD).orderBy('distance','desc').limit(20).get();
     records = snap.docs.map(d=>d.data());
   } catch(e) { console.error(e); }
 
@@ -511,8 +560,8 @@ async function showLeaderboard() {
   `).join('');
 
   box.innerHTML = `
-    <div class="overlay-title">🏆 레이싱 기록</div>
-    <div style="font-size:11px;color:#6a8aaa;margin-bottom:8px;">최장 거리 순 · 상위 20명</div>
+    <div class="overlay-title">🏆 시즌 2 기록</div>
+    <div style="font-size:11px;color:#6a8aaa;margin-bottom:8px;">새로운 전설들 · 최장 거리 순</div>
     <div style="max-height:240px;overflow-y:auto;border:1px solid #1c2a3a;border-radius:10px;padding:4px 12px;">
       ${rows||'<div style="color:#6a8aaa;font-size:12px;padding:20px;text-align:center;">아직 기록이 없어요!</div>'}
     </div>
@@ -551,6 +600,7 @@ document.getElementById('btnLeft').addEventListener('click', moveLeft);
 document.getElementById('btnRight').addEventListener('click', moveRight);
 document.getElementById('startBtn').addEventListener('click', startGame);
 document.getElementById('leaderBtn').addEventListener('click', showLeaderboard);
+document.getElementById('hofBanner').addEventListener('click', showHallOfFame);
 
 // 스와이프
 let tx=0;
