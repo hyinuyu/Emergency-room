@@ -561,6 +561,7 @@ async function fetchData() {
       const tot = parseInt(g('hvs01'));
       const ped = parseInt(g('hv28'));
       const pedTot = parseInt(g('hvs59'));
+      console.log('순천향구미 원본값 → 일반가용:', g('hvec'), '일반총:', g('hvs01'), '소아가용:', g('hv28'), '소아총:', g('hvs59'));
       otherHospitals.push({ name: '순천향구미병원', avail: isNaN(hvec)?null:hvec, total: isNaN(tot)?null:tot, pedAvail: isNaN(ped)?null:ped, pedTotal: isNaN(pedTot)?null:pedTot });
     }
     if (!name.includes('구미차') && !name.includes('차의과학')) return;
@@ -589,22 +590,25 @@ function renderOtherHospitals() {
   container.innerHTML = all.map(h => {
     const patients = (h.total !== null && h.avail !== null) ? (h.total - h.avail) : null;
     const pedPatients = (h.pedTotal !== null && h.pedTotal !== undefined && h.pedAvail !== null && h.pedAvail !== undefined) ? (h.pedTotal - h.pedAvail) : null;
-    const hasPed = (h.pedAvail !== null && h.pedAvail !== undefined);
+    const hasPed = (h.pedTotal !== null && h.pedTotal !== undefined && h.pedTotal > 0);
     const pColor = patients === null ? 'var(--text3)' : patients <= 5 ? 'var(--green)' : patients <= 12 ? 'var(--orange)' : 'var(--red)';
+    const pedColor = pedPatients === null ? 'var(--text3)' : pedPatients <= 2 ? 'var(--green)' : pedPatients <= 4 ? 'var(--orange)' : 'var(--red)';
     return `
     <div style="padding:9px 12px;background:${h.isMe?'rgba(59,158,255,0.08)':'var(--card2)'};border:1px solid ${h.isMe?'rgba(59,158,255,0.3)':'var(--border)'};border-radius:10px;">
       <div style="font-size:12px;font-weight:${h.isMe?'700':'600'};color:${h.isMe?'var(--main)':'var(--text)'};margin-bottom:6px;">${h.name}</div>
-      <div style="display:flex;gap:16px;align-items:baseline;">
+      <div style="display:flex;gap:16px;align-items:baseline;flex-wrap:wrap;">
         <span style="display:flex;align-items:baseline;gap:5px;">
           <span style="font-size:10px;color:var(--text3);">일반</span>
           ${patients !== null
-            ? `<b style="font-family:var(--mono);font-size:18px;color:${pColor};">${patients}</b><span style="font-size:10px;color:var(--text3);">명</span>`
-            : '<span style="font-size:11px;color:var(--text3);">정보없음</span>'}
+            ? `<b style="font-family:var(--mono);font-size:18px;color:${pColor};">${patients}</b><span style="font-size:10px;color:var(--text3);">명 / ${h.total}병상</span>`
+            : (h.avail !== null ? `<span style="font-size:11px;color:var(--text2);">가용 ${h.avail}</span>` : '<span style="font-size:11px;color:var(--text3);">정보없음</span>')}
         </span>
-        ${hasPed && pedPatients !== null ? `
+        ${hasPed ? `
         <span style="display:flex;align-items:baseline;gap:5px;">
           <span style="font-size:10px;color:var(--text3);">소아</span>
-          <b style="font-family:var(--mono);font-size:18px;color:${pedPatients <= 2 ? 'var(--green)' : pedPatients <= 4 ? 'var(--orange)' : 'var(--red)'};">${pedPatients}</b><span style="font-size:10px;color:var(--text3);">명</span>
+          ${pedPatients !== null
+            ? `<b style="font-family:var(--mono);font-size:18px;color:${pedColor};">${pedPatients}</b><span style="font-size:10px;color:var(--text3);">명 / ${h.pedTotal}병상</span>`
+            : `<span style="font-size:11px;color:var(--text2);">가용 ${h.pedAvail}</span>`}
         </span>` : ''}
       </div>
     </div>`;
