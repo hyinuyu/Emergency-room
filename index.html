@@ -549,15 +549,19 @@ async function fetchData() {
     const g = t => item.querySelector(t)?.textContent?.trim()||'';
     const name = g('dutyName').replace(/\s/g,'');
     // 다른 병원 (강동, 순천향) 환자수 수집
-    // hvec = 가용병상, hvs01 = 총병상
+    // hvec=일반가용, hvs01=일반총, hv28=소아가용, hvs59=소아총
     if (name.includes('강동')) {
       const hvec = parseInt(g('hvec'));
       const tot = parseInt(g('hvs01'));
-      otherHospitals.push({ name: '구미강동병원', avail: isNaN(hvec)?null:hvec, total: isNaN(tot)?null:tot });
+      const ped = parseInt(g('hv28'));
+      const pedTot = parseInt(g('hvs59'));
+      otherHospitals.push({ name: '구미강동병원', avail: isNaN(hvec)?null:hvec, total: isNaN(tot)?null:tot, pedAvail: isNaN(ped)?null:ped, pedTotal: isNaN(pedTot)?null:pedTot });
     } else if (name.includes('순천향') && name.includes('구미')) {
       const hvec = parseInt(g('hvec'));
       const tot = parseInt(g('hvs01'));
-      otherHospitals.push({ name: '순천향구미병원', avail: isNaN(hvec)?null:hvec, total: isNaN(tot)?null:tot });
+      const ped = parseInt(g('hv28'));
+      const pedTot = parseInt(g('hvs59'));
+      otherHospitals.push({ name: '순천향구미병원', avail: isNaN(hvec)?null:hvec, total: isNaN(tot)?null:tot, pedAvail: isNaN(ped)?null:ped, pedTotal: isNaN(pedTot)?null:pedTot });
     }
     if (!name.includes('구미차') && !name.includes('차의과학')) return;
     const hvec = parseInt(g('hvec'));
@@ -582,11 +586,12 @@ function renderOtherHospitals() {
     container.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:8px;">주변 병원 정보 없음</div>';
     return;
   }
-  // 우리 병원도 같이 비교 (구미차병원)
+  // 우리 병원 일반 + 소아
   const myAvail = parseInt(document.getElementById('valAvail').textContent);
+  const myPedAvail = parseInt(document.getElementById('pedAvailVal').textContent);
   const all = [
-    { name: '⭐ 구미차병원', avail: isNaN(myAvail) ? null : myAvail, total: 20, isMe: true },
-    ...otherHospitals.map(h => ({...h, total: h.total ?? null, isMe: false}))
+    { name: '⭐ 구미차병원', avail: isNaN(myAvail)?null:myAvail, total: 20, pedAvail: isNaN(myPedAvail)?null:myPedAvail, pedTotal: 5, isMe: true },
+    ...otherHospitals.map(h => ({...h, isMe: false}))
   ];
   container.innerHTML = all.map(h => {
     const availColor = h.avail === null ? 'var(--text3)' :
@@ -595,18 +600,26 @@ function renderOtherHospitals() {
     const statusText = h.avail === null ? '정보없음' :
                        h.avail >= 5 ? '여유' :
                        h.avail >= 1 ? '혼잡' : '포화';
-    // 환자수 = 총병상 - 가용병상 (총병상 알 때만)
     const patients = (h.total !== null && h.avail !== null) ? (h.total - h.avail) : null;
+    const pedPatients = (h.pedTotal !== null && h.pedTotal !== undefined && h.pedAvail !== null && h.pedAvail !== undefined) ? (h.pedTotal - h.pedAvail) : null;
+    const hasPed = (h.pedAvail !== null && h.pedAvail !== undefined);
     return `
     <div style="padding:9px 12px;background:${h.isMe?'rgba(59,158,255,0.08)':'var(--card2)'};border:1px solid ${h.isMe?'rgba(59,158,255,0.3)':'var(--border)'};border-radius:10px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
         <span style="font-size:12px;font-weight:${h.isMe?'700':'600'};color:${h.isMe?'var(--main)':'var(--text)'};">${h.name}</span>
         <span style="font-size:11px;color:${availColor};font-weight:700;">${statusText}</span>
       </div>
-      <div style="display:flex;gap:14px;font-size:11px;">
-        <span style="color:var(--text2);">🛏️ 가용 <b style="color:${availColor};font-family:var(--mono);">${h.avail === null ? '?' : h.avail}</b>${h.total ? '<span style="color:var(--text3);">/'+h.total+'</span>' : ''}</span>
-        ${patients !== null ? `<span style="color:var(--text2);">🤕 환자 <b style="color:var(--orange);font-family:var(--mono);">${patients}</b>명</span>` : '<span style="color:var(--text3);font-size:10px;">환자수 정보없음</span>'}
+      <div style="display:flex;gap:12px;font-size:11px;margin-bottom:${hasPed?'3px':'0'};">
+        <span style="color:var(--text3);font-size:10px;width:32px;">일반</span>
+        <span style="color:var(--text2);">🛏️ <b style="color:${availColor};font-family:var(--mono);">${h.avail === null ? '?' : h.avail}</b>${h.total ? '<span style="color:var(--text3);">/'+h.total+'</span>' : ''}</span>
+        ${patients !== null ? `<span style="color:var(--text2);">🤕 <b style="color:var(--orange);font-family:var(--mono);">${patients}</b>명</span>` : ''}
       </div>
+      ${hasPed ? `
+      <div style="display:flex;gap:12px;font-size:11px;">
+        <span style="color:var(--text3);font-size:10px;width:32px;">소아</span>
+        <span style="color:var(--text2);">🛏️ <b style="color:${h.pedAvail >= 2 ? 'var(--green)' : h.pedAvail >= 1 ? 'var(--orange)' : 'var(--red)'};font-family:var(--mono);">${h.pedAvail}</b>${h.pedTotal ? '<span style="color:var(--text3);">/'+h.pedTotal+'</span>' : ''}</span>
+        ${pedPatients !== null ? `<span style="color:var(--text2);">🤕 <b style="color:var(--orange);font-family:var(--mono);">${pedPatients}</b>명</span>` : ''}
+      </div>` : ''}
     </div>`;
   }).join('');
 }
