@@ -276,7 +276,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <div id="otherHospitals" style="display:flex;flex-direction:column;gap:8px;">
       <div style="font-size:11px;color:var(--text3);text-align:center;padding:8px;">불러오는 중...</div>
     </div>
-    <div style="font-size:10px;color:var(--text3);margin-top:8px;text-align:center;">환자수가 적을수록 빨리 진료받을 수 있어요</div>
+    <div style="font-size:10px;color:var(--text3);margin-top:8px;text-align:center;">가용 병상이 많을수록 여유로워요</div>
   </div>
   <div style="margin-bottom:16px;padding:0 2px;">
     <div class="gauge-wrap">
@@ -586,6 +586,7 @@ function renderOtherHospitals() {
     container.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:8px;">주변 병원 정보 없음</div>';
     return;
   }
+  // 우리 병원 일반 + 소아
   const myAvail = parseInt(document.getElementById('valAvail').textContent);
   const myPedAvail = parseInt(document.getElementById('pedAvailVal').textContent);
   const all = [
@@ -593,30 +594,32 @@ function renderOtherHospitals() {
     ...otherHospitals.map(h => ({...h, isMe: false}))
   ];
   container.innerHTML = all.map(h => {
+    const availColor = h.avail === null ? 'var(--text3)' :
+                       h.avail >= 5 ? 'var(--green)' :
+                       h.avail >= 1 ? 'var(--orange)' : 'var(--red)';
+    const statusText = h.avail === null ? '정보없음' :
+                       h.avail >= 5 ? '여유' :
+                       h.avail >= 1 ? '혼잡' : '포화';
     const patients = (h.total !== null && h.avail !== null) ? (h.total - h.avail) : null;
-    const pedPatients = (h.pedTotal != null && h.pedAvail != null) ? (h.pedTotal - h.pedAvail) : null;
+    const pedPatients = (h.pedTotal !== null && h.pedTotal !== undefined && h.pedAvail !== null && h.pedAvail !== undefined) ? (h.pedTotal - h.pedAvail) : null;
     const hasPed = (h.pedAvail !== null && h.pedAvail !== undefined);
-    const pColor = patients === null ? 'var(--text3)' :
-                   patients <= 5 ? 'var(--green)' :
-                   patients <= 12 ? 'var(--orange)' : 'var(--red)';
     return `
-    <div style="padding:10px 14px;background:${h.isMe?'rgba(59,158,255,0.08)':'var(--card2)'};border:1px solid ${h.isMe?'rgba(59,158,255,0.3)':'var(--border)'};border-radius:10px;">
-      <div style="font-size:12px;font-weight:${h.isMe?'700':'600'};color:${h.isMe?'var(--main)':'var(--text)'};margin-bottom:7px;">${h.name}</div>
-      <div style="display:flex;gap:18px;">
-        <div style="display:flex;align-items:baseline;gap:5px;">
-          <span style="font-size:10px;color:var(--text3);">일반</span>
-          ${patients !== null
-            ? `<span style="font-family:var(--mono);font-size:20px;font-weight:700;color:${pColor};">${patients}</span><span style="font-size:10px;color:var(--text3);">명 · 가용 ${h.avail}</span>`
-            : '<span style="font-size:11px;color:var(--text3);">정보없음</span>'}
-        </div>
-        ${hasPed ? `
-        <div style="display:flex;align-items:baseline;gap:5px;">
-          <span style="font-size:10px;color:var(--text3);">소아</span>
-          ${pedPatients !== null
-            ? `<span style="font-family:var(--mono);font-size:20px;font-weight:700;color:${pedPatients <= 2 ? 'var(--green)' : pedPatients <= 4 ? 'var(--orange)' : 'var(--red)'};">${pedPatients}</span><span style="font-size:10px;color:var(--text3);">명 · 가용 ${h.pedAvail}</span>`
-            : `<span style="font-family:var(--mono);font-size:16px;color:var(--text2);">가용 ${h.pedAvail}</span>`}
-        </div>` : ''}
+    <div style="padding:9px 12px;background:${h.isMe?'rgba(59,158,255,0.08)':'var(--card2)'};border:1px solid ${h.isMe?'rgba(59,158,255,0.3)':'var(--border)'};border-radius:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+        <span style="font-size:12px;font-weight:${h.isMe?'700':'600'};color:${h.isMe?'var(--main)':'var(--text)'};">${h.name}</span>
+        <span style="font-size:11px;color:${availColor};font-weight:700;">${statusText}</span>
       </div>
+      <div style="display:flex;gap:12px;font-size:11px;margin-bottom:${hasPed?'3px':'0'};">
+        <span style="color:var(--text3);font-size:10px;width:32px;">일반</span>
+        <span style="color:var(--text2);">🛏️ <b style="color:${availColor};font-family:var(--mono);">${h.avail === null ? '?' : h.avail}</b>${h.total ? '<span style="color:var(--text3);">/'+h.total+'</span>' : ''}</span>
+        ${patients !== null ? `<span style="color:var(--text2);">🤕 <b style="color:var(--orange);font-family:var(--mono);">${patients}</b>명</span>` : ''}
+      </div>
+      ${hasPed ? `
+      <div style="display:flex;gap:12px;font-size:11px;">
+        <span style="color:var(--text3);font-size:10px;width:32px;">소아</span>
+        <span style="color:var(--text2);">🛏️ <b style="color:${h.pedAvail >= 2 ? 'var(--green)' : h.pedAvail >= 1 ? 'var(--orange)' : 'var(--red)'};font-family:var(--mono);">${h.pedAvail}</b>${h.pedTotal ? '<span style="color:var(--text3);">/'+h.pedTotal+'</span>' : ''}</span>
+        ${pedPatients !== null ? `<span style="color:var(--text2);">🤕 <b style="color:var(--orange);font-family:var(--mono);">${pedPatients}</b>명</span>` : ''}
+      </div>` : ''}
     </div>`;
   }).join('');
 }
