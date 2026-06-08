@@ -549,12 +549,15 @@ async function fetchData() {
     const g = t => item.querySelector(t)?.textContent?.trim()||'';
     const name = g('dutyName').replace(/\s/g,'');
     // 다른 병원 (강동, 순천향) 환자수 수집
+    // hvec = 가용병상, hvs01 = 총병상
     if (name.includes('강동')) {
       const hvec = parseInt(g('hvec'));
-      otherHospitals.push({ name: '구미강동병원', avail: isNaN(hvec)?null:hvec });
+      const tot = parseInt(g('hvs01'));
+      otherHospitals.push({ name: '구미강동병원', avail: isNaN(hvec)?null:hvec, total: isNaN(tot)?null:tot });
     } else if (name.includes('순천향') && name.includes('구미')) {
       const hvec = parseInt(g('hvec'));
-      otherHospitals.push({ name: '순천향구미병원', avail: isNaN(hvec)?null:hvec });
+      const tot = parseInt(g('hvs01'));
+      otherHospitals.push({ name: '순천향구미병원', avail: isNaN(hvec)?null:hvec, total: isNaN(tot)?null:tot });
     }
     if (!name.includes('구미차') && !name.includes('차의과학')) return;
     const hvec = parseInt(g('hvec'));
@@ -564,6 +567,13 @@ async function fetchData() {
   });
   return {genAvail, pedAvail};
 }
+
+// 병원별 일반응급실 총 병상수 (알려진 값)
+const HOSPITAL_BEDS = {
+  '⭐ 구미차병원': 20,
+  '구미강동병원': null,   // 총병상 모르면 가용만 표시
+  '순천향구미병원': null,
+};
 
 function renderOtherHospitals() {
   const container = document.getElementById('otherHospitals');
@@ -575,8 +585,8 @@ function renderOtherHospitals() {
   // 우리 병원도 같이 비교 (구미차병원)
   const myAvail = parseInt(document.getElementById('valAvail').textContent);
   const all = [
-    { name: '⭐ 구미차병원', avail: isNaN(myAvail) ? null : myAvail, isMe: true },
-    ...otherHospitals.map(h => ({...h, isMe: false}))
+    { name: '⭐ 구미차병원', avail: isNaN(myAvail) ? null : myAvail, total: 20, isMe: true },
+    ...otherHospitals.map(h => ({...h, total: h.total ?? null, isMe: false}))
   ];
   container.innerHTML = all.map(h => {
     const availColor = h.avail === null ? 'var(--text3)' :
@@ -585,13 +595,17 @@ function renderOtherHospitals() {
     const statusText = h.avail === null ? '정보없음' :
                        h.avail >= 5 ? '여유' :
                        h.avail >= 1 ? '혼잡' : '포화';
+    // 환자수 = 총병상 - 가용병상 (총병상 알 때만)
+    const patients = (h.total !== null && h.avail !== null) ? (h.total - h.avail) : null;
     return `
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:${h.isMe?'rgba(59,158,255,0.08)':'var(--card2)'};border:1px solid ${h.isMe?'rgba(59,158,255,0.3)':'var(--border)'};border-radius:10px;">
-      <span style="font-size:12px;font-weight:${h.isMe?'700':'600'};color:${h.isMe?'var(--main)':'var(--text)'};">${h.name}</span>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:11px;color:${availColor};font-weight:600;">${statusText}</span>
-        <span style="font-family:var(--mono);font-size:14px;font-weight:700;color:${availColor};">${h.avail === null ? '?' : h.avail}</span>
-        <span style="font-size:10px;color:var(--text3);">병상</span>
+    <div style="padding:9px 12px;background:${h.isMe?'rgba(59,158,255,0.08)':'var(--card2)'};border:1px solid ${h.isMe?'rgba(59,158,255,0.3)':'var(--border)'};border-radius:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <span style="font-size:12px;font-weight:${h.isMe?'700':'600'};color:${h.isMe?'var(--main)':'var(--text)'};">${h.name}</span>
+        <span style="font-size:11px;color:${availColor};font-weight:700;">${statusText}</span>
+      </div>
+      <div style="display:flex;gap:14px;font-size:11px;">
+        <span style="color:var(--text2);">🛏️ 가용 <b style="color:${availColor};font-family:var(--mono);">${h.avail === null ? '?' : h.avail}</b>${h.total ? '<span style="color:var(--text3);">/'+h.total+'</span>' : ''}</span>
+        ${patients !== null ? `<span style="color:var(--text2);">🤕 환자 <b style="color:var(--orange);font-family:var(--mono);">${patients}</b>명</span>` : '<span style="color:var(--text3);font-size:10px;">환자수 정보없음</span>'}
       </div>
     </div>`;
   }).join('');
