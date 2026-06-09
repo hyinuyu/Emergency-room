@@ -277,6 +277,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <div style="font-size:11px;color:var(--text3);text-align:center;padding:8px;">불러오는 중...</div>
     </div>
     <div style="font-size:10px;color:var(--text3);margin-top:8px;text-align:center;">숫자는 현재 환자수 · 적을수록 빨라요</div>
+    <div id="debugBox" style="font-size:9px;color:#ffaa00;margin-top:10px;padding:8px;background:rgba(255,170,0,0.05);border:1px dashed rgba(255,170,0,0.3);border-radius:8px;word-break:break-all;line-height:1.6;display:none;"></div>
   </div>
   <div style="margin-bottom:16px;padding:0 2px;">
     <div class="gauge-wrap">
@@ -561,7 +562,14 @@ async function fetchData() {
       const tot = parseInt(g('hvs01'));
       const ped = parseInt(g('hv28'));
       const pedTot = parseInt(g('hvs59'));
-      console.log('순천향구미 원본값 → 일반가용:', g('hvec'), '일반총:', g('hvs01'), '소아가용:', g('hv28'), '소아총:', g('hvs59'));
+      // 디버그: 순천향의 모든 태그를 화면에 표시
+      let allTags = '';
+      item.querySelectorAll('*').forEach(el => {
+        if (el.children.length === 0 && el.textContent.trim() !== '') {
+          allTags += el.tagName + '=' + el.textContent.trim() + '  ';
+        }
+      });
+      window._suncheonDebug = allTags;
       otherHospitals.push({ name: '순천향구미병원', avail: isNaN(hvec)?null:hvec, total: isNaN(tot)?null:tot, pedAvail: isNaN(ped)?null:ped, pedTotal: isNaN(pedTot)?null:pedTot });
     }
     if (!name.includes('구미차') && !name.includes('차의과학')) return;
@@ -613,6 +621,13 @@ function renderOtherHospitals() {
       </div>
     </div>`;
   }).join('');
+
+  // 디버그: 순천향 원본 태그 표시
+  const dbg = document.getElementById('debugBox');
+  if (dbg && window._suncheonDebug) {
+    dbg.style.display = 'block';
+    dbg.innerHTML = '<b>🔍 순천향 원본 태그 (디버그용):</b><br>' + window._suncheonDebug;
+  }
 }
 
 async function load() {
