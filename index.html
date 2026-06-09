@@ -277,7 +277,6 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <div style="font-size:11px;color:var(--text3);text-align:center;padding:8px;">불러오는 중...</div>
     </div>
     <div style="font-size:10px;color:var(--text3);margin-top:8px;text-align:center;">숫자는 현재 환자수 · 적을수록 빨라요</div>
-    <div id="debugBox" style="font-size:9px;color:#ffaa00;margin-top:10px;padding:8px;background:rgba(255,170,0,0.05);border:1px dashed rgba(255,170,0,0.3);border-radius:8px;word-break:break-all;line-height:1.6;display:none;"></div>
   </div>
   <div style="margin-bottom:16px;padding:0 2px;">
     <div class="gauge-wrap">
@@ -538,6 +537,7 @@ function pedBadge(avail, total) {
 }
 
 let otherHospitals = [];
+let myPedTotal = 5;
 
 async function fetchData() {
   const url = `${BASE}/getEmrrmRltmUsefulSckbdInfoInqire?serviceKey=${encodeURIComponent(API_KEY)}&STAGE1=${encodeURIComponent('경상북도')}&pageNo=1&numOfRows=100`;
@@ -550,33 +550,27 @@ async function fetchData() {
     const g = t => item.querySelector(t)?.textContent?.trim()||'';
     const name = g('dutyName').replace(/\s/g,'');
     // 다른 병원 (강동, 순천향) 환자수 수집
-    // hvec=일반가용, hvs01=일반총, hv28=소아가용, hvs59=소아총
+    // hvec=일반가용, hvs01=일반총, hv28=소아가용, hvs02=소아총
     if (name.includes('강동')) {
       const hvec = parseInt(g('hvec'));
       const tot = parseInt(g('hvs01'));
       const ped = parseInt(g('hv28'));
-      const pedTot = parseInt(g('hvs59'));
+      const pedTot = parseInt(g('hvs02'));
       otherHospitals.push({ name: '구미강동병원', avail: isNaN(hvec)?null:hvec, total: isNaN(tot)?null:tot, pedAvail: isNaN(ped)?null:ped, pedTotal: isNaN(pedTot)?null:pedTot });
     } else if (name.includes('순천향') && name.includes('구미')) {
       const hvec = parseInt(g('hvec'));
       const tot = parseInt(g('hvs01'));
       const ped = parseInt(g('hv28'));
-      const pedTot = parseInt(g('hvs59'));
-      // 디버그: 순천향의 모든 태그를 화면에 표시
-      let allTags = '';
-      item.querySelectorAll('*').forEach(el => {
-        if (el.children.length === 0 && el.textContent.trim() !== '') {
-          allTags += el.tagName + '=' + el.textContent.trim() + '  ';
-        }
-      });
-      window._suncheonDebug = allTags;
+      const pedTot = parseInt(g('hvs02'));
       otherHospitals.push({ name: '순천향구미병원', avail: isNaN(hvec)?null:hvec, total: isNaN(tot)?null:tot, pedAvail: isNaN(ped)?null:ped, pedTotal: isNaN(pedTot)?null:pedTot });
     }
     if (!name.includes('구미차') && !name.includes('차의과학')) return;
     const hvec = parseInt(g('hvec'));
     const hv28 = parseInt(g('hv28'));
+    const pedTot = parseInt(g('hvs02'));
     genAvail = isNaN(hvec) ? null : hvec;
     pedAvail = isNaN(hv28) ? null : hv28;
+    myPedTotal = isNaN(pedTot) ? 5 : pedTot;
   });
   return {genAvail, pedAvail};
 }
@@ -592,7 +586,7 @@ function renderOtherHospitals() {
   const myAvail = parseInt(document.getElementById('valAvail').textContent);
   const myPedAvail = parseInt(document.getElementById('pedAvailVal').textContent);
   const all = [
-    { name: '⭐ 구미차병원', avail: isNaN(myAvail)?null:myAvail, total: 20, pedAvail: isNaN(myPedAvail)?null:myPedAvail, pedTotal: 5, isMe: true },
+    { name: '⭐ 구미차병원', avail: isNaN(myAvail)?null:myAvail, total: 20, pedAvail: isNaN(myPedAvail)?null:myPedAvail, pedTotal: myPedTotal, isMe: true },
     ...otherHospitals.map(h => ({...h, isMe: false}))
   ];
   container.innerHTML = all.map(h => {
@@ -621,13 +615,6 @@ function renderOtherHospitals() {
       </div>
     </div>`;
   }).join('');
-
-  // 디버그: 순천향 원본 태그 표시
-  const dbg = document.getElementById('debugBox');
-  if (dbg && window._suncheonDebug) {
-    dbg.style.display = 'block';
-    dbg.innerHTML = '<b>🔍 순천향 원본 태그 (디버그용):</b><br>' + window._suncheonDebug;
-  }
 }
 
 async function load() {
