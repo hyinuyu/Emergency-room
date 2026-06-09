@@ -681,7 +681,7 @@ setInterval(updateClock, 1000);
 (function(){
   const url = 'https://hyinuyu.github.io/Emergency-room/';
   const script = document.createElement('script');
-  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+  script.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
   script.onload = function(){
     const wrap = document.getElementById('qrWrap');
     new QRCode(wrap, {
