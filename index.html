@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>구미차병원 응급실</title>
+<meta name="description" content="구미차병원 응급실 실시간 현황 - 가용병상·환자수·예상 대기시간, 주변 응급실 비교">
+<meta property="og:title" content="🏥 구미차병원 응급실 현황">
+<meta property="og:description" content="실시간 가용병상·환자수 확인 + 대기 중 미니게임 🎮">
+<meta property="og:url" content="https://hyinuyu.github.io/Emergency-room/">
+<meta property="og:type" content="website">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -141,6 +146,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
         <div style="font-size:9px;color:var(--text3);font-family:var(--mono);">마지막갱신</div>
         <div style="font-size:12px;font-weight:600;color:var(--main);font-family:var(--mono);" id="updatedTime">—</div>
       </div>
+      <div style="width:1px;height:22px;background:var(--border);"></div>
+      <div>
+        <div style="font-size:9px;color:var(--text3);font-family:var(--mono);">병원입력</div>
+        <div style="font-size:12px;font-weight:600;color:var(--text2);font-family:var(--mono);" id="hospitalTime">—</div>
+      </div>
     </div>
     <button id="refreshBtn" onclick="load()" style="display:flex;align-items:center;gap:4px;background:var(--card2);border:1px solid var(--border2);color:var(--text2);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:inherit;transition:all 0.2s;white-space:nowrap;">
       <span class="ri">↻</span> 새로고침
@@ -231,7 +241,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
         <div class="vnum-label">추정 환자</div>
       </div>
       <div class="vnum-box">
-        <div class="vnum-val" style="color:var(--text3)">20</div>
+        <div class="vnum-val" style="color:var(--text3)" id="valTotal">20</div>
         <div class="vnum-label">총 병상</div>
       </div>
     </div>
@@ -259,13 +269,13 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <div class="ped-icon">👶</div>
       <div>
         <div class="ped-title">소아 응급실</div>
-        <div class="ped-sub">총 5병상</div>
+        <div class="ped-sub">총 <span id="pedTotalTxt">5</span>병상</div>
         <div class="ped-badge" id="pedBadge" style="background:rgba(100,130,160,0.1);color:var(--text2);border:1px solid var(--border)">불러오는 중</div>
       </div>
     </div>
     <div class="ped-right">
       <div class="ped-avail" id="pedAvailVal" style="color:var(--text3)">—</div>
-      <div class="ped-total">/ 5 가용</div>
+      <div class="ped-total">/ <span id="pedTotalTxt2">5</span> 가용</div>
       <div style="font-size:11px;color:var(--text2);margin-top:2px;">추정 <span id="pedPatients" style="color:var(--orange)">—</span>명</div>
     </div>
   </div>
@@ -351,7 +361,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:8px;text-align:center;">
     <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:12px;">📱 QR 코드로 접속하기</div>
     <div style="display:flex;justify-content:center;margin-bottom:10px;">
-      <div id="qrWrap" style="display:inline-block;border-radius:8px;overflow:hidden;"></div>
+      <div id="qrWrap" style="display:inline-block;border-radius:10px;overflow:hidden;background:#fff;padding:10px;"></div>
     </div>
     <div style="font-size:11px;color:var(--text3);font-family:var(--mono);">hyinuyu.github.io/Emergency-room</div>
   </div>
@@ -382,6 +392,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <span style="font-size:12px;color:var(--text);font-family:var(--mono);">10분마다 자동</span>
   </div>
 
+</div><!-- /.wrap -->
 
 <script>
 const API_KEY = '1ae147a1907296a5c5fd16751a21b2f146381a4727784592ae9c235d8ac0263d';
@@ -457,7 +468,7 @@ function animateSmoke(speed) {
 }
 
 function updateVolcano(avail) {
-  const stateKey = getStateKey(avail, TOTAL_GEN);
+  const stateKey = getStateKey(avail, myGenTotal);
   if (!stateKey) return;
   const state = STATES[stateKey];
 
@@ -538,6 +549,8 @@ function pedBadge(avail, total) {
 
 let otherHospitals = [];
 let myPedTotal = 5;
+let myGenTotal = 20;
+let myDataTime = null;
 
 async function fetchData() {
   const url = `${BASE}/getEmrrmRltmUsefulSckbdInfoInqire?serviceKey=${encodeURIComponent(API_KEY)}&STAGE1=${encodeURIComponent('경상북도')}&pageNo=1&numOfRows=100`;
@@ -568,9 +581,13 @@ async function fetchData() {
     const hvec = parseInt(g('hvec'));
     const hv28 = parseInt(g('hv28'));
     const pedTot = parseInt(g('hvs02'));
+    const genTot = parseInt(g('hvs01'));
     genAvail = isNaN(hvec) ? null : hvec;
     pedAvail = isNaN(hv28) ? null : hv28;
     myPedTotal = isNaN(pedTot) ? 5 : pedTot;
+    myGenTotal = isNaN(genTot) ? 20 : genTot;
+    const hd = g('hvidate');
+    myDataTime = (hd && hd.length >= 12) ? hd.slice(8,10) + ':' + hd.slice(10,12) : null;
   });
   return {genAvail, pedAvail};
 }
@@ -586,12 +603,12 @@ function renderOtherHospitals() {
   const myAvail = parseInt(document.getElementById('valAvail').textContent);
   const myPedAvail = parseInt(document.getElementById('pedAvailVal').textContent);
   const all = [
-    { name: '⭐ 구미차병원', avail: isNaN(myAvail)?null:myAvail, total: 20, pedAvail: isNaN(myPedAvail)?null:myPedAvail, pedTotal: myPedTotal, isMe: true },
+    { name: '⭐ 구미차병원', avail: isNaN(myAvail)?null:myAvail, total: myGenTotal, pedAvail: isNaN(myPedAvail)?null:myPedAvail, pedTotal: myPedTotal, isMe: true },
     ...otherHospitals.map(h => ({...h, isMe: false}))
   ];
   container.innerHTML = all.map(h => {
-    const patients = (h.total !== null && h.avail !== null) ? (h.total - h.avail) : null;
-    const pedPatients = (h.pedTotal !== null && h.pedTotal !== undefined && h.pedAvail !== null && h.pedAvail !== undefined) ? (h.pedTotal - h.pedAvail) : null;
+    const patients = (h.total !== null && h.avail !== null) ? Math.max(0, h.total - h.avail) : null;
+    const pedPatients = (h.pedTotal !== null && h.pedTotal !== undefined && h.pedAvail !== null && h.pedAvail !== undefined) ? Math.max(0, h.pedTotal - h.pedAvail) : null;
     const hasPed = (h.pedTotal !== null && h.pedTotal !== undefined && h.pedTotal > 0);
     const pColor = patients === null ? 'var(--text3)' : patients <= 5 ? 'var(--green)' : patients <= 12 ? 'var(--orange)' : 'var(--red)';
     const pedColor = pedPatients === null ? 'var(--text3)' : pedPatients <= 2 ? 'var(--green)' : pedPatients <= 4 ? 'var(--orange)' : 'var(--red)';
@@ -610,7 +627,7 @@ function renderOtherHospitals() {
           <span style="font-size:10px;color:var(--text3);">소아</span>
           ${pedPatients !== null
             ? `<b style="font-family:var(--mono);font-size:18px;color:${pedColor};">${pedPatients}</b><span style="font-size:10px;color:var(--text3);">명 / ${h.pedTotal}병상</span>`
-            : `<span style="font-size:11px;color:var(--text2);">가용 ${h.pedAvail}</span>`}
+            : (h.pedAvail !== null && h.pedAvail !== undefined ? `<span style="font-size:11px;color:var(--text2);">가용 ${h.pedAvail}</span>` : `<span style="font-size:11px;color:var(--text3);">정보없음</span>`)}
         </span>` : ''}
       </div>
     </div>`;
@@ -625,35 +642,41 @@ async function load() {
   try {
     const {genAvail, pedAvail} = await fetchData();
 
-    // 일반 응급실
-    const genUsed = genAvail === null ? null : TOTAL_GEN - genAvail;
+    // 일반 응급실 (총병상은 공공데이터 hvs01, 없으면 20)
+    const genUsed = genAvail === null ? null : Math.max(0, myGenTotal - genAvail);
+    const gKey = getStateKey(genAvail, myGenTotal);
+    const gColor = gKey === 'full' ? 'var(--red)' : gKey === 'busy' ? 'var(--orange)' : gKey === 'calm' ? 'var(--green)' : 'var(--text3)';
     document.getElementById('valAvail').textContent = genAvail ?? '?';
-    document.getElementById('valAvail').style.color = bedColor(genAvail, TOTAL_GEN);
+    document.getElementById('valAvail').style.color = gColor;
     document.getElementById('valPatients').textContent = genUsed === null ? '?' : genUsed + '명';
-    document.getElementById('valPatients').style.color = bedColor(genAvail, TOTAL_GEN);
+    document.getElementById('valPatients').style.color = gColor;
+    document.getElementById('valTotal').textContent = myGenTotal;
 
     // 화산 업데이트
     updateVolcano(genAvail);
 
-    // 소아 응급실
-    const pedUsed = pedAvail === null ? null : TOTAL_PED - pedAvail;
+    // 소아 응급실 (총병상은 공공데이터 hvs02, 없으면 5)
+    const pedUsed = pedAvail === null ? null : Math.max(0, myPedTotal - pedAvail);
     document.getElementById('pedAvailVal').textContent = pedAvail ?? '?';
-    document.getElementById('pedAvailVal').style.color = bedColor(pedAvail, TOTAL_PED);
+    document.getElementById('pedAvailVal').style.color = bedColor(pedAvail, myPedTotal);
     document.getElementById('pedPatients').textContent = pedUsed === null ? '?' : pedUsed;
-    const pb = pedBadge(pedAvail, TOTAL_PED);
+    document.getElementById('pedTotalTxt').textContent = myPedTotal;
+    document.getElementById('pedTotalTxt2').textContent = myPedTotal;
+    const pb = pedBadge(pedAvail, myPedTotal);
     const badge = document.getElementById('pedBadge');
     badge.textContent = pb.label;
     badge.style.background = pb.bg;
     badge.style.color = pb.color;
     badge.style.border = `1px solid ${pb.border}`;
-    const pedPct = pedAvail === null ? 0 : Math.min(100, Math.round((TOTAL_PED - pedAvail) / TOTAL_PED * 100));
+    const pedPct = pedAvail === null ? 0 : Math.min(100, Math.max(0, Math.round((myPedTotal - pedAvail) / myPedTotal * 100)));
     document.getElementById('pedGauge').style.width = pedPct + '%';
-    document.getElementById('pedGauge').style.background = bedColor(pedAvail, TOTAL_PED);
+    document.getElementById('pedGauge').style.background = bedColor(pedAvail, myPedTotal);
 
     // 주변 병원 비교 렌더링
     renderOtherHospitals();
 
     document.getElementById('updatedTime').textContent = new Date().toLocaleTimeString('ko-KR');
+    document.getElementById('hospitalTime').textContent = myDataTime ?? '—';
 
     if (genAvail === null) {
       document.getElementById('errBox').textContent = '⚠️ 데이터를 받지 못했어요. 잠시 후 새로고침해보세요.';
@@ -688,8 +711,8 @@ setInterval(updateClock, 1000);
       text: url,
       width: 160,
       height: 160,
-      colorDark: '#3b9eff',
-      colorLight: '#0d1117',
+      colorDark: '#0d1117',
+      colorLight: '#ffffff',
       correctLevel: QRCode.CorrectLevel.M
     });
   };
@@ -699,6 +722,10 @@ setInterval(updateClock, 1000);
 // 공유 기능
 function copyLink() {
   const url = 'https://hyinuyu.github.io/Emergency-room/';
+  if (navigator.share) {
+    navigator.share({ title: '구미차병원 응급실 현황', text: '실시간 응급실 현황 확인하세요!', url: url }).catch(function(){});
+    return;
+  }
   navigator.clipboard.writeText(url).then(function() {
     const btn = document.getElementById('copyBtn');
     btn.textContent = '✅ 복사됐어요!';
