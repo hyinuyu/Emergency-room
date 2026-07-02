@@ -125,7 +125,7 @@ firebase.initializeApp({
 const db = firebase.firestore();
 
 // 시즌 3 - 새 컬렉션 (1대: leaderboard, 2대: leaderboard_s2)
-const LEADERBOARD = 'leaderboard_s3';
+const LEADERBOARD = 'leaderboard_s3_v2';
 
 async function showHallOfFame() {
   const ov = document.getElementById('overlay');
@@ -178,7 +178,7 @@ async function fetchRecords() {
     const snap = await db.collection(LEADERBOARD).orderBy('score','desc').limit(20).get();
     return snap.docs.map(d => d.data());
   } catch(e) {
-    return JSON.parse(localStorage.getItem('tetris_backup_s3')||'[]');
+    return JSON.parse(localStorage.getItem('tetris_backup_s3v2')||'[]');
   }
 }
 
@@ -191,10 +191,10 @@ async function saveRecord(name, sc, lv, ln, mg) {
       createdAt: Date.now()
     });
   } catch(e) {
-    let r = JSON.parse(localStorage.getItem('tetris_backup_s3')||'[]');
+    let r = JSON.parse(localStorage.getItem('tetris_backup_s3v2')||'[]');
     r.push({name, score:sc, level:lv, lines:ln, msg:mg||'', date:new Date().toLocaleDateString('ko-KR')});
     r.sort((a,b)=>b.score-a.score);
-    localStorage.setItem('tetris_backup_s3', JSON.stringify(r.slice(0,20)));
+    localStorage.setItem('tetris_backup_s3v2', JSON.stringify(r.slice(0,20)));
   }
 }
 
@@ -296,8 +296,8 @@ function drawNext(){
   for(let r=0;r<s.length;r++)for(let c=0;c<s[r].length;c++)if(s[r][c])drawBlock(nctx,ox+c,oy+r,next.color);
 }
 
-// 속도: 레벨당 15%씩 부드럽게 빨라짐 (최저 90ms) - 10라인마다 레벨업
-function dropSpeed(){return Math.max(90, Math.round(700*Math.pow(0.85, level-1)));}
+// 속도: 시작 600ms, 레벨당 20%씩 화끈하게 빨라짐 (최저 70ms) - 10라인마다 레벨업
+function dropSpeed(){return Math.max(70, Math.round(600*Math.pow(0.8, level-1)));}
 
 // 점수 토스트 (보드 위에 뿅 뜨는 효과)
 function showToast(text,color,big){
