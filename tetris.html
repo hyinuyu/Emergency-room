@@ -31,6 +31,14 @@ h1 span{color:var(--main);}
 .cbtn{background:var(--card);border:2px solid var(--border);border-radius:12px;color:var(--text);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;width:64px;height:56px;transition:all 0.1s;-webkit-tap-highlight-color:transparent;user-select:none;}
 .cbtn:active{background:var(--border);transform:scale(0.92);}
 .popup-overlay{position:fixed;inset:0;background:rgba(6,9,16,0.85);z-index:999;display:flex;align-items:center;justify-content:center;}
+#gameCanvas.danger{border-color:#ff4466;animation:dangerPulse 0.6s infinite;}
+@keyframes dangerPulse{0%,100%{box-shadow:0 0 6px rgba(255,68,102,0.3);}50%{box-shadow:0 0 18px rgba(255,68,102,0.7);}}
+.shake-s{animation:shakeS 0.18s;}
+.shake-b{animation:shakeB 0.3s;}
+@keyframes shakeS{25%{transform:translate(2px,-2px);}75%{transform:translate(-2px,2px);}}
+@keyframes shakeB{20%{transform:translate(5px,-3px);}40%{transform:translate(-5px,3px);}60%{transform:translate(4px,2px);}80%{transform:translate(-4px,-2px);}}
+.toast-pop{position:absolute;left:50%;transform:translateX(-50%);font-weight:900;pointer-events:none;animation:toastUp 1s ease-out forwards;z-index:5;text-shadow:0 2px 8px rgba(0,0,0,0.9);white-space:nowrap;font-family:'Noto Sans KR',sans-serif;}
+@keyframes toastUp{0%{opacity:0;transform:translateX(-50%) translateY(12px) scale(0.7);}20%{opacity:1;transform:translateX(-50%) translateY(0) scale(1.15);}75%{opacity:1;}100%{opacity:0;transform:translateX(-50%) translateY(-36px) scale(1);}}
 .popup-box{background:#0d1117;border:1px solid #243447;border-radius:16px;padding:24px;max-width:300px;width:90%;text-align:center;}
 </style>
 </head>
@@ -41,11 +49,11 @@ h1 span{color:var(--main);}
 <p class="subtitle">대기하는 동안 한 판 어때요? 😂</p>
 
 <!-- 명예의 전당 (작은 배지) -->
-<div id="hofBanner" style="position:relative;z-index:1;background:linear-gradient(135deg,rgba(255,170,0,0.12),rgba(255,68,102,0.08));border:1px solid rgba(255,170,0,0.4);border-radius:10px;padding:6px 12px;margin-bottom:12px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:11px;">
+<div id="hofBanner" style="position:relative;z-index:1;background:linear-gradient(135deg,rgba(255,170,0,0.12),rgba(255,68,102,0.08));border:1px solid rgba(255,170,0,0.4);border-radius:10px;padding:6px 12px;margin-bottom:12px;display:flex;align-items:center;gap:7px;cursor:pointer;font-size:11px;">
   <span style="font-size:14px;animation:trophy 2s ease-in-out infinite;">👑</span>
-  <span style="color:#ffaa00;font-weight:700;">1대 챔피언</span>
-  <span style="color:#ffd700;font-weight:900;">갓홍</span>
-  <span style="color:var(--text3);font-size:9px;margin-left:auto;">탭하여 전당 보기 →</span>
+  <span style="color:#ffd700;font-weight:900;">1대 갓홍</span>
+  <span style="color:#ff8096;font-weight:900;" id="champ2">2대 …</span>
+  <span style="color:var(--text3);font-size:9px;margin-left:auto;">탭하여 전당 →</span>
 </div>
 <style>
 @keyframes trophy{0%,100%{transform:rotate(-10deg);}50%{transform:rotate(10deg);}}
@@ -65,7 +73,7 @@ h1 span{color:var(--main);}
   </div>
   <div class="side">
     <div class="panel"><div class="panel-title">점수</div><div class="panel-val" id="score">0</div></div>
-    <div class="panel"><div class="panel-title">레벨</div><div class="panel-val" id="level">1</div></div>
+    <div class="panel"><div class="panel-title">레벨</div><div class="panel-val" id="level">1</div><div style="font-size:8px;color:var(--text3);margin-top:3px;">10라인마다 UP</div></div>
     <div class="panel"><div class="panel-title">라인</div><div class="panel-val" id="lines">0</div></div>
     <div class="panel"><div class="panel-title">다음</div><canvas id="nextCanvas" width="80" height="80"></canvas></div>
     <button class="pause-btn" id="pauseBtn">일시정지</button>
@@ -86,10 +94,17 @@ h1 span{color:var(--main);}
 <!-- 버그 수정 팝업 -->
 <div class="popup-overlay" id="updatePopup" style="display:none;">
   <div class="popup-box">
-    <div style="font-size:32px;margin-bottom:12px;">🔧</div>
-    <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:8px;">버그 수정 완료!</div>
-    <div style="font-size:12px;color:#6a8aaa;line-height:1.8;margin-bottom:16px;">드롭/회전 시 게임이 갑자기<br>종료되던 버그를 고쳤어요!<br><br>이제 더 안정적으로 즐기실 수 있어요 😊</div>
-    <button class="start-btn" id="closePopupBtn">확인!</button>
+    <div style="font-size:32px;margin-bottom:12px;">🏁</div>
+    <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:8px;">시즌 3 개막!</div>
+    <div style="font-size:12px;color:#6a8aaa;line-height:1.9;margin-bottom:16px;text-align:left;">
+      🔥 <b style="color:#ff4466;">콤보</b> — 연속으로 줄 지우면 추가점!<br>
+      💥 <b style="color:#ffd700;">한방 보너스</b> — 여러 줄 동시에 = 대박<br>
+      ⚡ <b style="color:#a78bfa;">B2B 테트리스</b> — 연속 4줄은 ×1.5배<br>
+      🚨 <b style="color:#ff8096;">위기 모드</b> — 꽉 차면 빨간 경고<br>
+      ⬇ 바로 드롭하면 보너스 점수!<br><br>
+      <span style="color:#2d4055;font-size:11px;">시즌2 기록은 명예의 전당 영구 보존 👑</span>
+    </div>
+    <button class="start-btn" id="closePopupBtn">가보자! 🔥</button>
   </div>
 </div>
 
@@ -109,38 +124,44 @@ firebase.initializeApp({
 });
 const db = firebase.firestore();
 
-// 시즌 2 - 새 컬렉션
-const LEADERBOARD = 'leaderboard_s2';
+// 시즌 3 - 새 컬렉션 (1대: leaderboard, 2대: leaderboard_s2)
+const LEADERBOARD = 'leaderboard_s3';
 
 async function showHallOfFame() {
   const ov = document.getElementById('overlay');
   ov.style.display = 'flex';
   ov.innerHTML = '<div class="overlay-title">🏛️ 명예의 전당</div><div style="color:#6a8aaa;font-size:12px;padding:20px;">불러오는 중... ⏳</div>';
 
-  let records = [];
+  let s1 = [], s2 = [];
   try {
-    const snap = await db.collection('leaderboard').orderBy('score','desc').limit(20).get();
-    records = snap.docs.map(d=>d.data());
+    const snap1 = await db.collection('leaderboard').orderBy('score','desc').limit(10).get();
+    s1 = snap1.docs.map(d=>d.data());
+  } catch(e) {}
+  try {
+    const snap2 = await db.collection('leaderboard_s2').orderBy('score','desc').limit(10).get();
+    s2 = snap2.docs.map(d=>d.data());
   } catch(e) {}
 
   const medals = ['🥇','🥈','🥉'];
-  const rows = records.map((r,i)=>`
-    <div style="padding:7px 0;border-bottom:1px solid #1c2a3a;font-size:12px;">
+  const mkRows = recs => recs.map((r,i)=>`
+    <div style="padding:6px 0;border-bottom:1px solid #1c2a3a;font-size:12px;">
       <div style="display:flex;align-items:center;gap:8px;">
-        <span style="width:24px;text-align:center;font-size:${i<3?'15':'12'}px;color:${i===0?'#ffd700':'#2d4055'};">${medals[i]||(i+1)}</span>
+        <span style="width:22px;text-align:center;font-size:${i<3?'14':'11'}px;color:${i===0?'#ffd700':'#2d4055'};">${medals[i]||(i+1)}</span>
         <span style="flex:1;color:${i===0?'#ffd700':'#ddeeff'};font-weight:${i===0?'900':'600'};word-break:break-all;">${r.name}</span>
         <span style="color:#3b9eff;font-family:'DM Mono',monospace;">${r.score.toLocaleString()}</span>
-        <span style="color:#2d4055;font-size:10px;">Lv${r.level}</span>
       </div>
-      ${r.msg?'<div style="font-size:11px;color:#4a6a8a;padding-left:32px;margin-top:2px;">💬 '+r.msg+'</div>':''}
+      ${r.msg?'<div style="font-size:10px;color:#4a6a8a;padding-left:30px;margin-top:1px;">💬 '+r.msg+'</div>':''}
     </div>
-  `).join('');
+  `).join('') || '<div style="color:#6a8aaa;font-size:11px;padding:10px;text-align:center;">기록 없음</div>';
 
   ov.innerHTML = `
-    <div class="overlay-title">🏛️ 1대 명예의 전당</div>
-    <div style="font-size:11px;color:#ffaa00;margin-top:-8px;margin-bottom:8px;">불멸의 전설들 · 영구 보존</div>
-    <div style="width:240px;max-height:280px;overflow-y:auto;border:1px solid #1c2a3a;border-radius:10px;padding:4px 12px;">
-      ${rows||'<div style="color:#6a8aaa;font-size:12px;padding:20px;text-align:center;">기록 없음</div>'}
+    <div class="overlay-title">🏛️ 명예의 전당</div>
+    <div style="font-size:11px;color:#ffaa00;margin-top:-8px;margin-bottom:6px;">불멸의 전설들 · 영구 보존</div>
+    <div style="width:250px;max-height:300px;overflow-y:auto;border:1px solid #1c2a3a;border-radius:10px;padding:6px 12px;">
+      <div style="font-size:11px;color:#ffd700;font-weight:900;padding:4px 0;">👑 1대 (시즌 1)</div>
+      ${mkRows(s1)}
+      <div style="font-size:11px;color:#ff8096;font-weight:900;padding:10px 0 4px;">🔥 2대 (시즌 2)</div>
+      ${mkRows(s2)}
     </div>
     <div style="display:flex;gap:6px;margin-top:8px;">
       <button id="hofCloseBtn" class="start-btn" style="padding:7px 14px;font-size:12px;">닫기</button>
@@ -157,7 +178,7 @@ async function fetchRecords() {
     const snap = await db.collection(LEADERBOARD).orderBy('score','desc').limit(20).get();
     return snap.docs.map(d => d.data());
   } catch(e) {
-    return JSON.parse(localStorage.getItem('tetris_backup')||'[]');
+    return JSON.parse(localStorage.getItem('tetris_backup_s3')||'[]');
   }
 }
 
@@ -170,10 +191,10 @@ async function saveRecord(name, sc, lv, ln, mg) {
       createdAt: Date.now()
     });
   } catch(e) {
-    let r = JSON.parse(localStorage.getItem('tetris_backup')||'[]');
+    let r = JSON.parse(localStorage.getItem('tetris_backup_s3')||'[]');
     r.push({name, score:sc, level:lv, lines:ln, msg:mg||'', date:new Date().toLocaleDateString('ko-KR')});
     r.sort((a,b)=>b.score-a.score);
-    localStorage.setItem('tetris_backup', JSON.stringify(r.slice(0,20)));
+    localStorage.setItem('tetris_backup_s3', JSON.stringify(r.slice(0,20)));
   }
 }
 
@@ -194,8 +215,8 @@ async function showLeaderboard() {
       ${r.msg?'<div style="font-size:11px;color:#4a6a8a;padding-left:32px;margin-top:2px;">💬 '+r.msg+'</div>':''}
     </div>`).join('');
   ov.innerHTML=`
-    <div class="overlay-title">🏆 시즌 2 담벼락</div>
-    <div style="font-size:11px;color:#6a8aaa;margin-top:-8px;margin-bottom:8px;">갓홍 이후의 새로운 전설들 · 상위 20명</div>
+    <div class="overlay-title">🏆 시즌 3 담벼락</div>
+    <div style="font-size:11px;color:#6a8aaa;margin-top:-8px;margin-bottom:8px;">새 시즌, 새 전설의 시작 · 상위 20명</div>
     <div style="width:230px;max-height:260px;overflow-y:auto;border:1px solid #1c2a3a;border-radius:10px;padding:4px 12px;">
       ${rows||'<div style="color:#6a8aaa;font-size:12px;padding:20px;text-align:center;">아직 기록이 없어요!<br>🔥 첫 주인공이 되세요</div>'}
     </div>
@@ -222,7 +243,7 @@ const SHAPES=[
   {cells:[[1,1,0],[0,1,1]],color:'#ff4466'},
 ];
 
-let board,cur,next,score,level,lines,timer,running,paused,locking;
+let board,cur,next,score,level,lines,timer,running,paused,locking,combo,b2b;
 
 function mkBoard(){return Array.from({length:ROWS},()=>new Array(COLS).fill(null));}
 function mkPiece(){
@@ -263,12 +284,41 @@ function drawBoard(){
     if(cur.cells[r][c])drawBlock(ctx,cur.x+c,gy+r,cur.color,0.15);
   for(let r=0;r<cur.cells.length;r++)for(let c=0;c<cur.cells[r].length;c++)
     if(cur.cells[r][c])drawBlock(ctx,cur.x+c,cur.y+r,cur.color);
+  // 위기 모드: 쌓인 블럭이 위쪽 5줄에 닿으면 빨간 경고
+  let dz=false;
+  for(let r=0;r<5&&!dz;r++)for(let c=0;c<COLS;c++)if(board[r][c]){dz=true;break;}
+  canvas.classList.toggle('danger',dz);
 }
 
 function drawNext(){
   nctx.fillStyle='#070c14';nctx.fillRect(0,0,80,80);
   const s=next.cells,ox=Math.floor((4-s[0].length)/2),oy=Math.floor((4-s.length)/2);
   for(let r=0;r<s.length;r++)for(let c=0;c<s[r].length;c++)if(s[r][c])drawBlock(nctx,ox+c,oy+r,next.color);
+}
+
+// 속도: 레벨당 15%씩 부드럽게 빨라짐 (최저 90ms) - 10라인마다 레벨업
+function dropSpeed(){return Math.max(90, Math.round(700*Math.pow(0.85, level-1)));}
+
+// 점수 토스트 (보드 위에 뿅 뜨는 효과)
+function showToast(text,color,big){
+  const wrap=canvas.parentElement;
+  const t=document.createElement('div');
+  t.className='toast-pop';
+  t.style.color=color||'#ffd700';
+  t.style.fontSize=big?'19px':'13px';
+  t.style.top=big?'38%':'28%';
+  t.textContent=text;
+  wrap.appendChild(t);
+  setTimeout(()=>t.remove(),1000);
+}
+
+// 화면 흔들림
+function shakeCanvas(big){
+  const cls=big?'shake-b':'shake-s';
+  canvas.classList.remove('shake-s','shake-b');
+  void canvas.offsetWidth;
+  canvas.classList.add(cls);
+  setTimeout(()=>canvas.classList.remove(cls),350);
 }
 
 function lock(){
@@ -281,17 +331,33 @@ function lock(){
   for(let r=ROWS-1;r>=0;r--){
     if(board[r].every(c=>c!==null)){board.splice(r,1);board.unshift(new Array(COLS).fill(null));cleared++;r++;}
   }
+  // 한방에 여러 줄 = 대박 보너스! (기본점 × 레벨)
   const pts=[0,100,300,500,800];
-  score+=(pts[Math.min(cleared,4)]||0)*level;
+  let gained=(pts[Math.min(cleared,4)]||0)*level;
+  if(cleared===4){
+    if(b2b){gained=Math.floor(gained*1.5);showToast('⚡ B2B 테트리스!!! +'+gained.toLocaleString(),'#ffd700',true);}
+    else{showToast('💥 테트리스!!! +'+gained.toLocaleString(),'#ffd700',true);}
+    b2b=true;shakeCanvas(true);
+  } else if(cleared===3){showToast('🔶 트리플!! +'+gained.toLocaleString(),'#ff8800',true);b2b=false;shakeCanvas(false);}
+  else if(cleared===2){showToast('💚 더블! +'+gained.toLocaleString(),'#22d47a',false);b2b=false;}
+  else if(cleared===1){showToast('+'+gained.toLocaleString(),'#3b9eff',false);b2b=false;}
+  // 연속 콤보 보너스
+  if(cleared>0){
+    combo++;
+    if(combo>1){const cb=50*combo*level;gained+=cb;setTimeout(()=>showToast('🔥 콤보 x'+combo+' +'+cb,'#ff4466',false),200);}
+  } else combo=0;
+  score+=gained;
   lines+=cleared;
+  const oldLv=level;
   level=Math.floor(lines/10)+1;
+  if(level>oldLv){setTimeout(()=>showToast('⚡ LEVEL '+level+'! 속도 UP','#a78bfa',true),400);}
   document.getElementById('score').textContent=score.toLocaleString();
   document.getElementById('level').textContent=level;
   document.getElementById('lines').textContent=lines;
   cur=next;next=mkPiece();drawNext();
   locking=false;
   if(!fits(cur.cells,cur.x,cur.y)){endGame();return;}
-  timer=setInterval(tick,Math.max(50,700-(level-1)*100));
+  timer=setInterval(tick,dropSpeed());
   drawBoard();
 }
 
@@ -303,10 +369,11 @@ function rotatePiece(){
   const kicks=[0,1,-1,2,-2];
   for(const k of kicks){if(fits(r,cur.x+k,cur.y)){cur.cells=r;cur.x+=k;drawBoard();return;}}
 }
-function hardDrop(){if(!running||paused||locking)return;while(fits(cur.cells,cur.x,cur.y+1))cur.y++;lock();}
+function hardDrop(){if(!running||paused||locking)return;let d=0;while(fits(cur.cells,cur.x,cur.y+1)){cur.y++;d++;}if(d>0){score+=d*2;document.getElementById('score').textContent=score.toLocaleString();}lock();}
 
 function startGame(){
-  board=mkBoard();score=0;level=1;lines=0;running=true;paused=false;locking=false;
+  board=mkBoard();score=0;level=1;lines=0;running=true;paused=false;locking=false;combo=0;b2b=false;
+  canvas.classList.remove('danger','shake-s','shake-b');
   cur=mkPiece();next=mkPiece();
   document.getElementById('score').textContent='0';
   document.getElementById('level').textContent='1';
@@ -314,7 +381,7 @@ function startGame(){
   document.getElementById('overlay').style.display='none';
   document.getElementById('pauseBtn').textContent='일시정지';
   clearInterval(timer);
-  timer=setInterval(tick,700);
+  timer=setInterval(tick,dropSpeed());
   drawNext();drawBoard();
 }
 
@@ -347,7 +414,7 @@ function togglePause(){
   document.getElementById('pauseBtn').textContent=paused?'계속하기':'일시정지';
   if(!paused){
     clearInterval(timer);
-    timer=setInterval(tick,Math.max(50,700-(level-1)*100));
+    timer=setInterval(tick,dropSpeed());
     drawBoard();
   } else {
     clearInterval(timer);
@@ -387,14 +454,26 @@ document.getElementById('btnDrop').addEventListener('click',hardDrop);
 // 팝업
 document.getElementById('closePopupBtn').addEventListener('click',()=>{
   document.getElementById('updatePopup').style.display='none';
-  localStorage.setItem('tetris_patch_v2','1');
+  localStorage.setItem('tetris_s3_open','1');
 });
-if(!localStorage.getItem('tetris_patch_v2')){
+if(!localStorage.getItem('tetris_s3_open')){
   document.getElementById('updatePopup').style.display='flex';
 }
 
 // 명예의 전당 이벤트 등록
 document.getElementById('hofBanner').addEventListener('click', showHallOfFame);
+
+// 2대 챔피언 이름 자동 표시
+(async()=>{
+  try{
+    const s=await db.collection('leaderboard_s2').orderBy('score','desc').limit(1).get();
+    const el=document.getElementById('champ2');
+    if(el) el.textContent = s.empty ? '2대 공석' : '2대 '+s.docs[0].data().name;
+  }catch(e){
+    const el=document.getElementById('champ2');
+    if(el) el.textContent='2대 ?';
+  }
+})();
 </script>
 </body>
 </html>
