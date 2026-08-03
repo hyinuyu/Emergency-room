@@ -419,7 +419,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 </div><!-- /.wrap -->
 
 <script>
-const APP_VERSION = '2026.08.03e';   // 앱 버전 (업데이트 확인용)
+const APP_VERSION = '2026.08.03f';   // 앱 버전 (업데이트 확인용)
 const API_KEY = '1ae147a1907296a5c5fd16751a21b2f146381a4727784592ae9c235d8ac0263d';
 const BASE = 'https://apis.data.go.kr/B552657/ErmctInfoInqireService';
 const TOTAL_GEN = 20;
@@ -864,6 +864,24 @@ function paint(genAvail, pedAvail) {
   renderOtherHospitals();
 }
 
+// 시간바 그리기 (수집시각/병원입력 — 캐시 즉시표시에서도 사용)
+function paintTimes(){
+  const utEl = document.getElementById('updatedTime');
+  if (collectTime) {
+    if (collectAgeMin !== null && collectAgeMin >= 15) {
+      utEl.style.color = 'var(--orange)';
+      utEl.textContent = collectTime + ' (' + collectAgeMin + '분 전)';
+    } else {
+      utEl.style.color = 'var(--main)';
+      utEl.textContent = collectTime;
+    }
+  } else {
+    utEl.style.color = 'var(--main)';
+    utEl.textContent = '—';
+  }
+  document.getElementById('hospitalTime').textContent = myDataTime ?? '—';
+}
+
 let prevCollect = null;   // 직전 수집시각 (새로고침시 변화 확인용)
 
 async function load(manual) {
@@ -879,16 +897,7 @@ async function load(manual) {
     paint(genAvail, pedAvail);
 
     // 데이터수집 = GitHub이 API에서 받아온 시각 (직접연결이면 지금)
-    const utEl = document.getElementById('updatedTime');
-    utEl.textContent = collectTime ?? new Date().toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'});
-    // 15분 넘게 지났으면 주황색으로 경고 + 경과시간 표시
-    if (collectAgeMin !== null && collectAgeMin >= 15) {
-      utEl.style.color = 'var(--orange)';
-      utEl.textContent = collectTime + ' (' + collectAgeMin + '분 전)';
-    } else {
-      utEl.style.color = 'var(--main)';
-    }
-    document.getElementById('hospitalTime').textContent = myDataTime ?? '—';
+    paintTimes();
 
     // 수동 새로고침이면 결과 알려주기
     if (manual === true) {
@@ -923,6 +932,7 @@ async function load(manual) {
     const got = applyJson(o);
     if (!got) return;
     paint(got.genAvail, got.pedAvail);   // 저장된 값으로 화면 먼저 그림
+    paintTimes();                         // 수집/입력 시각도 즉시 표시
   } catch(e){}
 })();
 
