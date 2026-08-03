@@ -551,6 +551,7 @@ let otherHospitals = [];
 let myPedTotal = 5;
 let lastDiag = '';
 let collectTime = null;   // GitHub이 데이터를 받아온 시각
+let collectAgeMin = null; // 수집 후 몇 분 지났는지
 let dataSource = '';      // 어느 경로로 받았는지
 let myGenTotal = 20;
 let myDataTime = null;
@@ -599,6 +600,7 @@ async function fetchData() {
               // UTC → 한국시간(+9)
               const d = new Date(Date.UTC(+m[1], +m[2]-1, +m[3], +m[4], +m[5]));
               collectTime = d.toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'});
+              collectAgeMin = Math.max(0, Math.round((Date.now() - d.getTime()) / 60000));
             }
           } catch(e) { collectTime = null; }
         } else {
@@ -742,8 +744,15 @@ async function load(manual) {
     renderOtherHospitals();
 
     // 데이터수집 = GitHub이 API에서 받아온 시각 (직접연결이면 지금)
-    document.getElementById('updatedTime').textContent =
-      collectTime ?? new Date().toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'});
+    const utEl = document.getElementById('updatedTime');
+    utEl.textContent = collectTime ?? new Date().toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'});
+    // 15분 넘게 지났으면 주황색으로 경고 + 경과시간 표시
+    if (collectAgeMin !== null && collectAgeMin >= 15) {
+      utEl.style.color = 'var(--orange)';
+      utEl.textContent = collectTime + ' (' + collectAgeMin + '분 전)';
+    } else {
+      utEl.style.color = 'var(--main)';
+    }
     document.getElementById('hospitalTime').textContent = myDataTime ?? '—';
 
     // 수동 새로고침이면 결과 알려주기
