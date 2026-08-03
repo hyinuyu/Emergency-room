@@ -874,7 +874,8 @@ async function load(manual) {
 })();
 
 load();
-setInterval(load, 10 * 60 * 1000);
+// 1분마다 갱신 (데이터도 1분마다 수집되므로) — 화면 보일 때만
+setInterval(function(){ if (!document.hidden) load(); }, 60 * 1000);
 
 // ── 앱/탭이 다시 보일 때 자동 갱신 ──
 // 모바일은 백그라운드에서 타이머가 멈추기 때문에, 화면에 돌아올 때 새로 받아옴
@@ -1012,10 +1013,13 @@ if('serviceWorker' in navigator){
     });
   }).catch(function(){});
 
-  // 새 서비스워커가 넘겨받으면 페이지를 한 번만 새로고침 (최신 코드 적용)
+  // 새 서비스워커가 넘겨받으면 한 번만 새로고침 (최신 코드 적용)
   var swReloaded = false;
+  var hadController = !!navigator.serviceWorker.controller;   // 페이지 시작 시점 기준
   navigator.serviceWorker.addEventListener('controllerchange', function(){
     if (swReloaded) return;
+    if (!hadController) return;                                // 첫 설치면 리로드 불필요
+    if (sessionStorage.getItem('autoUpdated')) return;         // 자동업데이트 직후 중복 방지
     swReloaded = true;
     location.reload();
   });
