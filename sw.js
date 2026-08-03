@@ -25,15 +25,17 @@ self.addEventListener('fetch', e => {
       url.includes('googletagmanager.com') ||
       url.includes('gstatic.com') ||
       url.includes('jsdelivr.net') ||
+      url.includes('cloudflare.com') ||
       url.includes('firebaseio.com') ||
-      url.includes('firestore.googleapis.com')) {
+      url.includes('allorigins.win') ||
+      url.includes('corsproxy.io')) {
     return; // 브라우저가 알아서 처리하게 둠
   }
 
-  // 2) GET이 아닌 요청도 그냥 통과
+  // 2) GET이 아닌 요청은 통과
   if (e.request.method !== 'GET') return;
 
-  // 3) 페이지·정적 파일: 네트워크 우선, 실패하면 캐시 (캐시에도 없으면 에러 대신 정상 실패)
+  // 3) 페이지/정적파일: 네트워크 우선, 실패시 캐시
   e.respondWith(
     fetch(e.request)
       .then(res => {
