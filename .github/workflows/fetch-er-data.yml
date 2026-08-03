@@ -1,0 +1,45 @@
+name: 응급실 데이터 수집
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'   # 10분마다 자동 실행
+  workflow_dispatch:          # 수동 실행 버튼
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fetch-er
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 공공데이터 API 호출
+        run: |
+          mkdir -p out
+          curl -sS --max-time 30 \
+            "https://apis.data.go.kr/B552657/ErmctInfoInqireService/getEmrrmRltmUsefulSckbdInfoInqire?serviceKey=1ae147a1907296a5c5fd16751a21b2f146381a4727784592ae9c235d8ac0263d&STAGE1=%EA%B2%BD%EC%83%81%EB%B6%81%EB%8F%84&pageNo=1&numOfRows=100" \
+            -o out/er.xml
+          echo "받은 크기: $(wc -c < out/er.xml) bytes"
+          # item 태그가 없으면 실패 처리 (잘못된 데이터 저장 방지)
+          if ! grep -q "<item>" out/er.xml; then
+            echo "❌ 데이터에 item 없음. 응답 내용:"
+            head -c 500 out/er.xml
+            exit 1
+          fi
+          echo "✅ 정상 수집"
+
+      - name: data 브랜치에 저장
+        run: |
+          cd out
+          echo "수집시각: $(date -u +%Y-%m-%dT%H:%M:%SZ)" > updated.txt
+          git init -q
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git checkout -q -b data
+          git add er.xml updated.txt
+          git commit -q -m "ER data $(date -u +%H:%M)"
+          git push -f -q "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" data
+          echo "✅ 저장 완료"
