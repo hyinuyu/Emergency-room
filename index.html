@@ -419,7 +419,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 </div><!-- /.wrap -->
 
 <script>
-const APP_VERSION = '2026.08.03d';   // 앱 버전 (업데이트 확인용)
+const APP_VERSION = '2026.08.03e';   // 앱 버전 (업데이트 확인용)
 const API_KEY = '1ae147a1907296a5c5fd16751a21b2f146381a4727784592ae9c235d8ac0263d';
 const BASE = 'https://apis.data.go.kr/B552657/ErmctInfoInqireService';
 const TOTAL_GEN = 20;
@@ -584,6 +584,7 @@ let myDataTime = null;
 // ── 데이터 경로 (해외IP 차단 대응 개편) ──
 // 공공데이터 서버가 해외 IP 차단 → GitHub·프록시(해외) 불가, 한국 직접호출은 정상
 // ① 한국 방문자가 직접 받고 → Firebase에 공유 → ② 다른 사람은 공유본 사용
+const RELAY_URL = 'https://gumi-er-hyinuyu.vercel.app/api/er';  // 한국(서울) 중계서버
 const JSON_URL = 'https://raw.githubusercontent.com/hyinuyu/Emergency-room/data/er.json';
 const XML_URL  = 'https://raw.githubusercontent.com/hyinuyu/Emergency-room/data/er.xml';
 const FRESH_MS = 20 * 60 * 1000;   // 20분 이내 = 신선
@@ -711,9 +712,23 @@ async function fetchData(){
     return applyJson(o);
   }
 
-  // ① 직접 호출 (한국 = 진짜 실시간)
+  // ⓪ 한국 중계서버 (서울 리전 → 차단 없음, CORS 열림, 60초 캐시로 빠름)
   try {
-    const r = await fetchWithTimeout(apiUrl, 6000);
+    const r = await fetchWithTimeout(RELAY_URL, 5000);
+    if (r.ok) {
+      const o = await r.json();
+      if (o && o.h && o.h.cha) {
+        const got = accept(o, '실시간');
+        shareSnapshot(o);
+        return got;
+      }
+      tried.push('중계: 형식이상');
+    } else tried.push('중계: HTTP ' + r.status);
+  } catch(e){ tried.push('중계: ' + e.name); }
+
+  // ① 직접 호출 (혹시 차단 풀리면)
+  try {
+    const r = await fetchWithTimeout(apiUrl, 4000);
     if (r.ok) {
       const txt = await r.text();
       const o = parseXmlToObj(txt);
