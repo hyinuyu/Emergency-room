@@ -419,7 +419,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 </div><!-- /.wrap -->
 
 <script>
-const APP_VERSION = '2026.08.03c';   // 앱 버전 (업데이트 확인용)
+const APP_VERSION = '2026.08.03d';   // 앱 버전 (업데이트 확인용)
 const API_KEY = '1ae147a1907296a5c5fd16751a21b2f146381a4727784592ae9c235d8ac0263d';
 const BASE = 'https://apis.data.go.kr/B552657/ErmctInfoInqireService';
 const TOTAL_GEN = 20;
@@ -581,10 +581,13 @@ let dataSource = '';      // 어느 경로로 받았는지
 let myGenTotal = 20;
 let myDataTime = null;
 
-// ── 초고속 경로: 미리 가공된 작은 JSON (220바이트) ──
+// ── 데이터 경로 (해외IP 차단 대응 개편) ──
+// 공공데이터 서버가 해외 IP 차단 → GitHub·프록시(해외) 불가, 한국 직접호출은 정상
+// ① 한국 방문자가 직접 받고 → Firebase에 공유 → ② 다른 사람은 공유본 사용
 const JSON_URL = 'https://raw.githubusercontent.com/hyinuyu/Emergency-room/data/er.json';
+const XML_URL  = 'https://raw.githubusercontent.com/hyinuyu/Emergency-room/data/er.xml';
+const FRESH_MS = 20 * 60 * 1000;   // 20분 이내 = 신선
 
-// JSON 데이터를 전역 변수에 반영
 function applyJson(o){
   if (!o || !o.h || !o.h.cha) return null;
   const H = o.h;
@@ -599,142 +602,177 @@ function applyJson(o){
   if (H.sch) otherHospitals.push({name:'순천향구미병원', avail:H.sch.a, total:H.sch.t, pedAvail:H.sch.pa, pedTotal:H.sch.pt});
 
   if (o.collected) {
-    const m = o.collected.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
-    if (m) {
-      const d = new Date(Date.UTC(+m[1], +m[2]-1, +m[3], +m[4], +m[5]));
+    const ms = collectedMs(o);
+    if (ms !== null) {
+      const d = new Date(ms);
       collectTime = d.toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'});
-      collectAgeMin = Math.max(0, Math.round((Date.now() - d.getTime()) / 60000));
+      collectAgeMin = Math.max(0, Math.round((Date.now() - ms) / 60000));
     }
   }
   return { genAvail: cha.a, pedAvail: cha.pa };
 }
 
-// CORS 차단 우회: 여러 경로를 순서대로 시도
-// extract: 응답 본문에서 실제 XML을 꺼내는 함수 (프록시마다 형식이 다름)
-const ROUTES = [
-  { name: 'GitHub중계',
-    build: () => 'https://raw.githubusercontent.com/hyinuyu/Emergency-room/data/er.xml?t=' + Date.now() },
-  { name: '직접 연결',
-    build: u => u },
-  { name: '프록시1(codetabs)',
-    build: u => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u) },
-  { name: '프록시2(allorigins-get)',
-    build: u => 'https://api.allorigins.win/get?url=' + encodeURIComponent(u),
-    extract: t => { try { return JSON.parse(t).contents || ''; } catch(e) { return ''; } } },
-  { name: '프록시3(cors-workers)',
-    build: u => 'https://test.cors.workers.dev/?' + u },
-  { name: '프록시4(allorigins-raw)',
-    build: u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u) },
-  { name: '프록시5(corsproxy)',
-    build: u => 'https://corsproxy.io/?url=' + encodeURIComponent(u) }
-];
+// XML 텍스트 → er.json과 같은 모양
+function parseXmlToObj(txt){
+  const xml = new DOMParser().parseFromString(txt, 'text/xml');
+  const items = xml.querySelectorAll('item');
+  if (!items.length) return null;
+  const H = {};
+  items.forEach(function(item){
+    const g = function(t){ const el = item.querySelector(t); return el && el.textContent ? el.textContent.trim() : ''; };
+    const n = function(t){ const v = parseInt(g(t)); return isNaN(v) ? null : v; };
+    const name = g('dutyName').replace(/\s/g,'');
+    let key = null;
+    if (name.includes('구미차') || name.includes('차의과학')) key = 'cha';
+    else if (name.includes('강동')) key = 'gangdong';
+    else if (name.includes('순천향') && name.includes('구미')) key = 'sch';
+    if (!key) return;
+    H[key] = { a:n('hvec'), t:n('hvs01'), pa:n('hv28'), pt:n('hvs02'), d:(g('hvidate')||null) };
+  });
+  if (!H.cha) return null;
+  return { collected: null, h: H };
+}
 
-async function fetchData() {
-  // ① 초고속: 미리 가공된 작은 JSON 먼저 시도 (220바이트, 즉시 완료)
+function collectedMs(o){
+  if (!o || !o.collected) return null;
+  const m = String(o.collected).match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/);
+  if (!m) return null;
+  return Date.UTC(+m[1], +m[2]-1, +m[3], +m[4], +m[5], +(m[6]||0));
+}
+function isFresh(o){ const ms = collectedMs(o); return ms !== null && (Date.now() - ms) <= FRESH_MS; }
+
+// ── Firebase 지연 로더 (필요할 때만 → 초기속도 유지) ──
+let _fbReady = null;
+function fbFirestore(){
+  if (_fbReady) return _fbReady;
+  _fbReady = new Promise(function(resolve, reject){
+    function s(src){ return new Promise(function(res, rej){ var e=document.createElement('script'); e.src=src; e.onload=res; e.onerror=rej; document.head.appendChild(e); }); }
+    s('https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.js')
+      .then(function(){ return s('https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.js'); })
+      .then(function(){
+        if (!firebase.apps.length) firebase.initializeApp({
+          apiKey:'AIzaSyAu9lEDOwLgtiO3FE-bI7mXanF-F7E9RJk',
+          authDomain:'gumi-er-tetris.firebaseapp.com',
+          projectId:'gumi-er-tetris',
+          storageBucket:'gumi-er-tetris.firebasestorage.app',
+          messagingSenderId:'421677764064',
+          appId:'1:421677764064:web:35fb5b795c94e5226def85'
+        });
+        resolve(firebase.firestore());
+      }).catch(reject);
+  });
+  return _fbReady;
+}
+
+// 직접호출 성공한 방문자가 스냅샷 공유 (5분에 1번)
+function shareSnapshot(o){
   try {
-    const ac = new AbortController();
-    const to = setTimeout(function(){ ac.abort(); }, 5000);
-    let r;
-    try { r = await fetch(JSON_URL + '?t=' + Date.now(), {cache:'no-store', signal:ac.signal}); }
-    finally { clearTimeout(to); }
+    const last = parseInt(localStorage.getItem('snapW') || '0');
+    if (Date.now() - last < 5*60*1000) return;
+    localStorage.setItem('snapW', String(Date.now()));
+  } catch(e){}
+  fbFirestore().then(function(db){
+    return db.collection('er_snapshot').doc('latest').set({ o: o, ms: Date.now() });
+  }).catch(function(){});
+}
+
+function readSnapshot(){
+  return fbFirestore().then(function(db){
+    return db.collection('er_snapshot').doc('latest').get();
+  }).then(function(doc){
+    if (!doc.exists) return null;
+    const d = doc.data();
+    if (!d || !d.o || !d.o.h) return null;
+    d.o.collected = new Date(d.ms || 0).toISOString();
+    return d.o;
+  }).catch(function(){ return null; });
+}
+
+function fetchWithTimeout(url, ms){
+  const ac = new AbortController();
+  const to = setTimeout(function(){ ac.abort(); }, ms);
+  return fetch(url, {cache:'no-store', signal: ac.signal})
+    .finally(function(){ clearTimeout(to); });
+}
+
+async function fetchData(){
+  const apiUrl = `${BASE}/getEmrrmRltmUsefulSckbdInfoInqire?serviceKey=${encodeURIComponent(API_KEY)}&STAGE1=${encodeURIComponent('경상북도')}&pageNo=1&numOfRows=100`;
+  const tried = [];
+  let staleBest = null;
+
+  function keepStale(o, src){
+    const ms = collectedMs(o) || 0;
+    if (!staleBest || ms > staleBest.ms) staleBest = { o:o, ms:ms, src:src };
+  }
+  function accept(o, src){
+    dataSource = src;
+    lastDiag = '✅ ' + src;
+    try { localStorage.setItem('erCache', JSON.stringify(o)); } catch(e){}
+    return applyJson(o);
+  }
+
+  // ① 직접 호출 (한국 = 진짜 실시간)
+  try {
+    const r = await fetchWithTimeout(apiUrl, 6000);
     if (r.ok) {
-      const o = await r.json();
-      const got = applyJson(o);
-      if (got) {
-        dataSource = '빠른경로';
-        lastDiag = '✅ 빠른경로(JSON) 성공';
-        try { localStorage.setItem('erCache', JSON.stringify(o)); } catch(e){}
+      const txt = await r.text();
+      const o = parseXmlToObj(txt);
+      if (o) {
+        o.collected = new Date().toISOString();
+        const got = accept(o, '실시간');
+        shareSnapshot(o);
         return got;
       }
-    }
-  } catch(e) { /* 실패하면 아래 기존 경로로 */ }
+      tried.push('직접: 형식이상(' + txt.slice(0,40).replace(/</g,'&lt;') + ')');
+    } else tried.push('직접: HTTP ' + r.status);
+  } catch(e){ tried.push('직접: ' + e.name); }
 
-  // ② 예비: 기존 XML 경로들
-  const url = `${BASE}/getEmrrmRltmUsefulSckbdInfoInqire?serviceKey=${encodeURIComponent(API_KEY)}&STAGE1=${encodeURIComponent('경상북도')}&pageNo=1&numOfRows=100`;
-  let txt = null, tried = [];
+  // ② 방문자 공유 스냅샷 (Firebase)
+  try {
+    const o = await readSnapshot();
+    if (o) {
+      if (isFresh(o)) return accept(o, '공유 스냅샷');
+      keepStale(o, '공유 스냅샷'); tried.push('스냅샷: 오래됨');
+    } else tried.push('스냅샷: 없음');
+  } catch(e){ tried.push('스냅샷: ' + e.name); }
 
-  for (const route of ROUTES) {
-    try {
-      // 6초 안에 응답 없으면 다음 경로로 (멈춤 방지)
-      const ac = new AbortController();
-      const to = setTimeout(function(){ ac.abort(); }, 6000);
-      let res;
-      try {
-        res = await fetch(route.build(url), { cache: 'no-store', signal: ac.signal });
-      } finally {
-        clearTimeout(to);
-      }
-      if (!res.ok) { tried.push(route.name + ': HTTP ' + res.status); continue; }
-      let body = await res.text();
-      if (route.extract) body = route.extract(body);
-      if (body && body.indexOf('<item>') !== -1) {
-        txt = body;
-        dataSource = route.name;
-        lastDiag = '✅ ' + route.name + ' 성공';
-        // GitHub 중계면 수집시각도 같이 읽어옴
-        if (route.name === 'GitHub중계') {
-          try {
-            const u = await fetch('https://raw.githubusercontent.com/hyinuyu/Emergency-room/data/updated.txt?t=' + Date.now(), {cache:'no-store'});
-            const ut = await u.text();
-            const m = ut.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
-            if (m) {
-              // UTC → 한국시간(+9)
-              const d = new Date(Date.UTC(+m[1], +m[2]-1, +m[3], +m[4], +m[5]));
-              collectTime = d.toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'});
-              collectAgeMin = Math.max(0, Math.round((Date.now() - d.getTime()) / 60000));
-            }
-          } catch(e) { collectTime = null; }
-        } else {
-          collectTime = null; // 직접 연결이면 실시간이라 수집시각 개념 없음
-        }
-        break;
-      }
-      tried.push(route.name + ': 내용이상(' + (body||'').slice(0,40).replace(/</g,'&lt;') + ')');
-    } catch (err) {
-      tried.push(route.name + ': ' + err.name);
-    }
+  // ③ GitHub 수집분 (해외차단 풀리면 자동 부활)
+  try {
+    const r = await fetchWithTimeout(JSON_URL + '?t=' + Date.now(), 5000);
+    if (r.ok) {
+      const o = await r.json();
+      if (o && o.h && o.h.cha) {
+        if (isFresh(o)) return accept(o, 'GitHub수집');
+        keepStale(o, 'GitHub수집'); tried.push('GitHub: 오래됨');
+      } else tried.push('GitHub JSON: 형식이상');
+    } else tried.push('GitHub JSON: HTTP ' + r.status);
+  } catch(e){ tried.push('GitHub JSON: ' + e.name); }
+
+  try {
+    const r = await fetchWithTimeout(XML_URL + '?t=' + Date.now(), 5000);
+    if (r.ok) {
+      const o = parseXmlToObj(await r.text());
+      if (o) {
+        try {
+          const u = await fetchWithTimeout('https://raw.githubusercontent.com/hyinuyu/Emergency-room/data/updated.txt?t=' + Date.now(), 4000);
+          const m = (await u.text()).match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/);
+          if (m) o.collected = m[0] + 'Z';
+        } catch(e2){}
+        if (isFresh(o)) return accept(o, 'GitHub수집');
+        keepStale(o, 'GitHub수집(XML)'); tried.push('GitHub XML: 오래됨');
+      } else tried.push('GitHub XML: 형식이상');
+    } else tried.push('GitHub XML: HTTP ' + r.status);
+  } catch(e){ tried.push('GitHub XML: ' + e.name); }
+
+  // ④ 최후수단: 오래된 데이터라도 경고와 함께 표시
+  if (staleBest && staleBest.o) {
+    const got = accept(staleBest.o, staleBest.src + '(지연)');
+    lastDiag = '⚠️ 실시간 실패 → 지난 데이터 표시<br><span style="color:#6a8aaa;">' + tried.join('<br>') + '</span>';
+    return got;
   }
 
-  if (txt === null) {
-    lastDiag = '모든 경로 실패<br><span style="color:#6a8aaa;">' + tried.join('<br>') + '</span>';
-    throw new Error('all routes failed');
-  }
-
-  const xml = new DOMParser().parseFromString(txt, 'text/xml');
-  let genAvail = null, pedAvail = null;
-  otherHospitals = [];
-  lastDiag += '<br>병원 item 개수: ' + xml.querySelectorAll('item').length + '개';
-  xml.querySelectorAll('item').forEach(item => {
-    const g = t => item.querySelector(t)?.textContent?.trim()||'';
-    const name = g('dutyName').replace(/\s/g,'');
-    // 다른 병원 (강동, 순천향) 환자수 수집
-    // hvec=일반가용, hvs01=일반총, hv28=소아가용, hvs02=소아총
-    if (name.includes('강동')) {
-      const hvec = parseInt(g('hvec'));
-      const tot = parseInt(g('hvs01'));
-      const ped = parseInt(g('hv28'));
-      const pedTot = parseInt(g('hvs02'));
-      otherHospitals.push({ name: '구미강동병원', avail: isNaN(hvec)?null:hvec, total: isNaN(tot)?null:tot, pedAvail: isNaN(ped)?null:ped, pedTotal: isNaN(pedTot)?null:pedTot });
-    } else if (name.includes('순천향') && name.includes('구미')) {
-      const hvec = parseInt(g('hvec'));
-      const tot = parseInt(g('hvs01'));
-      const ped = parseInt(g('hv28'));
-      const pedTot = parseInt(g('hvs02'));
-      otherHospitals.push({ name: '순천향구미병원', avail: isNaN(hvec)?null:hvec, total: isNaN(tot)?null:tot, pedAvail: isNaN(ped)?null:ped, pedTotal: isNaN(pedTot)?null:pedTot });
-    }
-    if (!name.includes('구미차') && !name.includes('차의과학')) return;
-    const hvec = parseInt(g('hvec'));
-    const hv28 = parseInt(g('hv28'));
-    const pedTot = parseInt(g('hvs02'));
-    const genTot = parseInt(g('hvs01'));
-    genAvail = isNaN(hvec) ? null : hvec;
-    pedAvail = isNaN(hv28) ? null : hv28;
-    myPedTotal = isNaN(pedTot) ? 5 : pedTot;
-    myGenTotal = isNaN(genTot) ? 20 : genTot;
-    const hd = g('hvidate');
-    myDataTime = (hd && hd.length >= 12) ? hd.slice(8,10) + ':' + hd.slice(10,12) : null;
-  });
-  return {genAvail, pedAvail};
+  lastDiag = '모든 경로 실패<br><span style="color:#6a8aaa;">' + tried.join('<br>') + '</span>';
+  throw new Error('all routes failed');
 }
 
 function renderOtherHospitals() {
