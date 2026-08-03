@@ -2,7 +2,7 @@ name: 응급실 데이터 수집
 
 on:
   schedule:
-    - cron: '*/15 * * * *'   # 15분마다 시작 시도 (밀려도 아래 반복이 커버)
+    - cron: '*/10 * * * *'   # 10분마다 시작 시도 (밀려도 아래 반복이 커버)
   workflow_dispatch:          # 수동 실행 버튼
 
 permissions:
@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - name: 2분 간격으로 20분간 반복 수집
+      - name: 1분 간격으로 20분간 반복 수집
         run: |
           API="https://apis.data.go.kr/B552657/ErmctInfoInqireService/getEmrrmRltmUsefulSckbdInfoInqire?serviceKey=1ae147a1907296a5c5fd16751a21b2f146381a4727784592ae9c235d8ac0263d&STAGE1=%EA%B2%BD%EC%83%81%EB%B6%81%EB%8F%84&pageNo=1&numOfRows=100"
           REPO="https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
@@ -30,7 +30,7 @@ jobs:
           git checkout -q -b data
 
           OK=0
-          for i in $(seq 1 10); do
+          for i in $(seq 1 20); do
             if curl -sS --max-time 25 "$API" -o er.xml && grep -q "<item>" er.xml; then
               date -u +"수집시각: %Y-%m-%dT%H:%M:%SZ" > updated.txt
               git add er.xml updated.txt
@@ -46,13 +46,13 @@ jobs:
               head -c 200 er.xml || true
             fi
 
-            if [ "$i" -lt 10 ]; then
-              sleep 120
+            if [ "$i" -lt 20 ]; then
+              sleep 60
             fi
           done
 
           echo "─────────────"
-          echo "총 ${OK}/10회 성공"
+          echo "총 ${OK}/20회 성공"
           if [ "$OK" -eq 0 ]; then
             echo "❌ 전부 실패 - API 키 또는 서버 확인 필요"
             exit 1
