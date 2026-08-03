@@ -549,27 +549,32 @@ function pedBadge(avail, total) {
 
 let otherHospitals = [];
 let myPedTotal = 5;
+let lastDiag = '';
 let myGenTotal = 20;
 let myDataTime = null;
 
 async function fetchData(retry) {
-  const url = `${BASE}/getEmrrmRltmUsefulSckbdInfoInqire?serviceKey=${encodeURIComponent(API_KEY)}&STAGE1=${encodeURIComponent('경상북도')}&pageNo=1&numOfRows=100&_t=${Date.now()}`;
+  const url = `${BASE}/getEmrrmRltmUsefulSckbdInfoInqire?serviceKey=${encodeURIComponent(API_KEY)}&STAGE1=${encodeURIComponent('경상북도')}&pageNo=1&numOfRows=100`;
   let res;
   try {
-    // cache:'no-store' → 서비스워커/브라우저 캐시 안 거치고 항상 새로 받음
     res = await fetch(url, {cache:'no-store'});
   } catch(err) {
-    // 실패하면 1.5초 뒤 최대 2번까지 자동 재시도
     if ((retry||0) < 2) {
       await new Promise(r => setTimeout(r, 1500));
       return fetchData((retry||0) + 1);
     }
+    lastDiag = '❶ 서버 연결 자체가 실패<br>종류: ' + err.name + '<br>내용: ' + err.message +
+               '<br><span style="color:#6a8aaa;">→ CORS 차단, 네트워크 차단, 또는 API 서버 다운</span>';
     throw err;
   }
+  lastDiag = '❷ HTTP 응답: ' + res.status + ' ' + res.statusText;
   const txt = await res.text();
+  lastDiag += '<br>응답 길이: ' + txt.length + '자<br>응답 앞부분:<br><span style="color:#ffd700;word-break:break-all;">' +
+              txt.slice(0,400).replace(/</g,'&lt;') + '</span>';
   const xml = new DOMParser().parseFromString(txt, 'text/xml');
   let genAvail = null, pedAvail = null;
   otherHospitals = [];
+  lastDiag += '<br>병원 item 개수: ' + xml.querySelectorAll('item').length + '개';
   xml.querySelectorAll('item').forEach(item => {
     const g = t => item.querySelector(t)?.textContent?.trim()||'';
     const name = g('dutyName').replace(/\s/g,'');
@@ -690,12 +695,13 @@ async function load() {
     document.getElementById('hospitalTime').textContent = myDataTime ?? '—';
 
     if (genAvail === null) {
-      document.getElementById('errBox').textContent = '⚠️ 데이터를 받지 못했어요. 잠시 후 새로고침해보세요.';
-      document.getElementById('errBox').classList.add('show');
+      const eb2 = document.getElementById('errBox');
+      eb2.innerHTML = '⚠️ 구미차병원 데이터를 못 찾았어요<br><div style="font-size:10px;color:#ffaa00;background:rgba(255,170,0,0.06);border:1px dashed rgba(255,170,0,0.3);border-radius:8px;padding:8px;margin-top:8px;line-height:1.7;">🔍 진단정보<br>' + (lastDiag || '(정보없음)') + '</div>';
+      eb2.classList.add('show');
     }
   } catch(e) {
     const eb = document.getElementById('errBox');
-    eb.innerHTML = '⚠️ 불러오기 실패 <span style="font-size:11px;color:#ff8899;">(네트워크 또는 앱 캐시 문제)</span><br>' +
+    eb.innerHTML = '⚠️ 불러오기 실패<br><div style="font-size:10px;color:#ffaa00;background:rgba(255,170,0,0.06);border:1px dashed rgba(255,170,0,0.3);border-radius:8px;padding:8px;margin:8px 0;line-height:1.7;">🔍 진단정보<br>' + (lastDiag || '(정보없음)') + '</div>' +
       '<button onclick="load()" style="margin-top:8px;margin-right:6px;background:rgba(59,158,255,0.15);border:1px solid rgba(59,158,255,0.4);color:#3b9eff;padding:6px 12px;border-radius:7px;font-size:11px;cursor:pointer;font-family:inherit;">↻ 다시 시도</button>' +
       '<button onclick="resetAppCache()" style="margin-top:8px;background:rgba(255,170,0,0.15);border:1px solid rgba(255,170,0,0.4);color:#ffaa00;padding:6px 12px;border-radius:7px;font-size:11px;cursor:pointer;font-family:inherit;">🧹 앱 캐시 초기화</button>';
     eb.classList.add('show');
