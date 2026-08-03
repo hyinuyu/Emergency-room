@@ -558,6 +558,8 @@ let myDataTime = null;
 const ROUTES = [
   { name: '직접 연결',
     build: u => u },
+  { name: 'GitHub중계',
+    build: () => 'https://raw.githubusercontent.com/hyinuyu/Emergency-room/data/er.xml?t=' + Date.now() },
   { name: '프록시1(codetabs)',
     build: u => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u) },
   { name: '프록시2(allorigins-get)',
