@@ -28,7 +28,9 @@ self.addEventListener('fetch', e => {
       url.includes('cloudflare.com') ||
       url.includes('firebaseio.com') ||
       url.includes('allorigins.win') ||
-      url.includes('corsproxy.io')) {
+      url.includes('corsproxy.io') ||
+      url.includes('codetabs.com') ||
+      url.includes('cors.workers.dev')) {
     return; // 브라우저가 알아서 처리하게 둠
   }
 
