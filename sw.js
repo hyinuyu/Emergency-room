@@ -1,4 +1,4 @@
-const CACHE = 'gumi-er-v3';
+const CACHE = 'gumi-er-v4';
 const SHELL = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
@@ -38,7 +38,8 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
 
   // 1) 데이터·API·외부 서비스는 서비스워커가 건드리지 않음 (항상 최신)
-  if (url.includes('apis.data.go.kr') ||
+  if (url.includes('.vercel.app') ||
+      url.includes('apis.data.go.kr') ||
       url.includes('raw.githubusercontent.com') ||
       url.includes('allorigins.win') ||
       url.includes('corsproxy.io') ||
