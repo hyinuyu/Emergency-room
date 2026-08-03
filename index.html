@@ -419,7 +419,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 </div><!-- /.wrap -->
 
 <script>
-const APP_VERSION = '2026.08.03b';   // 앱 버전 (업데이트 확인용)
+const APP_VERSION = '2026.08.03c';   // 앱 버전 (업데이트 확인용)
 const API_KEY = '1ae147a1907296a5c5fd16751a21b2f146381a4727784592ae9c235d8ac0263d';
 const BASE = 'https://apis.data.go.kr/B552657/ErmctInfoInqireService';
 const TOTAL_GEN = 20;
@@ -581,6 +581,34 @@ let dataSource = '';      // 어느 경로로 받았는지
 let myGenTotal = 20;
 let myDataTime = null;
 
+// ── 초고속 경로: 미리 가공된 작은 JSON (220바이트) ──
+const JSON_URL = 'https://raw.githubusercontent.com/hyinuyu/Emergency-room/data/er.json';
+
+// JSON 데이터를 전역 변수에 반영
+function applyJson(o){
+  if (!o || !o.h || !o.h.cha) return null;
+  const H = o.h;
+  const cha = H.cha;
+  myGenTotal = (cha.t != null) ? cha.t : 20;
+  myPedTotal = (cha.pt != null) ? cha.pt : 5;
+  const hd = cha.d;
+  myDataTime = (hd && hd.length >= 12) ? hd.slice(8,10) + ':' + hd.slice(10,12) : null;
+
+  otherHospitals = [];
+  if (H.gangdong) otherHospitals.push({name:'구미강동병원', avail:H.gangdong.a, total:H.gangdong.t, pedAvail:H.gangdong.pa, pedTotal:H.gangdong.pt});
+  if (H.sch) otherHospitals.push({name:'순천향구미병원', avail:H.sch.a, total:H.sch.t, pedAvail:H.sch.pa, pedTotal:H.sch.pt});
+
+  if (o.collected) {
+    const m = o.collected.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    if (m) {
+      const d = new Date(Date.UTC(+m[1], +m[2]-1, +m[3], +m[4], +m[5]));
+      collectTime = d.toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'});
+      collectAgeMin = Math.max(0, Math.round((Date.now() - d.getTime()) / 60000));
+    }
+  }
+  return { genAvail: cha.a, pedAvail: cha.pa };
+}
+
 // CORS 차단 우회: 여러 경로를 순서대로 시도
 // extract: 응답 본문에서 실제 XML을 꺼내는 함수 (프록시마다 형식이 다름)
 const ROUTES = [
@@ -602,6 +630,26 @@ const ROUTES = [
 ];
 
 async function fetchData() {
+  // ① 초고속: 미리 가공된 작은 JSON 먼저 시도 (220바이트, 즉시 완료)
+  try {
+    const ac = new AbortController();
+    const to = setTimeout(function(){ ac.abort(); }, 5000);
+    let r;
+    try { r = await fetch(JSON_URL + '?t=' + Date.now(), {cache:'no-store', signal:ac.signal}); }
+    finally { clearTimeout(to); }
+    if (r.ok) {
+      const o = await r.json();
+      const got = applyJson(o);
+      if (got) {
+        dataSource = '빠른경로';
+        lastDiag = '✅ 빠른경로(JSON) 성공';
+        try { localStorage.setItem('erCache', JSON.stringify(o)); } catch(e){}
+        return got;
+      }
+    }
+  } catch(e) { /* 실패하면 아래 기존 경로로 */ }
+
+  // ② 예비: 기존 XML 경로들
   const url = `${BASE}/getEmrrmRltmUsefulSckbdInfoInqire?serviceKey=${encodeURIComponent(API_KEY)}&STAGE1=${encodeURIComponent('경상북도')}&pageNo=1&numOfRows=100`;
   let txt = null, tried = [];
 
@@ -731,6 +779,38 @@ function renderOtherHospitals() {
   }).join('');
 }
 
+// 화면 그리기 (캐시 즉시표시 / 실제 로딩 둘 다 사용)
+function paint(genAvail, pedAvail) {
+  const genUsed = genAvail === null || genAvail === undefined ? null : Math.max(0, myGenTotal - genAvail);
+  const gKey = getStateKey(genAvail, myGenTotal);
+  const gColor = gKey === 'full' ? 'var(--red)' : gKey === 'busy' ? 'var(--orange)' : gKey === 'calm' ? 'var(--green)' : 'var(--text3)';
+  document.getElementById('valAvail').textContent = genAvail ?? '?';
+  document.getElementById('valAvail').style.color = gColor;
+  document.getElementById('valPatients').textContent = genUsed === null ? '?' : genUsed + '명';
+  document.getElementById('valPatients').style.color = gColor;
+  document.getElementById('valTotal').textContent = myGenTotal;
+
+  updateVolcano(genAvail);
+
+  const pedUsed = pedAvail === null || pedAvail === undefined ? null : Math.max(0, myPedTotal - pedAvail);
+  document.getElementById('pedAvailVal').textContent = pedAvail ?? '?';
+  document.getElementById('pedAvailVal').style.color = bedColor(pedAvail, myPedTotal);
+  document.getElementById('pedPatients').textContent = pedUsed === null ? '?' : pedUsed;
+  document.getElementById('pedTotalTxt').textContent = myPedTotal;
+  document.getElementById('pedTotalTxt2').textContent = myPedTotal;
+  const pb = pedBadge(pedAvail, myPedTotal);
+  const badge = document.getElementById('pedBadge');
+  badge.textContent = pb.label;
+  badge.style.background = pb.bg;
+  badge.style.color = pb.color;
+  badge.style.border = `1px solid ${pb.border}`;
+  const pedPct = (pedAvail === null || pedAvail === undefined) ? 0 : Math.min(100, Math.max(0, Math.round((myPedTotal - pedAvail) / myPedTotal * 100)));
+  document.getElementById('pedGauge').style.width = pedPct + '%';
+  document.getElementById('pedGauge').style.background = bedColor(pedAvail, myPedTotal);
+
+  renderOtherHospitals();
+}
+
 let prevCollect = null;   // 직전 수집시각 (새로고침시 변화 확인용)
 
 async function load(manual) {
@@ -743,38 +823,7 @@ async function load(manual) {
   try {
     const {genAvail, pedAvail} = await fetchData();
 
-    // 일반 응급실 (총병상은 공공데이터 hvs01, 없으면 20)
-    const genUsed = genAvail === null ? null : Math.max(0, myGenTotal - genAvail);
-    const gKey = getStateKey(genAvail, myGenTotal);
-    const gColor = gKey === 'full' ? 'var(--red)' : gKey === 'busy' ? 'var(--orange)' : gKey === 'calm' ? 'var(--green)' : 'var(--text3)';
-    document.getElementById('valAvail').textContent = genAvail ?? '?';
-    document.getElementById('valAvail').style.color = gColor;
-    document.getElementById('valPatients').textContent = genUsed === null ? '?' : genUsed + '명';
-    document.getElementById('valPatients').style.color = gColor;
-    document.getElementById('valTotal').textContent = myGenTotal;
-
-    // 화산 업데이트
-    updateVolcano(genAvail);
-
-    // 소아 응급실 (총병상은 공공데이터 hvs02, 없으면 5)
-    const pedUsed = pedAvail === null ? null : Math.max(0, myPedTotal - pedAvail);
-    document.getElementById('pedAvailVal').textContent = pedAvail ?? '?';
-    document.getElementById('pedAvailVal').style.color = bedColor(pedAvail, myPedTotal);
-    document.getElementById('pedPatients').textContent = pedUsed === null ? '?' : pedUsed;
-    document.getElementById('pedTotalTxt').textContent = myPedTotal;
-    document.getElementById('pedTotalTxt2').textContent = myPedTotal;
-    const pb = pedBadge(pedAvail, myPedTotal);
-    const badge = document.getElementById('pedBadge');
-    badge.textContent = pb.label;
-    badge.style.background = pb.bg;
-    badge.style.color = pb.color;
-    badge.style.border = `1px solid ${pb.border}`;
-    const pedPct = pedAvail === null ? 0 : Math.min(100, Math.max(0, Math.round((myPedTotal - pedAvail) / myPedTotal * 100)));
-    document.getElementById('pedGauge').style.width = pedPct + '%';
-    document.getElementById('pedGauge').style.background = bedColor(pedAvail, myPedTotal);
-
-    // 주변 병원 비교 렌더링
-    renderOtherHospitals();
+    paint(genAvail, pedAvail);
 
     // 데이터수집 = GitHub이 API에서 받아온 시각 (직접연결이면 지금)
     const utEl = document.getElementById('updatedTime');
@@ -811,6 +860,18 @@ async function load(manual) {
   }
   btn.classList.remove('spinning');
 }
+
+// ── 켜자마자 마지막으로 본 숫자를 즉시 표시 (네트워크 기다리지 않음) ──
+(function showCachedInstantly(){
+  try {
+    const raw = localStorage.getItem('erCache');
+    if (!raw) return;
+    const o = JSON.parse(raw);
+    const got = applyJson(o);
+    if (!got) return;
+    paint(got.genAvail, got.pedAvail);   // 저장된 값으로 화면 먼저 그림
+  } catch(e){}
+})();
 
 load();
 setInterval(load, 10 * 60 * 1000);
