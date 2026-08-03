@@ -169,16 +169,6 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
   <div class="err" id="errBox"></div>
 
-  <!-- 앱 업데이트 안내 (닫으면 다시 안 뜸) -->
-  <div id="updateNotice" style="display:none;align-items:center;gap:10px;background:rgba(59,158,255,0.09);border:1px solid rgba(59,158,255,0.35);border-radius:12px;padding:11px 14px;margin-bottom:14px;">
-    <span style="font-size:18px;">🔄</span>
-    <div style="flex:1;font-size:11px;color:var(--text2);line-height:1.6;">
-      <b style="color:var(--text);">앱이 멈춰 보이나요?</b><br>
-      화면이 갱신 안 되면 아래 버튼을 눌러주세요
-    </div>
-    <button onclick="resetAppCache()" style="background:var(--main);border:none;color:#001427;padding:8px 13px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">최신으로<br>갱신</button>
-    <button onclick="dismissUpdateNotice()" style="background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:0 2px;">✕</button>
-  </div>
 
 
 
@@ -419,7 +409,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 </div><!-- /.wrap -->
 
 <script>
-const APP_VERSION = '2026.08.03g';   // 앱 버전 (업데이트 확인용)
+const APP_VERSION = '2026.08.03h';   // 앱 버전 (업데이트 확인용)
 const API_KEY = '1ae147a1907296a5c5fd16751a21b2f146381a4727784592ae9c235d8ac0263d';
 const BASE = 'https://apis.data.go.kr/B552657/ErmctInfoInqireService';
 const TOTAL_GEN = 20;
@@ -1002,27 +992,7 @@ function showToast(msg, color) {
   setTimeout(function(){ if(t.parentNode) t.remove(); }, 2600);
 }
 
-// ── 앱 업데이트 안내/자동확인 ──
-function dismissUpdateNotice(){
-  document.getElementById('updateNotice').style.display = 'none';
-  try { localStorage.setItem('noticeSeen_' + APP_VERSION, '1'); } catch(e){}
-}
-
-// 앱(홈화면 설치)으로 실행 중인지 확인
-function isStandalone(){
-  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-}
-
-// 앱으로 실행 중이고 아직 안 닫았으면 안내 배너 표시
-(function(){
-  try {
-    if (isStandalone() && !localStorage.getItem('noticeSeen_' + APP_VERSION)) {
-      var n = document.getElementById('updateNotice');
-      if (n) n.style.display = 'flex';
-    }
-  } catch(e){}
-})();
-
+// ── 앱 자동확인 ──
 // 서버에 새 버전이 올라오면 자동으로 갱신 (앞으로 재발 방지)
 async function checkNewVersion(){
   try {
