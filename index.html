@@ -419,7 +419,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 </div><!-- /.wrap -->
 
 <script>
-const APP_VERSION = '2026.08.03f';   // 앱 버전 (업데이트 확인용)
+const APP_VERSION = '2026.08.03g';   // 앱 버전 (업데이트 확인용)
 const API_KEY = '1ae147a1907296a5c5fd16751a21b2f146381a4727784592ae9c235d8ac0263d';
 const BASE = 'https://apis.data.go.kr/B552657/ErmctInfoInqireService';
 const TOTAL_GEN = 20;
@@ -889,7 +889,7 @@ async function load(manual) {
   btn.classList.add('spinning');
   document.getElementById('errBox').classList.remove('show');
   prevCollect = collectTime;
-  if (typeof lastLoadAt !== 'undefined') lastLoadAt = Date.now();
+  lastLoadAt = Date.now();
 
   try {
     const {genAvail, pedAvail} = await fetchData();
@@ -936,13 +936,8 @@ async function load(manual) {
   } catch(e){}
 })();
 
-load();
-// 1분마다 갱신 (데이터도 1분마다 수집되므로) — 화면 보일 때만
-setInterval(function(){ if (!document.hidden) load(); }, 60 * 1000);
-
-// ── 앱/탭이 다시 보일 때 자동 갱신 ──
-// 모바일은 백그라운드에서 타이머가 멈추기 때문에, 화면에 돌아올 때 새로 받아옴
-let lastLoadAt = Date.now();
+// ── 복귀/재시작 자동 갱신 설정 (반드시 load()보다 먼저!) ──
+let lastLoadAt = 0;
 function refreshIfStale(force){
   const gap = Date.now() - lastLoadAt;
   if (force || gap > 30000) {   // 30초 이상 지났으면 갱신
@@ -958,6 +953,10 @@ window.addEventListener('pageshow', function(e){
 });
 window.addEventListener('focus', function(){ refreshIfStale(false); });
 window.addEventListener('online', function(){ refreshIfStale(true); });
+
+// 첫 로딩 + 1분마다 갱신 (화면 보일 때만)
+load();
+setInterval(function(){ if (!document.hidden) load(); }, 60 * 1000);
 
 // 현재 시각 1초마다 갱신
 function updateClock(){
