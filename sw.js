@@ -30,7 +30,8 @@ self.addEventListener('fetch', e => {
       url.includes('allorigins.win') ||
       url.includes('corsproxy.io') ||
       url.includes('codetabs.com') ||
-      url.includes('cors.workers.dev')) {
+      url.includes('cors.workers.dev') ||
+      url.includes('raw.githubusercontent.com')) {
     return; // 브라우저가 알아서 처리하게 둠
   }
 
