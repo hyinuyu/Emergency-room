@@ -703,6 +703,7 @@ async function load(manual) {
   btn.classList.add('spinning');
   document.getElementById('errBox').classList.remove('show');
   prevCollect = collectTime;
+  if (typeof lastLoadAt !== 'undefined') lastLoadAt = Date.now();
 
   try {
     const {genAvail, pedAvail} = await fetchData();
@@ -772,6 +773,25 @@ async function load(manual) {
 load();
 setInterval(load, 10 * 60 * 1000);
 
+// ── 앱/탭이 다시 보일 때 자동 갱신 ──
+// 모바일은 백그라운드에서 타이머가 멈추기 때문에, 화면에 돌아올 때 새로 받아옴
+let lastLoadAt = Date.now();
+function refreshIfStale(force){
+  const gap = Date.now() - lastLoadAt;
+  if (force || gap > 30000) {   // 30초 이상 지났으면 갱신
+    lastLoadAt = Date.now();
+    load();
+  }
+}
+document.addEventListener('visibilitychange', function(){
+  if (!document.hidden) refreshIfStale(false);
+});
+window.addEventListener('pageshow', function(e){
+  if (e.persisted) refreshIfStale(true);   // 뒤로가기 캐시에서 복원된 경우
+});
+window.addEventListener('focus', function(){ refreshIfStale(false); });
+window.addEventListener('online', function(){ refreshIfStale(true); });
+
 // 현재 시각 1초마다 갱신
 function updateClock(){
   document.getElementById('currentTime').textContent = new Date().toLocaleTimeString('ko-KR');
@@ -838,8 +858,20 @@ function copyLink() {
 
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js').then(function(reg){
-    reg.update(); // 새 버전 즉시 확인 (옛 캐시 문제 자동 해결)
+    reg.update();
+    // 앱이 다시 보일 때마다 새 버전 확인
+    document.addEventListener('visibilitychange', function(){
+      if (!document.hidden) reg.update();
+    });
   }).catch(function(){});
+
+  // 새 서비스워커가 넘겨받으면 페이지를 한 번만 새로고침 (최신 코드 적용)
+  var swReloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', function(){
+    if (swReloaded) return;
+    swReloaded = true;
+    location.reload();
+  });
 }
 
 // 앱 캐시 강제 초기화 (문제 생겼을 때 수동 복구용)
