@@ -9,6 +9,9 @@
 <meta property="og:description" content="실시간 가용병상·환자수 확인 + 대기 중 미니게임 🎮">
 <meta property="og:url" content="https://hyinuyu.github.io/Emergency-room/">
 <meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://raw.githubusercontent.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -118,12 +121,19 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="응급실현황">
 <!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-VTKJM3XJ8Y"></script>
 <script>
+  // GA는 화면이 다 그려진 뒤에 로드 (초기 속도 우선)
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-VTKJM3XJ8Y');
+  window.addEventListener('load', function(){
+    setTimeout(function(){
+      var s=document.createElement('script');
+      s.async=true; s.src='https://www.googletagmanager.com/gtag/js?id=G-VTKJM3XJ8Y';
+      document.head.appendChild(s);
+      gtag('js', new Date());
+      gtag('config', 'G-VTKJM3XJ8Y');
+    }, 1200);
+  });
 </script>
 </head>
 <body>
@@ -409,7 +419,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 </div><!-- /.wrap -->
 
 <script>
-const APP_VERSION = '2026.08.03';   // 앱 버전 (업데이트 확인용)
+const APP_VERSION = '2026.08.03b';   // 앱 버전 (업데이트 확인용)
 const API_KEY = '1ae147a1907296a5c5fd16751a21b2f146381a4727784592ae9c235d8ac0263d';
 const BASE = 'https://apis.data.go.kr/B552657/ErmctInfoInqireService';
 const TOTAL_GEN = 20;
@@ -833,7 +843,7 @@ setInterval(updateClock, 1000);
 </script>
 <script>
 // QR 코드 생성
-(function(){
+function initQR(){
   const url = 'https://hyinuyu.github.io/Emergency-room/';
   const script = document.createElement('script');
   script.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
@@ -849,7 +859,10 @@ setInterval(updateClock, 1000);
     });
   };
   document.head.appendChild(script);
-})();
+}
+// QR은 화면 다 그려진 뒤 생성 (초기 속도 우선)
+if (document.readyState === 'complete') setTimeout(initQR, 800);
+else window.addEventListener('load', function(){ setTimeout(initQR, 800); });
 
 // 공유 기능
 function showToast(msg, color) {
