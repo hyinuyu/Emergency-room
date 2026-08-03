@@ -143,7 +143,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       </div>
       <div style="width:1px;height:22px;background:var(--border);"></div>
       <div>
-        <div style="font-size:9px;color:var(--text3);font-family:var(--mono);">마지막갱신</div>
+        <div style="font-size:9px;color:var(--text3);font-family:var(--mono);">데이터수집</div>
         <div style="font-size:12px;font-weight:600;color:var(--main);font-family:var(--mono);" id="updatedTime">—</div>
       </div>
       <div style="width:1px;height:22px;background:var(--border);"></div>
@@ -152,7 +152,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
         <div style="font-size:12px;font-weight:600;color:var(--text2);font-family:var(--mono);" id="hospitalTime">—</div>
       </div>
     </div>
-    <button id="refreshBtn" onclick="load()" style="display:flex;align-items:center;gap:4px;background:var(--card2);border:1px solid var(--border2);color:var(--text2);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:inherit;transition:all 0.2s;white-space:nowrap;">
+    <button id="refreshBtn" onclick="load(true)" style="display:flex;align-items:center;gap:4px;background:var(--card2);border:1px solid var(--border2);color:var(--text2);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:inherit;transition:all 0.2s;white-space:nowrap;">
       <span class="ri">↻</span> 새로고침
     </button>
   </div>
@@ -550,6 +550,8 @@ function pedBadge(avail, total) {
 let otherHospitals = [];
 let myPedTotal = 5;
 let lastDiag = '';
+let collectTime = null;   // GitHub이 데이터를 받아온 시각
+let dataSource = '';      // 어느 경로로 받았는지
 let myGenTotal = 20;
 let myDataTime = null;
 
@@ -585,7 +587,23 @@ async function fetchData() {
       if (route.extract) body = route.extract(body);
       if (body && body.indexOf('<item>') !== -1) {
         txt = body;
+        dataSource = route.name;
         lastDiag = '✅ ' + route.name + ' 성공';
+        // GitHub 중계면 수집시각도 같이 읽어옴
+        if (route.name === 'GitHub중계') {
+          try {
+            const u = await fetch('https://raw.githubusercontent.com/hyinuyu/Emergency-room/data/updated.txt?t=' + Date.now(), {cache:'no-store'});
+            const ut = await u.text();
+            const m = ut.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+            if (m) {
+              // UTC → 한국시간(+9)
+              const d = new Date(Date.UTC(+m[1], +m[2]-1, +m[3], +m[4], +m[5]));
+              collectTime = d.toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'});
+            }
+          } catch(e) { collectTime = null; }
+        } else {
+          collectTime = null; // 직접 연결이면 실시간이라 수집시각 개념 없음
+        }
         break;
       }
       tried.push(route.name + ': 내용이상(' + (body||'').slice(0,40).replace(/</g,'&lt;') + ')');
@@ -678,10 +696,13 @@ function renderOtherHospitals() {
   }).join('');
 }
 
-async function load() {
+let prevCollect = null;   // 직전 수집시각 (새로고침시 변화 확인용)
+
+async function load(manual) {
   const btn = document.getElementById('refreshBtn');
   btn.classList.add('spinning');
   document.getElementById('errBox').classList.remove('show');
+  prevCollect = collectTime;
 
   try {
     const {genAvail, pedAvail} = await fetchData();
@@ -719,8 +740,19 @@ async function load() {
     // 주변 병원 비교 렌더링
     renderOtherHospitals();
 
-    document.getElementById('updatedTime').textContent = new Date().toLocaleTimeString('ko-KR');
+    // 데이터수집 = GitHub이 API에서 받아온 시각 (직접연결이면 지금)
+    document.getElementById('updatedTime').textContent =
+      collectTime ?? new Date().toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'});
     document.getElementById('hospitalTime').textContent = myDataTime ?? '—';
+
+    // 수동 새로고침이면 결과 알려주기
+    if (manual === true) {
+      if (collectTime && prevCollect === collectTime) {
+        showToast('아직 새 데이터가 없어요 · ' + collectTime + ' 수집분', '#6a8aaa');
+      } else {
+        showToast('최신 데이터로 갱신했어요! ✓', '#22d47a');
+      }
+    }
 
     if (genAvail === null) {
       const eb2 = document.getElementById('errBox');
@@ -730,7 +762,7 @@ async function load() {
   } catch(e) {
     const eb = document.getElementById('errBox');
     eb.innerHTML = '⚠️ 불러오기 실패<br><div style="font-size:10px;color:#ffaa00;background:rgba(255,170,0,0.06);border:1px dashed rgba(255,170,0,0.3);border-radius:8px;padding:8px;margin:8px 0;line-height:1.7;">🔍 진단정보<br>' + (lastDiag || '(정보없음)') + '</div>' +
-      '<button onclick="load()" style="margin-top:8px;margin-right:6px;background:rgba(59,158,255,0.15);border:1px solid rgba(59,158,255,0.4);color:#3b9eff;padding:6px 12px;border-radius:7px;font-size:11px;cursor:pointer;font-family:inherit;">↻ 다시 시도</button>' +
+      '<button onclick="load(true)" style="margin-top:8px;margin-right:6px;background:rgba(59,158,255,0.15);border:1px solid rgba(59,158,255,0.4);color:#3b9eff;padding:6px 12px;border-radius:7px;font-size:11px;cursor:pointer;font-family:inherit;">↻ 다시 시도</button>' +
       '<button onclick="resetAppCache()" style="margin-top:8px;background:rgba(255,170,0,0.15);border:1px solid rgba(255,170,0,0.4);color:#ffaa00;padding:6px 12px;border-radius:7px;font-size:11px;cursor:pointer;font-family:inherit;">🧹 앱 캐시 초기화</button>';
     eb.classList.add('show');
   }
@@ -768,6 +800,19 @@ setInterval(updateClock, 1000);
 })();
 
 // 공유 기능
+function showToast(msg, color) {
+  const old = document.getElementById('refreshToast');
+  if (old) old.remove();
+  const t = document.createElement('div');
+  t.id = 'refreshToast';
+  t.textContent = msg;
+  t.style.cssText = 'position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#131a24;border:1px solid ' +
+    (color||'#243447') + ';color:' + (color||'#ddeeff') +
+    ';padding:10px 18px;border-radius:22px;font-size:12px;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.6);white-space:nowrap;';
+  document.body.appendChild(t);
+  setTimeout(function(){ if(t.parentNode) t.remove(); }, 2600);
+}
+
 function copyLink() {
   const url = 'https://hyinuyu.github.io/Emergency-room/';
   if (navigator.share) {
