@@ -553,11 +553,22 @@ let lastDiag = '';
 let myGenTotal = 20;
 let myDataTime = null;
 
-// CORS 차단 우회: 직접 → 프록시1 → 프록시2 순서로 시도
+// CORS 차단 우회: 여러 경로를 순서대로 시도
+// extract: 응답 본문에서 실제 XML을 꺼내는 함수 (프록시마다 형식이 다름)
 const ROUTES = [
-  { name: '직접 연결', build: u => u },
-  { name: '프록시A(allorigins)', build: u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u) },
-  { name: '프록시B(corsproxy)', build: u => 'https://corsproxy.io/?url=' + encodeURIComponent(u) }
+  { name: '직접 연결',
+    build: u => u },
+  { name: '프록시1(codetabs)',
+    build: u => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u) },
+  { name: '프록시2(allorigins-get)',
+    build: u => 'https://api.allorigins.win/get?url=' + encodeURIComponent(u),
+    extract: t => { try { return JSON.parse(t).contents || ''; } catch(e) { return ''; } } },
+  { name: '프록시3(cors-workers)',
+    build: u => 'https://test.cors.workers.dev/?' + u },
+  { name: '프록시4(allorigins-raw)',
+    build: u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u) },
+  { name: '프록시5(corsproxy)',
+    build: u => 'https://corsproxy.io/?url=' + encodeURIComponent(u) }
 ];
 
 async function fetchData() {
@@ -568,13 +579,14 @@ async function fetchData() {
     try {
       const res = await fetch(route.build(url), { cache: 'no-store' });
       if (!res.ok) { tried.push(route.name + ': HTTP ' + res.status); continue; }
-      const body = await res.text();
+      let body = await res.text();
+      if (route.extract) body = route.extract(body);
       if (body && body.indexOf('<item>') !== -1) {
         txt = body;
         lastDiag = '✅ ' + route.name + ' 성공';
         break;
       }
-      tried.push(route.name + ': 데이터 없음(' + body.slice(0,60).replace(/</g,'&lt;') + ')');
+      tried.push(route.name + ': 내용이상(' + (body||'').slice(0,40).replace(/</g,'&lt;') + ')');
     } catch (err) {
       tried.push(route.name + ': ' + err.name);
     }
