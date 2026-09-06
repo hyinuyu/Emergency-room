@@ -133,72 +133,37 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       </svg>
     </div>
     <div class="vtitle">화산이 잠들었어요</div>
-    <div class="vdesc">그동안 응급실 현황을 지켜봐 준<br>화산이 긴 잠에 들었습니다 💤</div>
+    <div class="vdesc">그동안 감사했습니다 💤</div>
   </div>
 
   <!-- 종료 사유 -->
   <div class="card">
-    <div class="card-t">📮 서비스 종료 안내</div>
+    <div class="card-t">📮 왜 종료하나요?</div>
 
-    <div class="reason">
-      이 사이트는 정부 <b>공공데이터포털</b>이 제공하는<br>
-      <b>응급의료 실시간 가용병상 정보</b>를 받아 보여드렸습니다.<br>
-      <span style="color:var(--text3);font-size:11px;">(API 이용 승인 완료 · 일일 10만 건 허용 · 정상 이용 중이었습니다)</span>
+    <div class="reason" style="text-align:center;font-size:13px;line-height:1.9;">
+      <span class="hl">2026년 8월 3일</span>부터<br>
+      <b>공공데이터포털이 웹사이트로의<br>데이터 제공을 막았습니다.</b>
     </div>
-
-    <div class="reason" style="border-color:rgba(255,68,102,0.25);">
-      그런데 <span class="hl">2026년 8월 3일</span>, 예고 없이<br>
-      <b>데이터 제공 서버의 접속 정책이 변경</b>되었습니다.<br><br>
-      <span style="color:var(--text3);font-size:11px;">그날부터 이 사이트는 데이터를 한 건도 받지 못했습니다.</span>
-    </div>
-
-    <div class="card-t" style="margin-top:16px;font-size:12px;">🔬 무엇이 막혔나</div>
 
     <div class="diag">
       <div class="diag-row">
         <span class="diag-ico ok">✓</span>
-        <div>
-          <b>휴대폰 주소창으로 직접 접속</b>
-          <div class="diag-s">정상 — 데이터가 잘 나옵니다</div>
-        </div>
+        <div><b>사람이 직접 열기</b><div class="diag-s">잘 됨</div></div>
       </div>
       <div class="diag-row">
         <span class="diag-ico ng">✕</span>
-        <div>
-          <b>웹사이트가 데이터를 요청</b>
-          <div class="diag-s">차단됨 — 서버가 웹페이지의 요청을 거부<br><span class="code">CORS 정책 미허용</span></div>
-        </div>
-      </div>
-      <div class="diag-row">
-        <span class="diag-ico ng">✕</span>
-        <div>
-          <b>서버(클라우드)가 대신 요청</b>
-          <div class="diag-s">차단됨 — 응답 없이 연결이 끊김<br><span class="code">TimeoutError · 6초 무응답 × 4개 경로</span></div>
-        </div>
+        <div><b>웹사이트가 받아오기</b><div class="diag-s">차단됨</div></div>
       </div>
     </div>
 
     <div class="verdict">
-      <b>즉,</b> 사람이 브라우저 주소창으로 직접 열면 되지만<br>
-      <b>프로그램이 자동으로 받아오는 길은 전부 닫혔습니다.</b>
+      가능한 방법은 <b>전부 시도</b>했지만<br>
+      뚫을 수 없었습니다 🥲
     </div>
 
-    <div style="font-size:11px;color:var(--text3);line-height:1.8;margin-top:14px;">
-      해결을 위해 시도한 방법 ↓
-      <div style="margin-top:7px;">
-        <span class="tag">직접 연결 ✕</span>
-        <span class="tag">XML · JSON 두 형식 ✕</span>
-        <span class="tag">국내(서울) 중계 서버 ✕</span>
-        <span class="tag">해외 중계 서버 ✕</span>
-        <span class="tag">공개 프록시 6종 ✕</span>
-        <span class="tag">자동 수집 스케줄러 ✕</span>
-      </div>
-      <div style="margin-top:11px;line-height:1.85;">
-        <b style="color:var(--text2);">이 사이트의 오류가 아닙니다.</b><br>
-        코드는 종료 직전까지 정상 작동했고,<br>
-        데이터를 주는 쪽에서 문을 닫아 더는 방법이 없었습니다.<br>
-        <span style="color:var(--text3);">정책이 다시 열리면 언제든 돌아오겠습니다 🥲</span>
-      </div>
+    <div style="font-size:11px;color:var(--text3);text-align:center;line-height:1.8;margin-top:13px;">
+      <b style="color:var(--text2);">사이트 오류가 아니라 정책 변경입니다.</b><br>
+      다시 열리면 돌아올게요!
     </div>
   </div>
 
@@ -209,7 +174,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <span class="alt-ico">🚑</span>
       <div>
         <div class="alt-t">응급의료포털 E-Gen</div>
-        <div class="alt-s">실시간 병상 현황 공식 사이트</div>
+        <div class="alt-s">실시간 병상 현황</div>
       </div>
       <span class="alt-go">→</span>
     </a>
@@ -217,12 +182,12 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <span class="alt-ico">📞</span>
       <div>
         <div class="alt-t">1339 · 응급의료상담</div>
-        <div class="alt-s">24시간 연중무휴 상담</div>
+        <div class="alt-s">24시간 상담</div>
       </div>
       <span class="alt-go">→</span>
     </a>
-    <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:10px;line-height:1.7;">
-      <b style="color:var(--text2);">응급상황이라면 망설이지 말고 119! 🚨</b>
+    <div style="font-size:12px;color:var(--red);text-align:center;margin-top:11px;font-weight:700;">
+      🚨 응급상황은 망설이지 말고 119
     </div>
   </div>
 
@@ -232,7 +197,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <span style="font-size:26px;">✍️</span>
       <div>
         <div class="blog-t">흰우유 블로그</div>
-        <div class="blog-s">앞으로의 이야기는 여기서 계속돼요<br><span style="font-family:var(--mono);color:var(--text3);">blog.naver.com/hyinuyu</span></div>
+        <div class="blog-s">앞으로의 이야기는 여기서 💙</div>
       </div>
     </div>
     <span class="blog-go">→</span>
