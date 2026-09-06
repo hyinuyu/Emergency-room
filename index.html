@@ -409,7 +409,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 </div><!-- /.wrap -->
 
 <script>
-const APP_VERSION = '2026.08.03i';   // 앱 버전 (업데이트 확인용)
+const APP_VERSION = '2026.08.03j';   // 앱 버전 (업데이트 확인용)
 const API_KEY = '1ae147a1907296a5c5fd16751a21b2f146381a4727784592ae9c235d8ac0263d';
 const BASE = 'https://apis.data.go.kr/B552657/ErmctInfoInqireService';
 const TOTAL_GEN = 20;
@@ -603,6 +603,22 @@ function applyJson(o){
   return { genAvail: cha.a, pedAvail: cha.pa };
 }
 
+// JSON 응답의 item 배열 → er.json과 같은 모양
+function itemsToObj(arr){
+  const H = {};
+  arr.forEach(function(it){
+    const name = String(it.dutyName||'').replace(/\s/g,'');
+    let key = null;
+    if (name.includes('구미차') || name.includes('차의과학')) key = 'cha';
+    else if (name.includes('강동')) key = 'gangdong';
+    else if (name.includes('순천향') && name.includes('구미')) key = 'sch';
+    if (!key) return;
+    const n = function(v){ const x = parseInt(v); return isNaN(x) ? null : x; };
+    H[key] = { a:n(it.hvec), t:n(it.hvs01), pa:n(it.hv28), pt:n(it.hvs02), d:(it.hvidate ? String(it.hvidate) : null) };
+  });
+  return H.cha ? { collected:null, h:H } : null;
+}
+
 // XML 텍스트 → er.json과 같은 모양
 function parseXmlToObj(txt){
   const xml = new DOMParser().parseFromString(txt, 'text/xml');
@@ -705,21 +721,39 @@ async function fetchData(){
     return applyJson(o);
   }
 
-  // ① 직접 호출 — 폰(통신사 IP)은 차단 대상이 아님 → 실제로 성공하는 경로
-  try {
-    const r = await fetchWithTimeout(apiUrl, 7000);
-    if (r.ok) {
+  // ① 직접 호출 — 폰(통신사 IP)에서 성공하는 경로. CORS 대응으로 여러 조합 시도
+  const P = `serviceKey=${encodeURIComponent(API_KEY)}&STAGE1=${encodeURIComponent('경상북도')}&pageNo=1&numOfRows=100`;
+  const EP = 'B552657/ErmctInfoInqireService/getEmrrmRltmUsefulSckbdInfoInqire';
+  const DIRECTS = [
+    { n:'직접XML',      u:`https://apis.data.go.kr/${EP}?${P}`,             json:false },
+    { n:'직접JSON',     u:`https://apis.data.go.kr/${EP}?${P}&_type=json`,  json:true  },
+    { n:'직접JSON(api)',u:`https://api.data.go.kr/${EP}?${P}&_type=json`,   json:true  },
+    { n:'직접XML(api)', u:`https://api.data.go.kr/${EP}?${P}`,              json:false }
+  ];
+  for (const d of DIRECTS) {
+    try {
+      const r = await fetchWithTimeout(d.u, 7000);
+      if (!r.ok) { tried.push(d.n + ': HTTP ' + r.status); continue; }
       const txt = await r.text();
-      const o = parseXmlToObj(txt);
+      let o = null;
+      if (d.json) {
+        try {
+          const j = JSON.parse(txt);
+          const its = j?.response?.body?.items?.item;
+          if (its) o = itemsToObj(Array.isArray(its) ? its : [its]);
+        } catch(e2){}
+      } else {
+        o = parseXmlToObj(txt);
+      }
       if (o) {
         o.collected = new Date().toISOString();
         const got = accept(o, '실시간');
         shareSnapshot(o);
         return got;
       }
-      tried.push('직접: 형식이상(' + txt.slice(0,40).replace(/</g,'&lt;') + ')');
-    } else tried.push('직접: HTTP ' + r.status);
-  } catch(e){ tried.push('직접: ' + e.name); }
+      tried.push(d.n + ': 형식이상(' + txt.slice(0,40).replace(/</g,'&lt;') + ')');
+    } catch(e){ tried.push(d.n + ': ' + e.name); }
+  }
 
   // ② 중계서버 예비 (클라우드 차단이 풀리면 자동 부활)
   try {
