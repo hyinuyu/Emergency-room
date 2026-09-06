@@ -66,6 +66,18 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .verdict{background:rgba(59,158,255,0.06);border:1px solid rgba(59,158,255,0.25);border-radius:12px;padding:13px 15px;font-size:12px;line-height:1.8;color:var(--text2);}
 .verdict b{color:var(--main);}
 
+.tl{margin-bottom:13px;}
+.tl-item{display:flex;gap:11px;position:relative;padding-bottom:14px;}
+.tl-item:last-child{padding-bottom:0;}
+.tl-item:not(:last-child)::before{content:'';position:absolute;left:5px;top:15px;bottom:2px;width:2px;background:var(--border2);}
+.tl-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;margin-top:3px;z-index:1;}
+.tl-dot.ok{background:var(--orange);box-shadow:0 0 0 3px rgba(255,170,0,0.12);}
+.tl-dot.ng{background:var(--red);box-shadow:0 0 0 3px rgba(255,68,102,0.12);}
+.tl-date{font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:3px;}
+.tl-txt{font-size:12px;color:var(--text2);line-height:1.75;}
+.tl-txt b{color:var(--text);}
+.tl-s{font-size:11px;color:var(--text3);}
+
 .tries{font-size:11px;color:var(--text3);text-align:center;line-height:1.9;margin-top:12px;font-family:var(--mono);}
 .giveup{background:var(--card2);border:1px dashed var(--border2);border-radius:12px;padding:15px;text-align:center;font-size:12px;line-height:1.8;margin-top:13px;}
 
@@ -99,7 +111,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
   <div class="head">
     <h1>🏥 <span>구미차병원</span> 응급실 현황</h1>
-    <p>2025 – 2026 · 서비스를 종료합니다</p>
+    <p>서비스를 종료합니다 · 2026.09</p>
   </div>
 
   <!-- 잠든 화산 -->
@@ -143,10 +155,25 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <div class="card">
     <div class="card-t">📮 무슨 일이 있었냐면요</div>
 
-    <div class="reason" style="text-align:center;font-size:13px;line-height:1.95;">
-      <span class="hl">2026년 8월 3일</span>, 어느 날 갑자기<br>
-      <b>공공데이터 서버가 응답을 멈췄습니다.</b><br>
-      <span style="color:var(--text3);font-size:11px;">에러 메시지조차 없이, 그냥 무응답 🫥</span>
+    <div class="tl">
+      <div class="tl-item">
+        <div class="tl-dot ok"></div>
+        <div class="tl-body">
+          <div class="tl-date">8월 3일</div>
+          <div class="tl-txt"><b>1차 사망</b><br>
+          공공데이터 서버가 갑자기 응답을 멈춤.<br>
+          <span class="tl-s">온갖 우회로를 뚫어서 겨우 되살림 💪</span></div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot ng"></div>
+        <div class="tl-body">
+          <div class="tl-date">9월 6일</div>
+          <div class="tl-txt"><b>2차 사망</b><br>
+          똑같은 일이 또 발생. 이번엔 <b>모든 길이 막힘.</b><br>
+          <span class="tl-s">에러 메시지조차 없이 그냥 무응답 🫥</span></div>
+        </div>
+      </div>
     </div>
 
     <div class="diag">
@@ -156,7 +183,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       </div>
       <div class="diag-row">
         <span class="diag-ico ok">✓</span>
-        <div><b>사이트 코드</b><div class="diag-s">멀쩡함 (아침까지 잘 돌아갔어요)</div></div>
+        <div><b>사이트 코드</b><div class="diag-s">멀쩡함 (그날 아침까지 잘 돌아갔어요)</div></div>
       </div>
       <div class="diag-row">
         <span class="diag-ico ng">✕</span>
@@ -165,22 +192,22 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     </div>
 
     <div class="verdict" style="text-align:center;">
-      하루종일 <b>온갖 방법</b>을 다 써봤지만<br>
-      전부 실패했습니다 🥲
+      이틀에 걸쳐 <b>쓸 수 있는 방법은 전부</b><br>
+      동원했지만 결국 실패했습니다 🥲
     </div>
 
     <div class="tries">
-      직접 연결 · 중계 서버 · 우회 경로 ·<br>
-      자동 수집기 · 다른 형식 요청 …
+      직접 연결 · 국내외 중계 서버 · 공개 우회로 ·<br>
+      자동 수집기 · 방문자 공유 · 다른 형식 요청 …
     </div>
 
     <div class="giveup">
       <div style="font-size:15px;margin-bottom:6px;">🏳️</div>
-      <b style="color:var(--text2);">그래서 그냥 접기로 했습니다.</b><br>
+      <b style="color:var(--text2);">한 번은 살렸지만, 두 번은 못 하겠더라고요.</b><br>
       <span style="font-size:11px;color:var(--text3);line-height:1.85;">
-        고칠 수 있는 게 제 쪽엔 없더라고요.<br>
-        언젠가 서버가 다시 말을 걸어오면<br>
-        그때 생각해 보겠습니다 😌
+        고쳐도 또 멈출 텐데, 계속 붙잡고 있기엔<br>
+        제가 먼저 지쳐버렸습니다 😌<br>
+        언젠가 서버가 다시 말을 걸어오면 그때 생각해 볼게요.
       </span>
     </div>
   </div>
