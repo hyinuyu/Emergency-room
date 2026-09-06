@@ -158,7 +158,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       </div>
       <div style="width:1px;height:22px;background:var(--border);"></div>
       <div>
-        <div style="font-size:9px;color:var(--text3);font-family:var(--mono);">병원입력</div>
+        <div style="font-size:9px;color:var(--text3);font-family:var(--mono);">병원입력 <span id="srcBadge" style="font-size:8px;"></span></div>
         <div style="font-size:12px;font-weight:600;color:var(--text2);font-family:var(--mono);" id="hospitalTime">—</div>
       </div>
     </div>
@@ -409,7 +409,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 </div><!-- /.wrap -->
 
 <script>
-const APP_VERSION = '2026.08.03h';   // 앱 버전 (업데이트 확인용)
+const APP_VERSION = '2026.08.03i';   // 앱 버전 (업데이트 확인용)
 const API_KEY = '1ae147a1907296a5c5fd16751a21b2f146381a4727784592ae9c235d8ac0263d';
 const BASE = 'https://apis.data.go.kr/B552657/ErmctInfoInqireService';
 const TOTAL_GEN = 20;
@@ -655,16 +655,19 @@ function fbFirestore(){
   return _fbReady;
 }
 
-// 직접호출 성공한 방문자가 스냅샷 공유 (5분에 1번)
+// 직접호출에 성공한 방문자가 스냅샷을 공유 (90초에 1번 — 남들에게 신선한 데이터 제공)
 function shareSnapshot(o){
   try {
     const last = parseInt(localStorage.getItem('snapW') || '0');
-    if (Date.now() - last < 5*60*1000) return;
+    if (Date.now() - last < 90*1000) return;
     localStorage.setItem('snapW', String(Date.now()));
   } catch(e){}
-  fbFirestore().then(function(db){
-    return db.collection('er_snapshot').doc('latest').set({ o: o, ms: Date.now() });
-  }).catch(function(){});
+  // 화면 렌더를 방해하지 않도록 뒤로 미룸
+  setTimeout(function(){
+    fbFirestore().then(function(db){
+      return db.collection('er_snapshot').doc('latest').set({ o: o, ms: Date.now() });
+    }).catch(function(){});
+  }, 400);
 }
 
 function readSnapshot(){
@@ -702,23 +705,9 @@ async function fetchData(){
     return applyJson(o);
   }
 
-  // ⓪ 한국 중계서버 (서울 리전 → 차단 없음, CORS 열림, 60초 캐시로 빠름)
+  // ① 직접 호출 — 폰(통신사 IP)은 차단 대상이 아님 → 실제로 성공하는 경로
   try {
-    const r = await fetchWithTimeout(RELAY_URL, 5000);
-    if (r.ok) {
-      const o = await r.json();
-      if (o && o.h && o.h.cha) {
-        const got = accept(o, '실시간');
-        shareSnapshot(o);
-        return got;
-      }
-      tried.push('중계: 형식이상');
-    } else tried.push('중계: HTTP ' + r.status);
-  } catch(e){ tried.push('중계: ' + e.name); }
-
-  // ① 직접 호출 (혹시 차단 풀리면)
-  try {
-    const r = await fetchWithTimeout(apiUrl, 4000);
+    const r = await fetchWithTimeout(apiUrl, 7000);
     if (r.ok) {
       const txt = await r.text();
       const o = parseXmlToObj(txt);
@@ -732,7 +721,17 @@ async function fetchData(){
     } else tried.push('직접: HTTP ' + r.status);
   } catch(e){ tried.push('직접: ' + e.name); }
 
-  // ② 방문자 공유 스냅샷 (Firebase)
+  // ② 중계서버 예비 (클라우드 차단이 풀리면 자동 부활)
+  try {
+    const r = await fetchWithTimeout(RELAY_URL, 4000);
+    if (r.ok) {
+      const o = await r.json();
+      if (o && o.h && o.h.cha) { const got = accept(o, '중계서버'); shareSnapshot(o); return got; }
+      tried.push('중계: 차단중');
+    } else tried.push('중계: HTTP ' + r.status);
+  } catch(e){ tried.push('중계: ' + e.name); }
+
+  // ③ 방문자 공유 스냅샷 (Firebase)
   try {
     const o = await readSnapshot();
     if (o) {
@@ -870,6 +869,13 @@ function paintTimes(){
     utEl.textContent = '—';
   }
   document.getElementById('hospitalTime').textContent = myDataTime ?? '—';
+  // 데이터 출처 배지
+  const srcEl = document.getElementById('srcBadge');
+  if (srcEl && dataSource) {
+    const live = (dataSource === '실시간');
+    srcEl.textContent = live ? '⚡실시간' : ('🔗' + dataSource.replace('(지연)',''));
+    srcEl.style.color = live ? 'var(--green)' : 'var(--text3)';
+  }
 }
 
 let prevCollect = null;   // 직전 수집시각 (새로고침시 변화 확인용)
