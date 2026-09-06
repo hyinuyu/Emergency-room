@@ -409,7 +409,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 </div><!-- /.wrap -->
 
 <script>
-const APP_VERSION = '2026.08.03j';   // 앱 버전 (업데이트 확인용)
+const APP_VERSION = '2026.08.03k';   // 앱 버전 (업데이트 확인용)
 const API_KEY = '1ae147a1907296a5c5fd16751a21b2f146381a4727784592ae9c235d8ac0263d';
 const BASE = 'https://apis.data.go.kr/B552657/ErmctInfoInqireService';
 const TOTAL_GEN = 20;
@@ -565,6 +565,7 @@ function pedBadge(avail, total) {
 let otherHospitals = [];
 let myPedTotal = 5;
 let lastDiag = '';
+let staleCandidate = null;
 let collectTime = null;   // GitHub이 데이터를 받아온 시각
 let collectAgeMin = null; // 수집 후 몇 분 지났는지
 let dataSource = '';      // 어느 경로로 받았는지
@@ -706,14 +707,36 @@ function fetchWithTimeout(url, ms){
 }
 
 async function fetchData(){
-  const apiUrl = `${BASE}/getEmrrmRltmUsefulSckbdInfoInqire?serviceKey=${encodeURIComponent(API_KEY)}&STAGE1=${encodeURIComponent('경상북도')}&pageNo=1&numOfRows=100`;
+  const P = `serviceKey=${encodeURIComponent(API_KEY)}&STAGE1=${encodeURIComponent('경상북도')}&pageNo=1&numOfRows=100`;
+  const EP = 'B552657/ErmctInfoInqireService/getEmrrmRltmUsefulSckbdInfoInqire';
   const tried = [];
-  let staleBest = null;
 
-  function keepStale(o, src){
-    const ms = collectedMs(o) || 0;
-    if (!staleBest || ms > staleBest.ms) staleBest = { o:o, ms:ms, src:src };
-  }
+  // 실시간 후보들을 "동시에" 발사 → 가장 먼저 성공한 것 채택 (느린 순차 대기 제거)
+  const live = [
+    { n:'직접XML',  u:`https://apis.data.go.kr/${EP}?${P}`,            k:'xml'  },
+    { n:'직접JSON', u:`https://apis.data.go.kr/${EP}?${P}&_type=json`, k:'json' },
+    { n:'중계서버', u:RELAY_URL,                                        k:'relay'}
+  ];
+
+  const attempt = (c) => fetchWithTimeout(c.u, 4500).then(async r => {
+    if (!r.ok) throw new Error(c.n + ': HTTP ' + r.status);
+    const txt = await r.text();
+    let o = null;
+    if (c.k === 'json') {
+      const j = JSON.parse(txt);
+      const its = j && j.response && j.response.body && j.response.body.items && j.response.body.items.item;
+      if (its) o = itemsToObj(Array.isArray(its) ? its : [its]);
+    } else if (c.k === 'relay') {
+      const j = JSON.parse(txt);
+      if (j && j.h && j.h.cha) o = j;
+    } else {
+      o = parseXmlToObj(txt);
+    }
+    if (!o) throw new Error(c.n + ': 형식이상');
+    o.collected = new Date().toISOString();
+    return { o: o, name: c.n };
+  }).catch(e => { tried.push(e.message || (c.n + ': ' + e.name)); throw e; });
+
   function accept(o, src){
     dataSource = src;
     lastDiag = '✅ ' + src;
@@ -721,91 +744,39 @@ async function fetchData(){
     return applyJson(o);
   }
 
-  // ① 직접 호출 — 폰(통신사 IP)에서 성공하는 경로. CORS 대응으로 여러 조합 시도
-  const P = `serviceKey=${encodeURIComponent(API_KEY)}&STAGE1=${encodeURIComponent('경상북도')}&pageNo=1&numOfRows=100`;
-  const EP = 'B552657/ErmctInfoInqireService/getEmrrmRltmUsefulSckbdInfoInqire';
-  const DIRECTS = [
-    { n:'직접XML',      u:`https://apis.data.go.kr/${EP}?${P}`,             json:false },
-    { n:'직접JSON',     u:`https://apis.data.go.kr/${EP}?${P}&_type=json`,  json:true  },
-    { n:'직접JSON(api)',u:`https://api.data.go.kr/${EP}?${P}&_type=json`,   json:true  },
-    { n:'직접XML(api)', u:`https://api.data.go.kr/${EP}?${P}`,              json:false }
-  ];
-  for (const d of DIRECTS) {
-    try {
-      const r = await fetchWithTimeout(d.u, 7000);
-      if (!r.ok) { tried.push(d.n + ': HTTP ' + r.status); continue; }
-      const txt = await r.text();
-      let o = null;
-      if (d.json) {
-        try {
-          const j = JSON.parse(txt);
-          const its = j?.response?.body?.items?.item;
-          if (its) o = itemsToObj(Array.isArray(its) ? its : [its]);
-        } catch(e2){}
-      } else {
-        o = parseXmlToObj(txt);
-      }
-      if (o) {
-        o.collected = new Date().toISOString();
-        const got = accept(o, '실시간');
-        shareSnapshot(o);
-        return got;
-      }
-      tried.push(d.n + ': 형식이상(' + txt.slice(0,40).replace(/</g,'&lt;') + ')');
-    } catch(e){ tried.push(d.n + ': ' + e.name); }
-  }
-
-  // ② 중계서버 예비 (클라우드 차단이 풀리면 자동 부활)
+  // ① 실시간 (동시 발사, 최대 ~4.5초)
   try {
-    const r = await fetchWithTimeout(RELAY_URL, 4000);
-    if (r.ok) {
-      const o = await r.json();
-      if (o && o.h && o.h.cha) { const got = accept(o, '중계서버'); shareSnapshot(o); return got; }
-      tried.push('중계: 차단중');
-    } else tried.push('중계: HTTP ' + r.status);
-  } catch(e){ tried.push('중계: ' + e.name); }
+    const win = await Promise.any(live.map(attempt));
+    const got = accept(win.o, '실시간');
+    shareSnapshot(win.o);
+    return got;
+  } catch(e) { /* 전부 실패 → 아래 예비 */ }
 
-  // ③ 방문자 공유 스냅샷 (Firebase)
+  // ② 남이 공유한 스냅샷 (Firebase)
   try {
     const o = await readSnapshot();
-    if (o) {
-      if (isFresh(o)) return accept(o, '공유 스냅샷');
-      keepStale(o, '공유 스냅샷'); tried.push('스냅샷: 오래됨');
-    } else tried.push('스냅샷: 없음');
+    if (o && isFresh(o)) return accept(o, '공유 스냅샷');
+    if (o) { staleCandidate = o; tried.push('스냅샷: 오래됨'); }
+    else tried.push('스냅샷: 없음');
   } catch(e){ tried.push('스냅샷: ' + e.name); }
 
   // ③ GitHub 수집분 (해외차단 풀리면 자동 부활)
   try {
-    const r = await fetchWithTimeout(JSON_URL + '?t=' + Date.now(), 5000);
+    const r = await fetchWithTimeout(JSON_URL + '?t=' + Date.now(), 3500);
     if (r.ok) {
       const o = await r.json();
       if (o && o.h && o.h.cha) {
         if (isFresh(o)) return accept(o, 'GitHub수집');
-        keepStale(o, 'GitHub수집'); tried.push('GitHub: 오래됨');
-      } else tried.push('GitHub JSON: 형식이상');
-    } else tried.push('GitHub JSON: HTTP ' + r.status);
-  } catch(e){ tried.push('GitHub JSON: ' + e.name); }
+        if (!staleCandidate) staleCandidate = o;
+        tried.push('GitHub: 오래됨');
+      }
+    } else tried.push('GitHub: HTTP ' + r.status);
+  } catch(e){ tried.push('GitHub: ' + e.name); }
 
-  try {
-    const r = await fetchWithTimeout(XML_URL + '?t=' + Date.now(), 5000);
-    if (r.ok) {
-      const o = parseXmlToObj(await r.text());
-      if (o) {
-        try {
-          const u = await fetchWithTimeout('https://raw.githubusercontent.com/hyinuyu/Emergency-room/data/updated.txt?t=' + Date.now(), 4000);
-          const m = (await u.text()).match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/);
-          if (m) o.collected = m[0] + 'Z';
-        } catch(e2){}
-        if (isFresh(o)) return accept(o, 'GitHub수집');
-        keepStale(o, 'GitHub수집(XML)'); tried.push('GitHub XML: 오래됨');
-      } else tried.push('GitHub XML: 형식이상');
-    } else tried.push('GitHub XML: HTTP ' + r.status);
-  } catch(e){ tried.push('GitHub XML: ' + e.name); }
-
-  // ④ 최후수단: 오래된 데이터라도 경고와 함께 표시
-  if (staleBest && staleBest.o) {
-    const got = accept(staleBest.o, staleBest.src + '(지연)');
-    lastDiag = '⚠️ 실시간 실패 → 지난 데이터 표시<br><span style="color:#6a8aaa;">' + tried.join('<br>') + '</span>';
+  // ④ 최후: 오래된 데이터라도 경고와 함께
+  if (staleCandidate) {
+    const got = accept(staleCandidate, '지난 데이터');
+    lastDiag = '⚠️ 실시간 실패 → 지난 데이터<br><span style="color:#6a8aaa;">' + tried.join('<br>') + '</span>';
     return got;
   }
 
