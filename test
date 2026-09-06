@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>API 연결 테스트</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#060910;color:#ddeeff;font-family:system-ui,'Noto Sans KR',sans-serif;padding:18px;max-width:480px;margin:0 auto;}
+h1{font-size:17px;margin-bottom:4px;}
+.sub{font-size:12px;color:#6a8aaa;margin-bottom:16px;}
+.row{background:#0d1117;border:1px solid #1c2a3a;border-radius:11px;padding:13px 15px;margin-bottom:9px;}
+.name{font-size:13px;font-weight:700;margin-bottom:5px;}
+.st{font-size:12px;font-family:ui-monospace,monospace;line-height:1.6;word-break:break-all;}
+.wait{color:#6a8aaa;} .ok{color:#22d47a;} .ng{color:#ff4466;}
+.result{border-radius:12px;padding:16px;margin-top:14px;font-size:13px;line-height:1.8;display:none;}
+.result.win{background:rgba(34,212,122,0.1);border:1px solid rgba(34,212,122,0.4);}
+.result.lose{background:rgba(255,68,102,0.08);border:1px solid rgba(255,68,102,0.3);}
+button{width:100%;padding:13px;border-radius:10px;border:none;background:#3b9eff;color:#001427;font-size:14px;font-weight:700;cursor:pointer;margin-top:12px;font-family:inherit;}
+</style>
+</head>
+<body>
+<h1>🔬 API 연결 방식 테스트</h1>
+<div class="sub">브라우저에서 데이터를 받을 수 있는 방법이 있는지 확인합니다</div>
+
+<div class="row"><div class="name">① JSONP (script 태그)</div><div class="st wait" id="s1">테스트 중… ⏳</div></div>
+<div class="row"><div class="name">② fetch — XML</div><div class="st wait" id="s2">테스트 중… ⏳</div></div>
+<div class="row"><div class="name">③ fetch — JSON</div><div class="st wait" id="s3">테스트 중… ⏳</div></div>
+<div class="row"><div class="name">④ fetch — no-cors 모드</div><div class="st wait" id="s4">테스트 중… ⏳</div></div>
+
+<div class="result" id="res"></div>
+<button onclick="location.reload()">↻ 다시 테스트</button>
+
+<script>
+var KEY='1ae147a1907296a5c5fd16751a21b2f146381a4727784592ae9c235d8ac0263d';
+var EP='B552657/ErmctInfoInqireService/getEmrrmRltmUsefulSckbdInfoInqire';
+var Q='serviceKey='+encodeURIComponent(KEY)+'&STAGE1='+encodeURIComponent('경상북도')+'&pageNo=1&numOfRows=5';
+var BASE='https://apis.data.go.kr/'+EP+'?'+Q;
+var done={}, anyWin=false;
+
+function set(id,cls,msg){
+  var el=document.getElementById(id);
+  el.className='st '+cls; el.textContent=msg;
+  done[id]=cls;
+  if(cls==='ok') anyWin=true;
+  if(Object.keys(done).length===4) finish();
+}
+function finish(){
+  var r=document.getElementById('res');
+  r.style.display='block';
+  if(anyWin){
+    r.className='result win';
+    r.innerHTML='<b style="color:#22d47a;font-size:15px;">🎉 성공한 방법이 있어요!</b><br>초록색(✅)으로 표시된 방식으로<br>사이트를 되살릴 수 있습니다.';
+  } else {
+    r.className='result lose';
+    r.innerHTML='<b style="color:#ff8096;font-size:15px;">모든 방법이 막혔습니다</b><br>브라우저에서 이 데이터를 받아올 방법이<br>현재로선 없다는 게 확인되었어요. 🥲';
+  }
+}
+
+// ① JSONP
+window.__cb = function(data){
+  if(done.s1) return;
+  try{
+    var n = data && data.response && data.response.body && data.response.body.items ? '데이터 수신 성공' : '응답은 왔으나 형식 다름';
+    set('s1','ok','✅ 성공 — '+n);
+  }catch(e){ set('s1','ok','✅ 응답 수신'); }
+};
+(function(){
+  var s=document.createElement('script');
+  s.src = BASE + '&_type=json&callback=__cb';
+  s.onerror=function(){ if(!done.s1) set('s1','ng','❌ 실패 — JSONP 미지원'); };
+  document.head.appendChild(s);
+  setTimeout(function(){ if(!done.s1) set('s1','ng','❌ 실패 — 응답 없음(타임아웃)'); }, 12000);
+})();
+
+// ② fetch XML
+fetch(BASE).then(function(r){ return r.text(); }).then(function(t){
+  set('s2', t.indexOf('<item>')>-1?'ok':'ng', t.indexOf('<item>')>-1?'✅ 성공 — 데이터 수신':'⚠️ 응답 형식 다름: '+t.slice(0,60));
+}).catch(function(e){ set('s2','ng','❌ 차단 — '+e.name+' (CORS)'); });
+
+// ③ fetch JSON
+fetch(BASE+'&_type=json').then(function(r){ return r.text(); }).then(function(t){
+  var ok=false; try{ ok = !!JSON.parse(t).response; }catch(e){}
+  set('s3', ok?'ok':'ng', ok?'✅ 성공 — 데이터 수신':'⚠️ 형식 다름: '+t.slice(0,60));
+}).catch(function(e){ set('s3','ng','❌ 차단 — '+e.name+' (CORS)'); });
+
+// ④ no-cors (참고용 - 내용은 못 읽음)
+fetch(BASE,{mode:'no-cors'}).then(function(r){
+  set('s4','ng','⚠️ 요청은 전달됨 (type='+r.type+') — 내용은 읽을 수 없음');
+}).catch(function(e){ set('s4','ng','❌ 실패 — '+e.name); });
+</script>
+</body>
+</html>
