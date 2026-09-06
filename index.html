@@ -66,6 +66,9 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .verdict{background:rgba(59,158,255,0.06);border:1px solid rgba(59,158,255,0.25);border-radius:12px;padding:13px 15px;font-size:12px;line-height:1.8;color:var(--text2);}
 .verdict b{color:var(--main);}
 
+.tries{font-size:11px;color:var(--text3);text-align:center;line-height:1.9;margin-top:12px;font-family:var(--mono);}
+.giveup{background:var(--card2);border:1px dashed var(--border2);border-radius:12px;padding:15px;text-align:center;font-size:12px;line-height:1.8;margin-top:13px;}
+
 /* 대안 안내 */
 .alt{display:flex;align-items:center;gap:11px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:13px 15px;margin-bottom:8px;text-decoration:none;}
 .alt-ico{font-size:21px;}
@@ -133,37 +136,52 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       </svg>
     </div>
     <div class="vtitle">화산이 잠들었어요</div>
-    <div class="vdesc">그동안 감사했습니다 💤</div>
+    <div class="vdesc">이제 푹 쉬려고 합니다 💤</div>
   </div>
 
   <!-- 종료 사유 -->
   <div class="card">
-    <div class="card-t">📮 왜 종료하나요?</div>
+    <div class="card-t">📮 무슨 일이 있었냐면요</div>
 
-    <div class="reason" style="text-align:center;font-size:13px;line-height:1.9;">
-      <span class="hl">2026년 8월 3일</span>부터<br>
-      <b>공공데이터포털이 웹사이트로의<br>데이터 제공을 막았습니다.</b>
+    <div class="reason" style="text-align:center;font-size:13px;line-height:1.95;">
+      <span class="hl">2026년 8월 3일</span>, 어느 날 갑자기<br>
+      <b>공공데이터 서버가 응답을 멈췄습니다.</b><br>
+      <span style="color:var(--text3);font-size:11px;">에러 메시지조차 없이, 그냥 무응답 🫥</span>
     </div>
 
     <div class="diag">
       <div class="diag-row">
         <span class="diag-ico ok">✓</span>
-        <div><b>사람이 직접 열기</b><div class="diag-s">잘 됨</div></div>
+        <div><b>승인받은 API 키</b><div class="diag-s">정상 · 하루 10만 건 사용 가능</div></div>
+      </div>
+      <div class="diag-row">
+        <span class="diag-ico ok">✓</span>
+        <div><b>사이트 코드</b><div class="diag-s">멀쩡함 (아침까지 잘 돌아갔어요)</div></div>
       </div>
       <div class="diag-row">
         <span class="diag-ico ng">✕</span>
-        <div><b>웹사이트가 받아오기</b><div class="diag-s">차단됨</div></div>
+        <div><b>데이터 주는 서버</b><div class="diag-s">대답이 없음 · 이유도 안 알려줌</div></div>
       </div>
     </div>
 
-    <div class="verdict">
-      가능한 방법은 <b>전부 시도</b>했지만<br>
-      뚫을 수 없었습니다 🥲
+    <div class="verdict" style="text-align:center;">
+      하루종일 <b>온갖 방법</b>을 다 써봤지만<br>
+      전부 실패했습니다 🥲
     </div>
 
-    <div style="font-size:11px;color:var(--text3);text-align:center;line-height:1.8;margin-top:13px;">
-      <b style="color:var(--text2);">사이트 오류가 아니라 정책 변경입니다.</b><br>
-      다시 열리면 돌아올게요!
+    <div class="tries">
+      직접 연결 · 중계 서버 · 우회 경로 ·<br>
+      자동 수집기 · 다른 형식 요청 …
+    </div>
+
+    <div class="giveup">
+      <div style="font-size:15px;margin-bottom:6px;">🏳️</div>
+      <b style="color:var(--text2);">그래서 그냥 접기로 했습니다.</b><br>
+      <span style="font-size:11px;color:var(--text3);line-height:1.85;">
+        고칠 수 있는 게 제 쪽엔 없더라고요.<br>
+        언젠가 서버가 다시 말을 걸어오면<br>
+        그때 생각해 보겠습니다 😌
+      </span>
     </div>
   </div>
 
