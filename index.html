@@ -3,1083 +3,267 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>구미차병원 응급실</title>
-<meta name="description" content="구미차병원 응급실 실시간 현황 - 가용병상·환자수·예상 대기시간, 주변 응급실 비교">
-<meta property="og:title" content="🏥 구미차병원 응급실 현황">
-<meta property="og:description" content="실시간 가용병상·환자수 확인 + 대기 중 미니게임 🎮">
-<meta property="og:url" content="https://hyinuyu.github.io/Emergency-room/">
-<meta property="og:type" content="website">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://raw.githubusercontent.com">
+<title>구미차병원 응급실 현황 — 서비스 종료</title>
+<meta name="description" content="공공데이터 API 정책 변경으로 실시간 응급실 현황 서비스를 종료합니다.">
+<meta property="og:title" content="🌋 그동안 감사했습니다">
+<meta property="og:description" content="구미차병원 응급실 현황 서비스가 종료되었습니다">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#060910">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root {
+:root{
   --bg:#060910; --card:#0d1117; --card2:#131a24;
   --border:#1c2a3a; --border2:#243447;
   --main:#3b9eff; --green:#22d47a; --orange:#ffaa00; --red:#ff4466;
   --text:#ddeeff; --text2:#6a8aaa; --text3:#2d4055;
   --mono:'DM Mono',monospace;
 }
-*{margin:0;padding:0;box-sizing:border-box;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 20%,rgba(59,158,255,0.05) 0%,transparent 70%);pointer-events:none;}
-.wrap{position:relative;max-width:480px;width:100%;margin:0 auto;padding:36px 18px 60px;display:flex;flex-direction:column;align-items:stretch;box-sizing:border-box;}
+.wrap{position:relative;max-width:480px;margin:0 auto;padding:40px 18px 60px;}
 
 /* 헤더 */
-.hosp-name{text-align:center;margin-bottom:24px;}
-.hosp-name h1{font-size:20px;font-weight:900;color:#fff;}
-.hosp-name h1 span{color:var(--main);}
-.hosp-name p{font-size:12px;color:var(--text2);margin-top:6px;font-family:var(--mono);}
-.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;display:inline-block;margin-right:5px;vertical-align:middle;}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.head{text-align:center;margin-bottom:22px;}
+.head h1{font-size:19px;font-weight:900;color:#fff;line-height:1.4;}
+.head h1 span{color:var(--main);}
+.head p{font-size:12px;color:var(--text2);margin-top:7px;font-family:var(--mono);}
 
-/* 화산 섹션 */
-.volcano-section{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:20px;padding:28px 20px;margin-bottom:16px;
-  text-align:center;position:relative;overflow:hidden;
+/* 잠든 화산 */
+.volcano-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:26px 20px 24px;text-align:center;margin-bottom:14px;overflow:hidden;}
+.vwrap{height:150px;margin-bottom:6px;}
+.vsvg{width:100%;height:100%;}
+@keyframes zzz{
+  0%{opacity:0;transform:translate(0,0) scale(0.8) rotate(0deg);}
+  25%{opacity:0.9;}
+  100%{opacity:0;transform:translate(16px,-34px) scale(1.5) rotate(14deg);}
 }
-.volcano-bg{
-  position:absolute;inset:0;
-  background:radial-gradient(ellipse 80% 60% at 50% 100%, rgba(255,68,102,0.05) 0%, transparent 70%);
-  transition:all 1s ease;
-}
+@keyframes breathe{0%,100%{transform:scaleY(1);}50%{transform:scaleY(1.05);}}
+.zzz{animation:zzz 3.5s ease-out infinite;transform-origin:center;}
+.z2{animation-delay:1.15s;}
+.z3{animation-delay:2.3s;}
+.vtitle{font-size:21px;font-weight:900;color:var(--text2);margin-bottom:8px;}
+.vdesc{font-size:13px;color:var(--text3);line-height:1.7;}
 
-/* 화산 SVG */
-.volcano-wrap{position:relative;height:180px;margin-bottom:16px;}
-.volcano-svg{width:100%;height:100%;}
+/* 공지 카드 */
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 20px;margin-bottom:12px;}
+.card-t{font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+.reason{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:13px 15px;font-size:12px;line-height:1.9;color:var(--text2);margin-bottom:10px;}
+.reason b{color:var(--text);}
+.reason .hl{color:var(--orange);font-weight:700;}
+.tag{display:inline-block;background:rgba(255,68,102,0.1);border:1px solid rgba(255,68,102,0.25);color:#ff8096;font-size:10px;font-family:var(--mono);padding:3px 9px;border-radius:20px;margin:3px 3px 0 0;}
 
-/* 상태 텍스트 */
-.volcano-status{font-size:22px;font-weight:900;margin-bottom:6px;transition:all 0.5s;}
-.volcano-desc{font-size:13px;color:var(--text2);margin-bottom:16px;}
+/* 진단 표 */
+.diag{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:6px 14px;margin-bottom:12px;}
+.diag-row{display:flex;gap:11px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.diag-row:last-child{border-bottom:none;}
+.diag-ico{font-size:13px;font-weight:900;line-height:1.5;flex-shrink:0;width:16px;text-align:center;}
+.diag-ico.ok{color:var(--green);}
+.diag-ico.ng{color:var(--red);}
+.diag-row b{color:var(--text);font-weight:700;}
+.diag-s{font-size:11px;color:var(--text2);margin-top:3px;line-height:1.65;}
+.code{display:inline-block;font-family:var(--mono);font-size:10px;color:#ff8096;background:rgba(255,68,102,0.08);border:1px solid rgba(255,68,102,0.2);border-radius:5px;padding:1px 7px;margin-top:4px;}
+.verdict{background:rgba(59,158,255,0.06);border:1px solid rgba(59,158,255,0.25);border-radius:12px;padding:13px 15px;font-size:12px;line-height:1.8;color:var(--text2);}
+.verdict b{color:var(--main);}
 
-/* 숫자 */
-.volcano-nums{display:flex;justify-content:center;gap:24px;}
-.vnum-box{text-align:center;}
-.vnum-val{font-family:var(--mono);font-size:32px;font-weight:500;line-height:1;}
-.vnum-label{font-size:11px;color:var(--text2);margin-top:4px;}
+/* 대안 안내 */
+.alt{display:flex;align-items:center;gap:11px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:13px 15px;margin-bottom:8px;text-decoration:none;}
+.alt-ico{font-size:21px;}
+.alt-t{font-size:13px;font-weight:700;color:var(--text);}
+.alt-s{font-size:11px;color:var(--text2);margin-top:2px;}
+.alt-go{margin-left:auto;font-size:16px;color:var(--text3);}
 
-/* 소아 카드 */
-.ped-card{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:14px;padding:16px 20px;margin-bottom:16px;
-  display:flex;align-items:center;justify-content:space-between;
-}
-.ped-left{display:flex;align-items:center;gap:10px;}
-.ped-icon{font-size:24px;}
-.ped-title{font-size:14px;font-weight:600;}
-.ped-sub{font-size:11px;color:var(--text2);margin-top:2px;}
-.ped-right{text-align:right;}
-.ped-avail{font-family:var(--mono);font-size:26px;font-weight:500;line-height:1;}
-.ped-total{font-size:11px;color:var(--text2);margin-top:2px;}
-.ped-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:500;font-family:var(--mono);margin-top:4px;}
+/* 블로그 (메인 CTA) */
+.blog{display:flex;align-items:center;justify-content:space-between;gap:12px;text-decoration:none;
+  background:linear-gradient(135deg,rgba(34,212,122,0.14),rgba(59,158,255,0.07));
+  border:1px solid rgba(34,212,122,0.35);border-radius:16px;padding:17px 20px;margin-bottom:12px;}
+.blog-t{font-size:15px;font-weight:900;color:var(--text);}
+.blog-s{font-size:11px;color:var(--text2);margin-top:3px;line-height:1.5;}
+.blog-go{font-size:19px;color:var(--green);}
 
-/* 게이지 */
-.gauge-wrap{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:10px;}
-.gauge-fill{height:100%;border-radius:3px;transition:width 0.8s ease;}
+/* 병원 정보 */
+.info{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.info-l{font-size:12px;color:var(--text2);}
+.info-v{font-size:12px;color:var(--text);font-family:var(--mono);text-decoration:none;}
+.info-v.call{color:var(--main);font-weight:700;}
 
-/* 정보 */
-.info-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;width:100%;box-sizing:border-box;}
-.info-label{font-size:12px;color:var(--text2);}
-.info-val{font-size:12px;color:var(--text);font-family:var(--mono);}
-
-/* 하단 */
-.bottom{display:flex;align-items:center;justify-content:space-between;margin-top:16px;}
-.updated{font-size:11px;color:var(--text3);font-family:var(--mono);}
-.updated b{color:var(--text2);}
-.refresh-btn{display:flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--border2);color:var(--text2);padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.2s;}
-.refresh-btn:hover{border-color:var(--main);color:var(--main);}
-.refresh-btn.spinning .ri{animation:spin 0.8s linear infinite;display:inline-block;}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-.err{background:rgba(255,68,102,0.1);border:1px solid rgba(255,68,102,0.2);border-radius:10px;padding:11px 14px;font-size:12px;color:#ff8899;margin-bottom:14px;display:none;line-height:1.6;}
-.err.show{display:block;}
-
-/* 연기 애니메이션 */
-@keyframes smoke {
-  0%{transform:translateY(0) scale(1);opacity:0.6;}
-  100%{transform:translateY(-40px) scale(2);opacity:0;}
-}
-@keyframes lava {
-  0%,100%{transform:scaleY(1);}
-  50%{transform:scaleY(1.08);}
-}
-@keyframes shake {
-  0%,100%{transform:translateX(0);}
-  25%{transform:translateX(-4px);}
-  75%{transform:translateX(4px);}
-}
-@keyframes explode {
-  0%,100%{transform:translateY(0);}
-  50%{transform:translateY(-6px);}
-}
+.foot{text-align:center;font-size:11px;color:var(--text3);line-height:1.9;margin-top:22px;}
+.foot .thx{color:var(--text2);font-size:12px;}
 </style>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#060910">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="응급실현황">
-<!-- Google Analytics -->
-<script>
-  // GA는 화면이 다 그려진 뒤에 로드 (초기 속도 우선)
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  window.addEventListener('load', function(){
-    setTimeout(function(){
-      var s=document.createElement('script');
-      s.async=true; s.src='https://www.googletagmanager.com/gtag/js?id=G-VTKJM3XJ8Y';
-      document.head.appendChild(s);
-      gtag('js', new Date());
-      gtag('config', 'G-VTKJM3XJ8Y');
-    }, 1200);
-  });
-</script>
 </head>
 <body>
 <div class="wrap">
 
-  <div class="hosp-name">
-    <h1>🏥 <span>구미차병원</span> 응급실</h1>
-    <p><span class="live-dot"></span>경북 구미시 신시로 10 · 054-450-9700</p>
+  <div class="head">
+    <h1>🏥 <span>구미차병원</span> 응급실 현황</h1>
+    <p>2025 – 2026 · 서비스를 종료합니다</p>
   </div>
 
-  <!-- 상단 시간/갱신/새로고침 바 -->
-  <div style="display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 12px;margin-bottom:14px;gap:8px;">
-    <div style="display:flex;gap:10px;align-items:center;">
-      <div>
-        <div style="font-size:9px;color:var(--text3);font-family:var(--mono);">현재시각</div>
-        <div style="font-size:12px;font-weight:600;color:var(--text);font-family:var(--mono);" id="currentTime">—</div>
-      </div>
-      <div style="width:1px;height:22px;background:var(--border);"></div>
-      <div>
-        <div style="font-size:9px;color:var(--text3);font-family:var(--mono);">데이터수집</div>
-        <div style="font-size:12px;font-weight:600;color:var(--main);font-family:var(--mono);" id="updatedTime">—</div>
-      </div>
-      <div style="width:1px;height:22px;background:var(--border);"></div>
-      <div>
-        <div style="font-size:9px;color:var(--text3);font-family:var(--mono);">병원입력 <span id="srcBadge" style="font-size:8px;"></span></div>
-        <div style="font-size:12px;font-weight:600;color:var(--text2);font-family:var(--mono);" id="hospitalTime">—</div>
-      </div>
-    </div>
-    <button id="refreshBtn" onclick="load(true)" style="display:flex;align-items:center;gap:4px;background:var(--card2);border:1px solid var(--border2);color:var(--text2);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;font-family:inherit;transition:all 0.2s;white-space:nowrap;">
-      <span class="ri">↻</span> 새로고침
-    </button>
-  </div>
-
-  <div class="err" id="errBox"></div>
-
-
-
-
-  <!-- 화산 메인 카드 -->
-  <div class="volcano-section" id="volcanoSection">
-    <div class="volcano-bg" id="volcanoBg"></div>
-
-    <div class="volcano-wrap">
-      <svg class="volcano-svg" viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg" id="volcanSvg">
-        <!-- 하늘 배경 -->
+  <!-- 잠든 화산 -->
+  <div class="volcano-card">
+    <div class="vwrap">
+      <svg class="vsvg" viewBox="0 0 300 160" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <radialGradient id="skyGrad" cx="50%" cy="100%">
-            <stop offset="0%" stop-color="#1a0a00" stop-opacity="0.5"/>
+          <radialGradient id="grd" cx="50%" cy="100%">
+            <stop offset="0%" stop-color="#1a2535" stop-opacity="0.6"/>
             <stop offset="100%" stop-color="#060910" stop-opacity="0"/>
-          </radialGradient>
-          <radialGradient id="lavaGrad" cx="50%" cy="50%">
-            <stop offset="0%" stop-color="#ff6600"/>
-            <stop offset="100%" stop-color="#ff2200"/>
           </radialGradient>
         </defs>
 
-        <!-- 연기들 -->
-        <g id="smokeGroup">
-          <circle id="s1" cx="150" cy="60" r="8" fill="#888" opacity="0"/>
-          <circle id="s2" cx="145" cy="50" r="10" fill="#777" opacity="0"/>
-          <circle id="s3" cx="155" cy="45" r="7" fill="#999" opacity="0"/>
-          <circle id="s4" cx="148" cy="35" r="12" fill="#666" opacity="0"/>
-          <circle id="s5" cx="152" cy="28" r="9" fill="#777" opacity="0"/>
-        </g>
+        <!-- zZZ -->
+        <text class="zzz" x="168" y="52" font-size="17" font-weight="700" fill="#3b9eff" font-family="DM Mono, monospace">z</text>
+        <text class="zzz z2" x="176" y="42" font-size="13" font-weight="700" fill="#3b9eff" font-family="DM Mono, monospace">z</text>
+        <text class="zzz z3" x="183" y="34" font-size="10" font-weight="700" fill="#3b9eff" font-family="DM Mono, monospace">z</text>
 
-        <!-- 화산 몸체 -->
-        <g id="volcanoBody">
-          <!-- 산 -->
-          <polygon points="60,165 150,55 240,165" fill="#2a1a0a" id="mountain"/>
-          <!-- 산 앞면 -->
-          <polygon points="80,165 150,75 220,165" fill="#1a0f05"/>
-          <!-- 분화구 -->
-          <ellipse cx="150" cy="65" rx="22" ry="8" fill="#0d0705"/>
-          <!-- 용암 (상태에 따라 변함) -->
-          <ellipse cx="150" cy="63" rx="16" ry="5" fill="url(#lavaGrad)" id="lavaPool" opacity="0.3"/>
-        </g>
+        <!-- 산 -->
+        <polygon points="62,140 150,62 238,140" fill="#141c28"/>
+        <polygon points="84,140 150,78 216,140" fill="#0f151f"/>
+        <!-- 분화구 (식은 상태) -->
+        <ellipse cx="150" cy="70" rx="20" ry="7" fill="#0a0e16"/>
+        <ellipse cx="150" cy="69" rx="13" ry="4" fill="#1c2a3a" style="animation:breathe 4s ease-in-out infinite;transform-origin:150px 69px;"/>
 
-        <!-- 분출 파티클들 (폭발시) -->
-        <g id="particles" opacity="0">
-          <circle cx="150" cy="55" r="3" fill="#ff6600"/>
-          <circle cx="138" cy="45" r="2" fill="#ff4400"/>
-          <circle cx="162" cy="42" r="2.5" fill="#ff8800"/>
-          <circle cx="143" cy="35" r="2" fill="#ffaa00"/>
-          <circle cx="158" cy="38" r="2" fill="#ff5500"/>
-          <circle cx="132" cy="50" r="1.5" fill="#ff3300"/>
-          <circle cx="168" cy="48" r="2" fill="#ff7700"/>
-        </g>
-
-        <!-- 용암 흘림 (혼잡이상) -->
-        <g id="lavaFlow" opacity="0">
-          <path d="M138,75 Q125,100 115,130 Q110,145 120,155" stroke="#ff4400" stroke-width="4" fill="none" stroke-linecap="round"/>
-          <path d="M162,75 Q175,105 180,135 Q183,148 173,158" stroke="#ff6600" stroke-width="3" fill="none" stroke-linecap="round"/>
-        </g>
+        <!-- 감은 눈 (>‿<) -->
+        <path d="M128 100 q7 -6 14 0" stroke="#3b5878" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M158 100 q7 -6 14 0" stroke="#3b5878" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M143 112 q7 5 14 0" stroke="#2d4055" stroke-width="2" fill="none" stroke-linecap="round"/>
 
         <!-- 바닥 -->
-        <rect x="0" y="163" width="300" height="17" fill="#0d0705" rx="2"/>
-        <ellipse cx="150" cy="163" rx="120" ry="6" fill="url(#skyGrad)"/>
+        <rect x="0" y="138" width="300" height="16" fill="#0a0e16" rx="2"/>
+        <ellipse cx="150" cy="138" rx="120" ry="6" fill="url(#grd)"/>
       </svg>
     </div>
+    <div class="vtitle">화산이 잠들었어요</div>
+    <div class="vdesc">그동안 응급실 현황을 지켜봐 준<br>화산이 긴 잠에 들었습니다 💤</div>
+  </div>
 
-    <div class="volcano-status" id="volcanoStatus">불러오는 중...</div>
-    <div class="volcano-desc" id="volcanoDesc">잠시만 기다려주세요</div>
-    <div style="display:flex;justify-content:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
-      <span style="font-size:11px;color:var(--text3);">🟢 여유 8명 미만</span>
-      <span style="font-size:11px;color:var(--text3);">🟡 혼잡 8~14명</span>
-      <span style="font-size:11px;color:var(--text3);">🔴 포화 15명 이상</span>
+  <!-- 종료 사유 -->
+  <div class="card">
+    <div class="card-t">📮 서비스 종료 안내</div>
+
+    <div class="reason">
+      이 사이트는 정부 <b>공공데이터포털</b>이 제공하는<br>
+      <b>응급의료 실시간 가용병상 정보</b>를 받아 보여드렸습니다.<br>
+      <span style="color:var(--text3);font-size:11px;">(API 이용 승인 완료 · 일일 10만 건 허용 · 정상 이용 중이었습니다)</span>
     </div>
 
-    <div class="volcano-nums">
-      <div class="vnum-box">
-        <div class="vnum-val" id="valAvail" style="color:var(--text3)">—</div>
-        <div class="vnum-label">가용병상</div>
+    <div class="reason" style="border-color:rgba(255,68,102,0.25);">
+      그런데 <span class="hl">2026년 8월 3일</span>, 예고 없이<br>
+      <b>데이터 제공 서버의 접속 정책이 변경</b>되었습니다.<br><br>
+      <span style="color:var(--text3);font-size:11px;">그날부터 이 사이트는 데이터를 한 건도 받지 못했습니다.</span>
+    </div>
+
+    <div class="card-t" style="margin-top:16px;font-size:12px;">🔬 무엇이 막혔나</div>
+
+    <div class="diag">
+      <div class="diag-row">
+        <span class="diag-ico ok">✓</span>
+        <div>
+          <b>휴대폰 주소창으로 직접 접속</b>
+          <div class="diag-s">정상 — 데이터가 잘 나옵니다</div>
+        </div>
       </div>
-      <div class="vnum-box">
-        <div class="vnum-val" id="valPatients" style="color:var(--text3)">—</div>
-        <div class="vnum-label">추정 환자</div>
+      <div class="diag-row">
+        <span class="diag-ico ng">✕</span>
+        <div>
+          <b>웹사이트가 데이터를 요청</b>
+          <div class="diag-s">차단됨 — 서버가 웹페이지의 요청을 거부<br><span class="code">CORS 정책 미허용</span></div>
+        </div>
       </div>
-      <div class="vnum-box">
-        <div class="vnum-val" style="color:var(--text3)" id="valTotal">20</div>
-        <div class="vnum-label">총 병상</div>
+      <div class="diag-row">
+        <span class="diag-ico ng">✕</span>
+        <div>
+          <b>서버(클라우드)가 대신 요청</b>
+          <div class="diag-s">차단됨 — 응답 없이 연결이 끊김<br><span class="code">TimeoutError · 6초 무응답 × 4개 경로</span></div>
+        </div>
       </div>
     </div>
 
-    <!-- 응급 안내 -->
-    <div style="background:rgba(255,68,102,0.06);border:1px solid rgba(255,68,102,0.2);border-radius:12px;padding:12px 14px;margin-top:14px;font-size:12px;line-height:1.9;color:var(--text2);">
-      🚑 <b style="color:#ff8096;">응급 증상</b>이라면 즉시 말씀해주세요! 우선 진료해드려요<br>
-      📋 진료 순서는 <b style="color:var(--text)">내원 순서가 아닌 응급도 순서</b>예요<br>
-      ⚡ 중증 응급환자는 <b style="color:var(--main)">대기 없이 바로 진료</b> 가능해요
+    <div class="verdict">
+      <b>즉,</b> 사람이 브라우저 주소창으로 직접 열면 되지만<br>
+      <b>프로그램이 자동으로 받아오는 길은 전부 닫혔습니다.</b>
     </div>
 
-    <!-- 대기시간 안내 -->
-    <div id="waitBox" style="margin-top:16px;background:var(--card2);border-radius:12px;padding:14px 16px;display:none;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-        <span style="font-size:12px;color:var(--text2);font-weight:600;">⏱️ 예상 대기시간</span>
-        <span id="waitTime" style="font-size:15px;font-weight:700;font-family:var(--mono);"></span>
+    <div style="font-size:11px;color:var(--text3);line-height:1.8;margin-top:14px;">
+      해결을 위해 시도한 방법 ↓
+      <div style="margin-top:7px;">
+        <span class="tag">직접 연결 ✕</span>
+        <span class="tag">XML · JSON 두 형식 ✕</span>
+        <span class="tag">국내(서울) 중계 서버 ✕</span>
+        <span class="tag">해외 중계 서버 ✕</span>
+        <span class="tag">공개 프록시 6종 ✕</span>
+        <span class="tag">자동 수집 스케줄러 ✕</span>
       </div>
-      <div id="waitMsg" style="font-size:12px;color:var(--text2);line-height:1.6;text-align:left;"></div>
+      <div style="margin-top:11px;line-height:1.85;">
+        <b style="color:var(--text2);">이 사이트의 오류가 아닙니다.</b><br>
+        코드는 종료 직전까지 정상 작동했고,<br>
+        데이터를 주는 쪽에서 문을 닫아 더는 방법이 없었습니다.<br>
+        <span style="color:var(--text3);">정책이 다시 열리면 언제든 돌아오겠습니다 🥲</span>
+      </div>
     </div>
   </div>
 
-  <!-- 소아 카드 -->
-  <div class="ped-card">
-    <div class="ped-left">
-      <div class="ped-icon">👶</div>
+  <!-- 대안 -->
+  <div class="card">
+    <div class="card-t">🔎 응급실 정보는 여기서</div>
+    <a href="https://www.e-gen.or.kr/" target="_blank" rel="noopener" class="alt">
+      <span class="alt-ico">🚑</span>
       <div>
-        <div class="ped-title">소아 응급실</div>
-        <div class="ped-sub">총 <span id="pedTotalTxt">5</span>병상</div>
-        <div class="ped-badge" id="pedBadge" style="background:rgba(100,130,160,0.1);color:var(--text2);border:1px solid var(--border)">불러오는 중</div>
+        <div class="alt-t">응급의료포털 E-Gen</div>
+        <div class="alt-s">실시간 병상 현황 공식 사이트</div>
       </div>
-    </div>
-    <div class="ped-right">
-      <div class="ped-avail" id="pedAvailVal" style="color:var(--text3)">—</div>
-      <div class="ped-total">/ <span id="pedTotalTxt2">5</span> 가용</div>
-      <div style="font-size:11px;color:var(--text2);margin-top:2px;">추정 <span id="pedPatients" style="color:var(--orange)">—</span>명</div>
-    </div>
-  </div>
-
-  <!-- 주변 병원 비교 -->
-  <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 18px;margin-bottom:16px;">
-    <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;">🏥 주변 응급실 비교</div>
-    <div id="otherHospitals" style="display:flex;flex-direction:column;gap:8px;">
-      <div style="font-size:11px;color:var(--text3);text-align:center;padding:8px;">불러오는 중...</div>
-    </div>
-    <div style="font-size:10px;color:var(--text3);margin-top:8px;text-align:center;">숫자는 현재 환자수 · 적을수록 빨라요</div>
-  </div>
-  <div style="margin-bottom:16px;padding:0 2px;">
-    <div class="gauge-wrap">
-      <div class="gauge-fill" id="pedGauge" style="width:0%;background:var(--green)"></div>
-    </div>
-  </div>
-
-
-  <!-- 블로그 -->
-  <a href="https://blog.naver.com/hyinuyu" target="_blank" style="text-decoration:none;display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(135deg,rgba(59,158,255,0.08),rgba(59,158,255,0.03));border:1px solid rgba(59,158,255,0.25);border-radius:14px;padding:14px 18px;margin-bottom:8px;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--main)'" onmouseout="this.style.borderColor='rgba(59,158,255,0.25)'">
-    <div style="display:flex;align-items:center;gap:12px;">
-      <span style="font-size:22px;">✍️</span>
+      <span class="alt-go">→</span>
+    </a>
+    <a href="tel:1339" class="alt">
+      <span class="alt-ico">📞</span>
       <div>
-        <div style="font-size:13px;font-weight:700;color:var(--text);">hyinuyu 블로그</div>
-        <div style="font-size:11px;color:var(--text2);margin-top:2px;">blog.naver.com/hyinuyu</div>
+        <div class="alt-t">1339 · 응급의료상담</div>
+        <div class="alt-s">24시간 연중무휴 상담</div>
+      </div>
+      <span class="alt-go">→</span>
+    </a>
+    <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:10px;line-height:1.7;">
+      <b style="color:var(--text2);">응급상황이라면 망설이지 말고 119! 🚨</b>
+    </div>
+  </div>
+
+  <!-- 블로그 (홍보) -->
+  <a href="https://blog.naver.com/hyinuyu" target="_blank" rel="noopener" class="blog">
+    <div style="display:flex;align-items:center;gap:13px;">
+      <span style="font-size:26px;">✍️</span>
+      <div>
+        <div class="blog-t">흰우유 블로그</div>
+        <div class="blog-s">앞으로의 이야기는 여기서 계속돼요<br><span style="font-family:var(--mono);color:var(--text3);">blog.naver.com/hyinuyu</span></div>
       </div>
     </div>
-    <span style="font-size:18px;color:var(--main);">→</span>
+    <span class="blog-go">→</span>
   </a>
-
-  <!-- 게임 모음 -->
-  <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:8px;">
-    <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
-      🎮 대기하는 동안 한 판 어때요?
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
-      <a href="./tetris.html" style="text-decoration:none;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 4px;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='#a78bfa'" onmouseout="this.style.borderColor='var(--border)'">
-        <div style="font-size:24px;line-height:1;">🧩</div>
-        <div style="font-size:11px;color:var(--text2);margin-top:5px;font-weight:600;">테트리스</div>
-      </a>
-      <a href="./2048.html" style="text-decoration:none;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 4px;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='#ffaa00'" onmouseout="this.style.borderColor='var(--border)'">
-        <div style="font-size:24px;line-height:1;">🎯</div>
-        <div style="font-size:11px;color:var(--text2);margin-top:5px;font-weight:600;">2048</div>
-      </a>
-      <a href="./minesweeper.html" style="text-decoration:none;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 4px;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='#ff4466'" onmouseout="this.style.borderColor='var(--border)'">
-        <div style="font-size:24px;line-height:1;">🚩</div>
-        <div style="font-size:11px;color:var(--text2);margin-top:5px;font-weight:600;">지뢰찾기</div>
-      </a>
-      <a href="./breakout.html" style="text-decoration:none;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 4px;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='#3b9eff'" onmouseout="this.style.borderColor='var(--border)'">
-        <div style="font-size:24px;line-height:1;">🧱</div>
-        <div style="font-size:11px;color:var(--text2);margin-top:5px;font-weight:600;">벽돌깨기</div>
-      </a>
-      <a href="./snake.html" style="text-decoration:none;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 4px;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='#22d47a'" onmouseout="this.style.borderColor='var(--border)'">
-        <div style="font-size:24px;line-height:1;">🐍</div>
-        <div style="font-size:11px;color:var(--text2);margin-top:5px;font-weight:600;">스네이크</div>
-      </a>
-      <a href="./racing.html" style="text-decoration:none;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 4px;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='#ff8800'" onmouseout="this.style.borderColor='var(--border)'">
-        <div style="font-size:24px;line-height:1;">🚗</div>
-        <div style="font-size:11px;color:var(--text2);margin-top:5px;font-weight:600;">레이싱</div>
-      </a>
-    </div>
-  </div>
-
-  <!-- 오늘의 스도쿠 -->
-  <a href="./sudoku.html" style="text-decoration:none;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,rgba(34,212,212,0.12),rgba(59,158,255,0.08));border:1px solid rgba(34,212,212,0.3);border-radius:14px;padding:14px 18px;margin-bottom:8px;transition:all 0.2s;" onmouseover="this.style.borderColor='#22d4d4'" onmouseout="this.style.borderColor='rgba(34,212,212,0.3)'">
-    <div style="display:flex;align-items:center;gap:12px;">
-      <span style="font-size:28px;">🔢</span>
-      <div>
-        <div style="font-size:13px;font-weight:700;color:var(--text);">오늘의 스도쿠</div>
-        <div style="font-size:11px;color:var(--text2);margin-top:2px;">매번 새로운 랜덤 퍼즐 · 두뇌 자극! 🧠</div>
-      </div>
-    </div>
-    <span style="font-size:18px;color:#22d4d4;">→</span>
-  </a>
-
-  <!-- 공유하기 -->
-  <button onclick="copyLink()" id="copyBtn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 18px;margin-bottom:8px;font-size:13px;font-weight:700;color:var(--text2);cursor:pointer;font-family:inherit;transition:all 0.2s;">
-    🔗 친구에게 링크 공유하기
-  </button>
-
-  <!-- QR 코드 -->
-  <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:8px;text-align:center;">
-    <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:12px;">📱 QR 코드로 접속하기</div>
-    <div style="display:flex;justify-content:center;margin-bottom:10px;">
-      <div id="qrWrap" style="display:inline-block;border-radius:10px;overflow:hidden;background:#fff;padding:10px;"></div>
-    </div>
-    <div style="font-size:11px;color:var(--text3);font-family:var(--mono);">hyinuyu.github.io/Emergency-room</div>
-  </div>
-
-  <!-- 앱 설치 안내 -->
-  <div id="installBanner" style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
-    <div style="font-size:12px;color:var(--text2);line-height:1.6;">
-      📲 <b style="color:var(--text)">앱으로 설치하기</b><br>
-      <span style="font-size:11px;">
-        🍎 아이폰: 사파리 → 공유 → 홈 화면에 추가<br>
-        🤖 안드로이드: 크롬 → ⋮ → 홈 화면에 추가
-      </span>
-    </div>
-    <button onclick="document.getElementById('installBanner').style.display='none'" style="background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;flex-shrink:0;">✕</button>
-  </div>
 
   <!-- 병원 정보 -->
-  <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
-    <span style="font-size:12px;color:var(--text2);">📍 주소</span>
-    <span style="font-size:12px;color:var(--text);font-family:var(--mono);">경북 구미시 신시로 10</span>
+  <div class="info">
+    <span class="info-l">📍 주소</span>
+    <span class="info-v">경북 구미시 신시로 10</span>
   </div>
-  <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
-    <span style="font-size:12px;color:var(--text2);">📞 응급실</span>
-    <span style="font-size:12px;color:var(--text);font-family:var(--mono);">054-450-9700</span>
-  </div>
-  <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
-    <span style="font-size:12px;color:var(--text2);">🔄 갱신 주기</span>
-    <span style="font-size:12px;color:var(--text);font-family:var(--mono);">1분마다 자동</span>
-  </div>
-  <div style="text-align:center;font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:8px;">
-    v<span id="verTxt">—</span> · <span onclick="resetAppCache()" style="color:var(--text2);text-decoration:underline;cursor:pointer;">앱 갱신</span>
+  <div class="info">
+    <span class="info-l">📞 응급실</span>
+    <a href="tel:054-450-9700" class="info-v call">054-450-9700</a>
   </div>
 
-</div><!-- /.wrap -->
+  <div class="foot">
+    <div class="thx">그동안 찾아와 주셔서 감사했습니다 🙇</div>
+    <div style="margin-top:5px;">모두 아프지 말고 건강하세요 💙</div>
+  </div>
+
+</div>
 
 <script>
-const APP_VERSION = '2026.08.03k';   // 앱 버전 (업데이트 확인용)
-const API_KEY = '1ae147a1907296a5c5fd16751a21b2f146381a4727784592ae9c235d8ac0263d';
-const BASE = 'https://apis.data.go.kr/B552657/ErmctInfoInqireService';
-const TOTAL_GEN = 20;
-const TOTAL_PED = 5;
-
-// 상태별 화산 설정
-const STATES = {
-  calm: {
-    label: '🌋 잠잠해요',
-    desc: '응급실 여유 있어요. 오셔도 됩니다 👍',
-    color: 'var(--green)',
-    lavaOpacity: 0.2,
-    smokeAnim: 'slow',
-    particlesOpacity: 0,
-    lavaFlowOpacity: 0,
-    bgColor: 'rgba(34,212,122,0.04)',
-    shakeAnim: 'none',
-  },
-  busy: {
-    label: '🌋💨 부글부글...',
-    desc: '응급실 좀 바빠요. 서두르세요! 😤',
-    color: 'var(--orange)',
-    lavaOpacity: 0.7,
-    smokeAnim: 'fast',
-    particlesOpacity: 0.4,
-    lavaFlowOpacity: 0.6,
-    bgColor: 'rgba(255,170,0,0.04)',
-    shakeAnim: 'none',
-  },
-  full: {
-    label: '🌋🔥 폭발 직전!!',
-    desc: '응급실 포화 상태!! 각오하세요 😱',
-    color: 'var(--red)',
-    lavaOpacity: 1,
-    smokeAnim: 'fast',
-    particlesOpacity: 1,
-    lavaFlowOpacity: 1,
-    bgColor: 'rgba(255,68,102,0.08)',
-    shakeAnim: 'shake',
-  }
-};
-
-let smokeInterval = null;
-
-function getStateKey(avail, total) {
-  if (avail === null) return null;
-  const usedPct = (total - avail) / total;
-  const used = total - avail;
-  if (used >= 15) return 'full';
-  if (used >= 8) return 'busy';
-  return 'calm';
+// 예전 앱 캐시 정리 (홈화면에 설치한 분들도 이 페이지가 보이도록)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations()
+    .then(function(rs){ rs.forEach(function(r){ r.unregister(); }); })
+    .catch(function(){});
 }
-
-function animateSmoke(speed) {
-  if (smokeInterval) clearInterval(smokeInterval);
-  const smokes = ['s1','s2','s3','s4','s5'];
-  let idx = 0;
-  const interval = speed === 'fast' ? 400 : 1200;
-
-  smokeInterval = setInterval(() => {
-    smokes.forEach(id => {
-      const el = document.getElementById(id);
-      el.style.animation = 'none';
-      el.style.opacity = '0';
-    });
-    const el = document.getElementById(smokes[idx % smokes.length]);
-    el.style.animation = `smoke ${speed === 'fast' ? 1.5 : 3}s ease-out forwards`;
-    el.style.opacity = '0.6';
-    idx++;
-  }, interval);
-}
-
-function updateVolcano(avail) {
-  const stateKey = getStateKey(avail, myGenTotal);
-  if (!stateKey) return;
-  const state = STATES[stateKey];
-
-  // 텍스트
-  const statusEl = document.getElementById('volcanoStatus');
-  statusEl.textContent = state.label;
-  statusEl.style.color = state.color;
-  document.getElementById('volcanoDesc').textContent = state.desc;
-
-  // 용암
-  document.getElementById('lavaPool').setAttribute('opacity', state.lavaOpacity);
-  document.getElementById('particles').setAttribute('opacity', state.particlesOpacity);
-  document.getElementById('lavaFlow').setAttribute('opacity', state.lavaFlowOpacity);
-
-  // 배경
-  document.getElementById('volcanoBg').style.background =
-    `radial-gradient(ellipse 80% 60% at 50% 100%, ${state.bgColor}, transparent 70%)`;
-
-  // 화산 흔들기 (포화시)
-  const body = document.getElementById('volcanoBody');
-  if (stateKey === 'full') {
-    body.style.animation = 'shake 0.3s infinite';
-    document.getElementById('particles').style.animation = 'explode 0.5s infinite';
-  } else {
-    body.style.animation = 'none';
-    document.getElementById('particles').style.animation = 'none';
-  }
-
-  // 연기
-  animateSmoke(state.smokeAnim);
-
-  // 대기시간 안내
-  updateWaitBox(stateKey);
-}
-
-function updateWaitBox(stateKey) {
-  const box = document.getElementById('waitBox');
-  const timeEl = document.getElementById('waitTime');
-  const msgEl = document.getElementById('waitMsg');
-  if (!box) return;
-
-  if (stateKey === 'calm') {
-    box.style.display = 'block';
-    box.style.borderLeft = '3px solid var(--green)';
-    timeEl.textContent = '30분 이내';
-    timeEl.style.color = 'var(--green)';
-    msgEl.innerHTML = '😊 지금은 여유로운 편이에요!<br>빠르게 진료받으실 수 있을 거예요.';
-  } else if (stateKey === 'busy') {
-    box.style.display = 'block';
-    box.style.borderLeft = '3px solid var(--orange)';
-    timeEl.textContent = '1시간 이내';
-    timeEl.style.color = 'var(--orange)';
-    msgEl.innerHTML = '😤 응급실이 바쁜 상태예요.<br>가벼운 증상이라면 잠시 기다리실 수 있어요.';
-  } else if (stateKey === 'full') {
-    box.style.display = 'block';
-    box.style.borderLeft = '3px solid var(--red)';
-    timeEl.textContent = '1시간 이상';
-    timeEl.style.color = 'var(--red)';
-    msgEl.innerHTML = '🚨 응급실이 매우 혼잡해요!<br>긴급하지 않다면 다른 병원도 확인해보세요.';
-  }
-}
-
-function bedColor(n, total) {
-  if (n === null) return 'var(--text3)';
-  const pct = (total - n) / total;
-  if (pct >= 0.8) return 'var(--red)';
-  if (pct >= 0.5) return 'var(--orange)';
-  return 'var(--green)';
-}
-
-function pedBadge(avail, total) {
-  if (avail === null) return {label:'정보없음', bg:'rgba(100,130,160,0.1)', color:'var(--text2)', border:'var(--border)'};
-  const pct = (total - avail) / total;
-  if (pct >= 0.8) return {label:'🔴 포화', bg:'rgba(255,68,102,0.1)', color:'var(--red)', border:'rgba(255,68,102,0.2)'};
-  if (pct >= 0.5) return {label:'🟡 혼잡', bg:'rgba(255,170,0,0.1)', color:'var(--orange)', border:'rgba(255,170,0,0.2)'};
-  return {label:'🟢 여유', bg:'rgba(34,212,122,0.1)', color:'var(--green)', border:'rgba(34,212,122,0.2)'};
-}
-
-let otherHospitals = [];
-let myPedTotal = 5;
-let lastDiag = '';
-let staleCandidate = null;
-let collectTime = null;   // GitHub이 데이터를 받아온 시각
-let collectAgeMin = null; // 수집 후 몇 분 지났는지
-let dataSource = '';      // 어느 경로로 받았는지
-let myGenTotal = 20;
-let myDataTime = null;
-
-// ── 데이터 경로 (해외IP 차단 대응 개편) ──
-// 공공데이터 서버가 해외 IP 차단 → GitHub·프록시(해외) 불가, 한국 직접호출은 정상
-// ① 한국 방문자가 직접 받고 → Firebase에 공유 → ② 다른 사람은 공유본 사용
-const RELAY_URL = 'https://gumi-er-hyinuyu.vercel.app/api/er';  // 한국(서울) 중계서버
-const JSON_URL = 'https://raw.githubusercontent.com/hyinuyu/Emergency-room/data/er.json';
-const XML_URL  = 'https://raw.githubusercontent.com/hyinuyu/Emergency-room/data/er.xml';
-const FRESH_MS = 20 * 60 * 1000;   // 20분 이내 = 신선
-
-function applyJson(o){
-  if (!o || !o.h || !o.h.cha) return null;
-  const H = o.h;
-  const cha = H.cha;
-  myGenTotal = (cha.t != null) ? cha.t : 20;
-  myPedTotal = (cha.pt != null) ? cha.pt : 5;
-  const hd = cha.d;
-  myDataTime = (hd && hd.length >= 12) ? hd.slice(8,10) + ':' + hd.slice(10,12) : null;
-
-  otherHospitals = [];
-  if (H.gangdong) otherHospitals.push({name:'구미강동병원', avail:H.gangdong.a, total:H.gangdong.t, pedAvail:H.gangdong.pa, pedTotal:H.gangdong.pt});
-  if (H.sch) otherHospitals.push({name:'순천향구미병원', avail:H.sch.a, total:H.sch.t, pedAvail:H.sch.pa, pedTotal:H.sch.pt});
-
-  if (o.collected) {
-    const ms = collectedMs(o);
-    if (ms !== null) {
-      const d = new Date(ms);
-      collectTime = d.toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'});
-      collectAgeMin = Math.max(0, Math.round((Date.now() - ms) / 60000));
-    }
-  }
-  return { genAvail: cha.a, pedAvail: cha.pa };
-}
-
-// JSON 응답의 item 배열 → er.json과 같은 모양
-function itemsToObj(arr){
-  const H = {};
-  arr.forEach(function(it){
-    const name = String(it.dutyName||'').replace(/\s/g,'');
-    let key = null;
-    if (name.includes('구미차') || name.includes('차의과학')) key = 'cha';
-    else if (name.includes('강동')) key = 'gangdong';
-    else if (name.includes('순천향') && name.includes('구미')) key = 'sch';
-    if (!key) return;
-    const n = function(v){ const x = parseInt(v); return isNaN(x) ? null : x; };
-    H[key] = { a:n(it.hvec), t:n(it.hvs01), pa:n(it.hv28), pt:n(it.hvs02), d:(it.hvidate ? String(it.hvidate) : null) };
-  });
-  return H.cha ? { collected:null, h:H } : null;
-}
-
-// XML 텍스트 → er.json과 같은 모양
-function parseXmlToObj(txt){
-  const xml = new DOMParser().parseFromString(txt, 'text/xml');
-  const items = xml.querySelectorAll('item');
-  if (!items.length) return null;
-  const H = {};
-  items.forEach(function(item){
-    const g = function(t){ const el = item.querySelector(t); return el && el.textContent ? el.textContent.trim() : ''; };
-    const n = function(t){ const v = parseInt(g(t)); return isNaN(v) ? null : v; };
-    const name = g('dutyName').replace(/\s/g,'');
-    let key = null;
-    if (name.includes('구미차') || name.includes('차의과학')) key = 'cha';
-    else if (name.includes('강동')) key = 'gangdong';
-    else if (name.includes('순천향') && name.includes('구미')) key = 'sch';
-    if (!key) return;
-    H[key] = { a:n('hvec'), t:n('hvs01'), pa:n('hv28'), pt:n('hvs02'), d:(g('hvidate')||null) };
-  });
-  if (!H.cha) return null;
-  return { collected: null, h: H };
-}
-
-function collectedMs(o){
-  if (!o || !o.collected) return null;
-  const m = String(o.collected).match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/);
-  if (!m) return null;
-  return Date.UTC(+m[1], +m[2]-1, +m[3], +m[4], +m[5], +(m[6]||0));
-}
-function isFresh(o){ const ms = collectedMs(o); return ms !== null && (Date.now() - ms) <= FRESH_MS; }
-
-// ── Firebase 지연 로더 (필요할 때만 → 초기속도 유지) ──
-let _fbReady = null;
-function fbFirestore(){
-  if (_fbReady) return _fbReady;
-  _fbReady = new Promise(function(resolve, reject){
-    function s(src){ return new Promise(function(res, rej){ var e=document.createElement('script'); e.src=src; e.onload=res; e.onerror=rej; document.head.appendChild(e); }); }
-    s('https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.js')
-      .then(function(){ return s('https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.js'); })
-      .then(function(){
-        if (!firebase.apps.length) firebase.initializeApp({
-          apiKey:'AIzaSyAu9lEDOwLgtiO3FE-bI7mXanF-F7E9RJk',
-          authDomain:'gumi-er-tetris.firebaseapp.com',
-          projectId:'gumi-er-tetris',
-          storageBucket:'gumi-er-tetris.firebasestorage.app',
-          messagingSenderId:'421677764064',
-          appId:'1:421677764064:web:35fb5b795c94e5226def85'
-        });
-        resolve(firebase.firestore());
-      }).catch(reject);
-  });
-  return _fbReady;
-}
-
-// 직접호출에 성공한 방문자가 스냅샷을 공유 (90초에 1번 — 남들에게 신선한 데이터 제공)
-function shareSnapshot(o){
-  try {
-    const last = parseInt(localStorage.getItem('snapW') || '0');
-    if (Date.now() - last < 90*1000) return;
-    localStorage.setItem('snapW', String(Date.now()));
-  } catch(e){}
-  // 화면 렌더를 방해하지 않도록 뒤로 미룸
-  setTimeout(function(){
-    fbFirestore().then(function(db){
-      return db.collection('er_snapshot').doc('latest').set({ o: o, ms: Date.now() });
-    }).catch(function(){});
-  }, 400);
-}
-
-function readSnapshot(){
-  return fbFirestore().then(function(db){
-    return db.collection('er_snapshot').doc('latest').get();
-  }).then(function(doc){
-    if (!doc.exists) return null;
-    const d = doc.data();
-    if (!d || !d.o || !d.o.h) return null;
-    d.o.collected = new Date(d.ms || 0).toISOString();
-    return d.o;
-  }).catch(function(){ return null; });
-}
-
-function fetchWithTimeout(url, ms){
-  const ac = new AbortController();
-  const to = setTimeout(function(){ ac.abort(); }, ms);
-  return fetch(url, {cache:'no-store', signal: ac.signal})
-    .finally(function(){ clearTimeout(to); });
-}
-
-async function fetchData(){
-  const P = `serviceKey=${encodeURIComponent(API_KEY)}&STAGE1=${encodeURIComponent('경상북도')}&pageNo=1&numOfRows=100`;
-  const EP = 'B552657/ErmctInfoInqireService/getEmrrmRltmUsefulSckbdInfoInqire';
-  const tried = [];
-
-  // 실시간 후보들을 "동시에" 발사 → 가장 먼저 성공한 것 채택 (느린 순차 대기 제거)
-  const live = [
-    { n:'직접XML',  u:`https://apis.data.go.kr/${EP}?${P}`,            k:'xml'  },
-    { n:'직접JSON', u:`https://apis.data.go.kr/${EP}?${P}&_type=json`, k:'json' },
-    { n:'중계서버', u:RELAY_URL,                                        k:'relay'}
-  ];
-
-  const attempt = (c) => fetchWithTimeout(c.u, 4500).then(async r => {
-    if (!r.ok) throw new Error(c.n + ': HTTP ' + r.status);
-    const txt = await r.text();
-    let o = null;
-    if (c.k === 'json') {
-      const j = JSON.parse(txt);
-      const its = j && j.response && j.response.body && j.response.body.items && j.response.body.items.item;
-      if (its) o = itemsToObj(Array.isArray(its) ? its : [its]);
-    } else if (c.k === 'relay') {
-      const j = JSON.parse(txt);
-      if (j && j.h && j.h.cha) o = j;
-    } else {
-      o = parseXmlToObj(txt);
-    }
-    if (!o) throw new Error(c.n + ': 형식이상');
-    o.collected = new Date().toISOString();
-    return { o: o, name: c.n };
-  }).catch(e => { tried.push(e.message || (c.n + ': ' + e.name)); throw e; });
-
-  function accept(o, src){
-    dataSource = src;
-    lastDiag = '✅ ' + src;
-    try { localStorage.setItem('erCache', JSON.stringify(o)); } catch(e){}
-    return applyJson(o);
-  }
-
-  // ① 실시간 (동시 발사, 최대 ~4.5초)
-  try {
-    const win = await Promise.any(live.map(attempt));
-    const got = accept(win.o, '실시간');
-    shareSnapshot(win.o);
-    return got;
-  } catch(e) { /* 전부 실패 → 아래 예비 */ }
-
-  // ② 남이 공유한 스냅샷 (Firebase)
-  try {
-    const o = await readSnapshot();
-    if (o && isFresh(o)) return accept(o, '공유 스냅샷');
-    if (o) { staleCandidate = o; tried.push('스냅샷: 오래됨'); }
-    else tried.push('스냅샷: 없음');
-  } catch(e){ tried.push('스냅샷: ' + e.name); }
-
-  // ③ GitHub 수집분 (해외차단 풀리면 자동 부활)
-  try {
-    const r = await fetchWithTimeout(JSON_URL + '?t=' + Date.now(), 3500);
-    if (r.ok) {
-      const o = await r.json();
-      if (o && o.h && o.h.cha) {
-        if (isFresh(o)) return accept(o, 'GitHub수집');
-        if (!staleCandidate) staleCandidate = o;
-        tried.push('GitHub: 오래됨');
-      }
-    } else tried.push('GitHub: HTTP ' + r.status);
-  } catch(e){ tried.push('GitHub: ' + e.name); }
-
-  // ④ 최후: 오래된 데이터라도 경고와 함께
-  if (staleCandidate) {
-    const got = accept(staleCandidate, '지난 데이터');
-    lastDiag = '⚠️ 실시간 실패 → 지난 데이터<br><span style="color:#6a8aaa;">' + tried.join('<br>') + '</span>';
-    return got;
-  }
-
-  lastDiag = '모든 경로 실패<br><span style="color:#6a8aaa;">' + tried.join('<br>') + '</span>';
-  throw new Error('all routes failed');
-}
-
-function renderOtherHospitals() {
-  const container = document.getElementById('otherHospitals');
-  if (!container) return;
-  if (otherHospitals.length === 0) {
-    container.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:8px;">주변 병원 정보 없음</div>';
-    return;
-  }
-  // 우리 병원 일반 + 소아
-  const myAvail = parseInt(document.getElementById('valAvail').textContent);
-  const myPedAvail = parseInt(document.getElementById('pedAvailVal').textContent);
-  const all = [
-    { name: '⭐ 구미차병원', avail: isNaN(myAvail)?null:myAvail, total: myGenTotal, pedAvail: isNaN(myPedAvail)?null:myPedAvail, pedTotal: myPedTotal, isMe: true },
-    ...otherHospitals.map(h => ({...h, isMe: false}))
-  ];
-  container.innerHTML = all.map(h => {
-    const patients = (h.total !== null && h.avail !== null) ? Math.max(0, h.total - h.avail) : null;
-    const pedPatients = (h.pedTotal !== null && h.pedTotal !== undefined && h.pedAvail !== null && h.pedAvail !== undefined) ? Math.max(0, h.pedTotal - h.pedAvail) : null;
-    const hasPed = (h.pedTotal !== null && h.pedTotal !== undefined && h.pedTotal > 0);
-    const pColor = patients === null ? 'var(--text3)' : patients <= 5 ? 'var(--green)' : patients <= 12 ? 'var(--orange)' : 'var(--red)';
-    const pedColor = pedPatients === null ? 'var(--text3)' : pedPatients <= 2 ? 'var(--green)' : pedPatients <= 4 ? 'var(--orange)' : 'var(--red)';
-    return `
-    <div style="padding:9px 12px;background:${h.isMe?'rgba(59,158,255,0.08)':'var(--card2)'};border:1px solid ${h.isMe?'rgba(59,158,255,0.3)':'var(--border)'};border-radius:10px;">
-      <div style="font-size:12px;font-weight:${h.isMe?'700':'600'};color:${h.isMe?'var(--main)':'var(--text)'};margin-bottom:6px;">${h.name}</div>
-      <div style="display:flex;gap:16px;align-items:baseline;flex-wrap:wrap;">
-        <span style="display:flex;align-items:baseline;gap:5px;">
-          <span style="font-size:10px;color:var(--text3);">일반</span>
-          ${patients !== null
-            ? `<b style="font-family:var(--mono);font-size:18px;color:${pColor};">${patients}</b><span style="font-size:10px;color:var(--text3);">명 / ${h.total}병상</span>`
-            : (h.avail !== null ? `<span style="font-size:11px;color:var(--text2);">가용 ${h.avail}</span>` : '<span style="font-size:11px;color:var(--text3);">정보없음</span>')}
-        </span>
-        ${hasPed ? `
-        <span style="display:flex;align-items:baseline;gap:5px;">
-          <span style="font-size:10px;color:var(--text3);">소아</span>
-          ${pedPatients !== null
-            ? `<b style="font-family:var(--mono);font-size:18px;color:${pedColor};">${pedPatients}</b><span style="font-size:10px;color:var(--text3);">명 / ${h.pedTotal}병상</span>`
-            : (h.pedAvail !== null && h.pedAvail !== undefined ? `<span style="font-size:11px;color:var(--text2);">가용 ${h.pedAvail}</span>` : `<span style="font-size:11px;color:var(--text3);">정보없음</span>`)}
-        </span>` : ''}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// 화면 그리기 (캐시 즉시표시 / 실제 로딩 둘 다 사용)
-function paint(genAvail, pedAvail) {
-  const genUsed = genAvail === null || genAvail === undefined ? null : Math.max(0, myGenTotal - genAvail);
-  const gKey = getStateKey(genAvail, myGenTotal);
-  const gColor = gKey === 'full' ? 'var(--red)' : gKey === 'busy' ? 'var(--orange)' : gKey === 'calm' ? 'var(--green)' : 'var(--text3)';
-  document.getElementById('valAvail').textContent = genAvail ?? '?';
-  document.getElementById('valAvail').style.color = gColor;
-  document.getElementById('valPatients').textContent = genUsed === null ? '?' : genUsed + '명';
-  document.getElementById('valPatients').style.color = gColor;
-  document.getElementById('valTotal').textContent = myGenTotal;
-
-  updateVolcano(genAvail);
-
-  const pedUsed = pedAvail === null || pedAvail === undefined ? null : Math.max(0, myPedTotal - pedAvail);
-  document.getElementById('pedAvailVal').textContent = pedAvail ?? '?';
-  document.getElementById('pedAvailVal').style.color = bedColor(pedAvail, myPedTotal);
-  document.getElementById('pedPatients').textContent = pedUsed === null ? '?' : pedUsed;
-  document.getElementById('pedTotalTxt').textContent = myPedTotal;
-  document.getElementById('pedTotalTxt2').textContent = myPedTotal;
-  const pb = pedBadge(pedAvail, myPedTotal);
-  const badge = document.getElementById('pedBadge');
-  badge.textContent = pb.label;
-  badge.style.background = pb.bg;
-  badge.style.color = pb.color;
-  badge.style.border = `1px solid ${pb.border}`;
-  const pedPct = (pedAvail === null || pedAvail === undefined) ? 0 : Math.min(100, Math.max(0, Math.round((myPedTotal - pedAvail) / myPedTotal * 100)));
-  document.getElementById('pedGauge').style.width = pedPct + '%';
-  document.getElementById('pedGauge').style.background = bedColor(pedAvail, myPedTotal);
-
-  renderOtherHospitals();
-}
-
-// 시간바 그리기 (수집시각/병원입력 — 캐시 즉시표시에서도 사용)
-function paintTimes(){
-  const utEl = document.getElementById('updatedTime');
-  if (collectTime) {
-    if (collectAgeMin !== null && collectAgeMin >= 15) {
-      utEl.style.color = 'var(--orange)';
-      utEl.textContent = collectTime + ' (' + collectAgeMin + '분 전)';
-    } else {
-      utEl.style.color = 'var(--main)';
-      utEl.textContent = collectTime;
-    }
-  } else {
-    utEl.style.color = 'var(--main)';
-    utEl.textContent = '—';
-  }
-  document.getElementById('hospitalTime').textContent = myDataTime ?? '—';
-  // 데이터 출처 배지
-  const srcEl = document.getElementById('srcBadge');
-  if (srcEl && dataSource) {
-    const live = (dataSource === '실시간');
-    srcEl.textContent = live ? '⚡실시간' : ('🔗' + dataSource.replace('(지연)',''));
-    srcEl.style.color = live ? 'var(--green)' : 'var(--text3)';
-  }
-}
-
-let prevCollect = null;   // 직전 수집시각 (새로고침시 변화 확인용)
-
-async function load(manual) {
-  const btn = document.getElementById('refreshBtn');
-  btn.classList.add('spinning');
-  document.getElementById('errBox').classList.remove('show');
-  prevCollect = collectTime;
-  lastLoadAt = Date.now();
-
-  try {
-    const {genAvail, pedAvail} = await fetchData();
-
-    paint(genAvail, pedAvail);
-
-    // 데이터수집 = GitHub이 API에서 받아온 시각 (직접연결이면 지금)
-    paintTimes();
-
-    // 수동 새로고침이면 결과 알려주기
-    if (manual === true) {
-      if (collectTime && prevCollect === collectTime) {
-        showToast('아직 새 데이터가 없어요 · ' + collectTime + ' 수집분', '#6a8aaa');
-      } else {
-        showToast('최신 데이터로 갱신했어요! ✓', '#22d47a');
-      }
-    }
-
-    if (genAvail === null) {
-      const eb2 = document.getElementById('errBox');
-      eb2.innerHTML = '⚠️ 구미차병원 데이터를 못 찾았어요<br><div style="font-size:10px;color:#ffaa00;background:rgba(255,170,0,0.06);border:1px dashed rgba(255,170,0,0.3);border-radius:8px;padding:8px;margin-top:8px;line-height:1.7;">🔍 진단정보<br>' + (lastDiag || '(정보없음)') + '</div>';
-      eb2.classList.add('show');
-    }
-  } catch(e) {
-    const eb = document.getElementById('errBox');
-    eb.innerHTML = '⚠️ 불러오기 실패<br><div style="font-size:10px;color:#ffaa00;background:rgba(255,170,0,0.06);border:1px dashed rgba(255,170,0,0.3);border-radius:8px;padding:8px;margin:8px 0;line-height:1.7;">🔍 진단정보<br>' + (lastDiag || '(정보없음)') + '</div>' +
-      '<button onclick="load(true)" style="margin-top:8px;margin-right:6px;background:rgba(59,158,255,0.15);border:1px solid rgba(59,158,255,0.4);color:#3b9eff;padding:6px 12px;border-radius:7px;font-size:11px;cursor:pointer;font-family:inherit;">↻ 다시 시도</button>' +
-      '<button onclick="resetAppCache()" style="margin-top:8px;background:rgba(255,170,0,0.15);border:1px solid rgba(255,170,0,0.4);color:#ffaa00;padding:6px 12px;border-radius:7px;font-size:11px;cursor:pointer;font-family:inherit;">🧹 앱 캐시 초기화</button>';
-    eb.classList.add('show');
-  }
-  btn.classList.remove('spinning');
-}
-
-// ── 켜자마자 마지막으로 본 숫자를 즉시 표시 (네트워크 기다리지 않음) ──
-(function showCachedInstantly(){
-  try {
-    const raw = localStorage.getItem('erCache');
-    if (!raw) return;
-    const o = JSON.parse(raw);
-    const got = applyJson(o);
-    if (!got) return;
-    paint(got.genAvail, got.pedAvail);   // 저장된 값으로 화면 먼저 그림
-    paintTimes();                         // 수집/입력 시각도 즉시 표시
-  } catch(e){}
-})();
-
-// ── 복귀/재시작 자동 갱신 설정 (반드시 load()보다 먼저!) ──
-let lastLoadAt = 0;
-function refreshIfStale(force){
-  const gap = Date.now() - lastLoadAt;
-  if (force || gap > 30000) {   // 30초 이상 지났으면 갱신
-    lastLoadAt = Date.now();
-    load();
-  }
-}
-document.addEventListener('visibilitychange', function(){
-  if (!document.hidden) refreshIfStale(false);
-});
-window.addEventListener('pageshow', function(e){
-  if (e.persisted) refreshIfStale(true);   // 뒤로가기 캐시에서 복원된 경우
-});
-window.addEventListener('focus', function(){ refreshIfStale(false); });
-window.addEventListener('online', function(){ refreshIfStale(true); });
-
-// 첫 로딩 + 1분마다 갱신 (화면 보일 때만)
-load();
-setInterval(function(){ if (!document.hidden) load(); }, 60 * 1000);
-
-// 현재 시각 1초마다 갱신
-function updateClock(){
-  document.getElementById('currentTime').textContent = new Date().toLocaleTimeString('ko-KR');
-}
-updateClock();
-setInterval(updateClock, 1000);
-</script>
-<script>
-// QR 코드 생성
-function initQR(){
-  const url = 'https://hyinuyu.github.io/Emergency-room/';
-  const script = document.createElement('script');
-  script.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
-  script.onload = function(){
-    const wrap = document.getElementById('qrWrap');
-    new QRCode(wrap, {
-      text: url,
-      width: 160,
-      height: 160,
-      colorDark: '#0d1117',
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
-    });
-  };
-  document.head.appendChild(script);
-}
-// QR은 화면 다 그려진 뒤 생성 (초기 속도 우선)
-if (document.readyState === 'complete') setTimeout(initQR, 800);
-else window.addEventListener('load', function(){ setTimeout(initQR, 800); });
-
-// 공유 기능
-function showToast(msg, color) {
-  const old = document.getElementById('refreshToast');
-  if (old) old.remove();
-  const t = document.createElement('div');
-  t.id = 'refreshToast';
-  t.textContent = msg;
-  t.style.cssText = 'position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#131a24;border:1px solid ' +
-    (color||'#243447') + ';color:' + (color||'#ddeeff') +
-    ';padding:10px 18px;border-radius:22px;font-size:12px;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.6);white-space:nowrap;';
-  document.body.appendChild(t);
-  setTimeout(function(){ if(t.parentNode) t.remove(); }, 2600);
-}
-
-// ── 앱 자동확인 ──
-// 서버에 새 버전이 올라오면 자동으로 갱신 (앞으로 재발 방지)
-async function checkNewVersion(){
-  try {
-    const r = await fetch('./version.txt?t=' + Date.now(), {cache:'no-store'});
-    if (!r.ok) return;
-    const latest = (await r.text()).trim();
-    if (latest && latest !== APP_VERSION) {
-      // 새 버전 발견 → 캐시 비우고 한 번만 자동 새로고침
-      if (!sessionStorage.getItem('autoUpdated')) {
-        sessionStorage.setItem('autoUpdated', '1');
-        resetAppCache();
-      }
-    }
-  } catch(e){}
-}
-setTimeout(checkNewVersion, 3000);
-
-// 하단 버전 표시
-(function(){ var v=document.getElementById('verTxt'); if(v) v.textContent = APP_VERSION; })();
-
-function copyLink() {
-  const url = 'https://hyinuyu.github.io/Emergency-room/';
-  if (navigator.share) {
-    navigator.share({ title: '구미차병원 응급실 현황', text: '실시간 응급실 현황 확인하세요!', url: url }).catch(function(){});
-    return;
-  }
-  navigator.clipboard.writeText(url).then(function() {
-    const btn = document.getElementById('copyBtn');
-    btn.textContent = '✅ 복사됐어요!';
-    btn.style.borderColor = 'var(--green)';
-    btn.style.color = 'var(--green)';
-    setTimeout(function() {
-      btn.textContent = '🔗 친구에게 링크 공유하기';
-      btn.style.borderColor = 'var(--border)';
-      btn.style.color = 'var(--text2)';
-    }, 2000);
-  }).catch(function() {
-    prompt('아래 주소를 복사하세요:', url);
-  });
-}
-
-
-
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js').then(function(reg){
-    reg.update();
-    // 앱이 다시 보일 때마다 새 버전 확인
-    document.addEventListener('visibilitychange', function(){
-      if (!document.hidden) reg.update();
-    });
-  }).catch(function(){});
-
-  // 새 서비스워커가 넘겨받으면 한 번만 새로고침 (최신 코드 적용)
-  var swReloaded = false;
-  var hadController = !!navigator.serviceWorker.controller;   // 페이지 시작 시점 기준
-  navigator.serviceWorker.addEventListener('controllerchange', function(){
-    if (swReloaded) return;
-    if (!hadController) return;                                // 첫 설치면 리로드 불필요
-    if (sessionStorage.getItem('autoUpdated')) return;         // 자동업데이트 직후 중복 방지
-    swReloaded = true;
-    location.reload();
-  });
-}
-
-// 앱 캐시 강제 초기화 (문제 생겼을 때 수동 복구용)
-function resetAppCache(){
-  const done = function(){ location.reload(true); };
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.getRegistrations().then(function(regs){
-      return Promise.all(regs.map(function(r){ return r.unregister(); }));
-    }).then(function(){
-      if(window.caches) return caches.keys().then(function(ks){
-        return Promise.all(ks.map(function(k){ return caches.delete(k); }));
-      });
-    }).then(done).catch(done);
-  } else done();
+if (window.caches) {
+  caches.keys().then(function(ks){ ks.forEach(function(k){ caches.delete(k); }); }).catch(function(){});
 }
 </script>
 </body>
