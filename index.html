@@ -2,279 +2,531 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>구미차병원 응급실 현황 — 서비스 종료</title>
-<meta name="description" content="공공데이터 API 정책 변경으로 실시간 응급실 현황 서비스를 종료합니다.">
-<meta property="og:title" content="🌋 그동안 감사했습니다">
-<meta property="og:description" content="구미차병원 응급실 현황 서비스가 종료되었습니다">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>구미차병원 응급실 현황</title>
+<meta name="description" content="구미차병원 응급실 실시간 병상 현황">
+<meta property="og:title" content="🏥 구미차병원 응급실 현황">
+<meta property="og:description" content="실시간 병상·환자 현황 + 대기 중 미니게임 🎮">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#060910">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://apis.data.go.kr">
 <style>
 :root{
   --bg:#060910; --card:#0d1117; --card2:#131a24;
-  --border:#1c2a3a; --border2:#243447;
-  --main:#3b9eff; --green:#22d47a; --orange:#ffaa00; --red:#ff4466;
-  --text:#ddeeff; --text2:#6a8aaa; --text3:#2d4055;
-  --mono:'DM Mono',monospace;
+  --line:#1c2a3a; --line2:#243447;
+  --blue:#3b9eff; --green:#22d47a; --amber:#ffaa00; --red:#ff4466;
+  --t1:#ddeeff; --t2:#6a8aaa; --t3:#2d4055;
+  --mono:ui-monospace,'SF Mono',Menlo,monospace;
 }
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;}
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 20%,rgba(59,158,255,0.05) 0%,transparent 70%);pointer-events:none;}
-.wrap{position:relative;max-width:480px;margin:0 auto;padding:40px 18px 60px;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--t1);min-height:100vh;
+  font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  font-feature-settings:'tnum'}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 70% 45% at 50% 12%,rgba(59,158,255,.06),transparent 70%)}
+.wrap{position:relative;max-width:480px;margin:0 auto;padding:30px 16px 48px}
 
 /* 헤더 */
-.head{text-align:center;margin-bottom:22px;}
-.head h1{font-size:19px;font-weight:900;color:#fff;line-height:1.4;}
-.head h1 span{color:var(--main);}
-.head p{font-size:12px;color:var(--text2);margin-top:7px;font-family:var(--mono);}
+.hd{text-align:center;margin-bottom:16px}
+.hd h1{font-size:19px;font-weight:800;letter-spacing:-.3px}
+.hd h1 b{color:var(--blue)}
+.hd p{font-size:11px;color:var(--t2);margin-top:6px;font-family:var(--mono)}
+.live{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);
+  margin-right:5px;vertical-align:1px;animation:blink 2s infinite}
+@keyframes blink{50%{opacity:.25}}
 
-/* 잠든 화산 */
-.volcano-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:26px 20px 24px;text-align:center;margin-bottom:14px;overflow:hidden;}
-.vwrap{height:150px;margin-bottom:6px;}
-.vsvg{width:100%;height:100%;}
-@keyframes zzz{
-  0%{opacity:0;transform:translate(0,0) scale(0.8) rotate(0deg);}
-  25%{opacity:0.9;}
-  100%{opacity:0;transform:translate(16px,-34px) scale(1.5) rotate(14deg);}
-}
-@keyframes breathe{0%,100%{transform:scaleY(1);}50%{transform:scaleY(1.05);}}
-.zzz{animation:zzz 3.5s ease-out infinite;transform-origin:center;}
-.z2{animation-delay:1.15s;}
-.z3{animation-delay:2.3s;}
-.vtitle{font-size:21px;font-weight:900;color:var(--text2);margin-bottom:8px;}
-.vdesc{font-size:13px;color:var(--text3);line-height:1.7;}
+/* 상태바 */
+.bar{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);
+  border-radius:11px;padding:9px 13px;margin-bottom:12px}
+.bar-i{flex:1;min-width:0}
+.bar-k{font-size:9px;color:var(--t3);font-family:var(--mono);letter-spacing:.2px}
+.bar-v{font-size:12px;font-weight:600;font-family:var(--mono);margin-top:1px}
+.bar-sep{width:1px;height:22px;background:var(--line)}
+.rf{flex-shrink:0;background:var(--card2);border:1px solid var(--line2);color:var(--t2);
+  padding:7px 11px;border-radius:8px;font-size:11px;font-family:inherit;cursor:pointer;transition:.15s}
+.rf:active{transform:scale(.94)}
+.rf.busy{opacity:.55;pointer-events:none}
+.rf.busy .ico{display:inline-block;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-/* 공지 카드 */
-.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 20px;margin-bottom:12px;}
-.card-t{font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:7px;}
-.reason{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:13px 15px;font-size:12px;line-height:1.9;color:var(--text2);margin-bottom:10px;}
-.reason b{color:var(--text);}
-.reason .hl{color:var(--orange);font-weight:700;}
-.tag{display:inline-block;background:rgba(255,68,102,0.1);border:1px solid rgba(255,68,102,0.25);color:#ff8096;font-size:10px;font-family:var(--mono);padding:3px 9px;border-radius:20px;margin:3px 3px 0 0;}
+/* 화산 */
+.volc{position:relative;background:var(--card);border:1px solid var(--line2);border-radius:20px;
+  padding:22px 18px 20px;margin-bottom:12px;text-align:center;overflow:hidden;transition:background .7s}
+.volc-bg{position:absolute;inset:0;transition:background 1s;pointer-events:none}
+.stage{position:relative;height:158px;margin-bottom:10px}
+.stage svg{width:100%;height:100%;overflow:visible}
+.st-title{font-size:21px;font-weight:800;margin-bottom:5px;transition:color .5s}
+.st-desc{font-size:12.5px;color:var(--t2);line-height:1.55}
+.legend{display:flex;justify-content:center;gap:11px;flex-wrap:wrap;margin:13px 0 15px}
+.legend span{font-size:10.5px;color:var(--t3)}
+.nums{display:flex;justify-content:center;gap:8px}
+.num{flex:1;max-width:100px}
+.num-v{font-family:var(--mono);font-size:27px;font-weight:600;line-height:1;transition:color .4s}
+.num-k{font-size:10px;color:var(--t3);margin-top:5px}
 
-/* 진단 표 */
-.diag{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:6px 14px;margin-bottom:12px;}
-.diag-row{display:flex;gap:11px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--border);font-size:12px;}
-.diag-row:last-child{border-bottom:none;}
-.diag-ico{font-size:13px;font-weight:900;line-height:1.5;flex-shrink:0;width:16px;text-align:center;}
-.diag-ico.ok{color:var(--green);}
-.diag-ico.ng{color:var(--red);}
-.diag-row b{color:var(--text);font-weight:700;}
-.diag-s{font-size:11px;color:var(--text2);margin-top:3px;line-height:1.65;}
-.code{display:inline-block;font-family:var(--mono);font-size:10px;color:#ff8096;background:rgba(255,68,102,0.08);border:1px solid rgba(255,68,102,0.2);border-radius:5px;padding:1px 7px;margin-top:4px;}
-.verdict{background:rgba(59,158,255,0.06);border:1px solid rgba(59,158,255,0.25);border-radius:12px;padding:13px 15px;font-size:12px;line-height:1.8;color:var(--text2);}
-.verdict b{color:var(--main);}
+@keyframes smoke{from{transform:translateY(0) scale(1);opacity:.55}to{transform:translateY(-42px) scale(2.1);opacity:0}}
+@keyframes quake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+@keyframes pop{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 
-.tl{margin-bottom:13px;}
-.tl-item{display:flex;gap:11px;position:relative;padding-bottom:14px;}
-.tl-item:last-child{padding-bottom:0;}
-.tl-item:not(:last-child)::before{content:'';position:absolute;left:5px;top:15px;bottom:2px;width:2px;background:var(--border2);}
-.tl-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;margin-top:3px;z-index:1;}
-.tl-dot.ok{background:var(--orange);box-shadow:0 0 0 3px rgba(255,170,0,0.12);}
-.tl-dot.ng{background:var(--red);box-shadow:0 0 0 3px rgba(255,68,102,0.12);}
-.tl-date{font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:3px;}
-.tl-txt{font-size:12px;color:var(--text2);line-height:1.75;}
-.tl-txt b{color:var(--text);}
-.tl-s{font-size:11px;color:var(--text3);}
+/* 카드 */
+.card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:15px 17px;margin-bottom:12px}
+.card-h{font-size:12px;font-weight:700;color:var(--t1);margin-bottom:11px;display:flex;align-items:center;gap:6px}
 
-.tries{font-size:11px;color:var(--text3);text-align:center;line-height:1.9;margin-top:12px;font-family:var(--mono);}
-.giveup{background:var(--card2);border:1px dashed var(--border2);border-radius:12px;padding:15px;text-align:center;font-size:12px;line-height:1.8;margin-top:13px;}
+/* 소아 */
+.ped{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ped-l{display:flex;align-items:center;gap:11px;min-width:0}
+.ped-n{font-size:13.5px;font-weight:600}
+.ped-s{font-size:10.5px;color:var(--t2);margin-top:2px}
+.chip{display:inline-block;padding:2px 8px;border-radius:9px;font-size:10px;font-weight:600;font-family:var(--mono);margin-top:5px}
+.ped-r{text-align:right;flex-shrink:0}
+.ped-v{font-family:var(--mono);font-size:24px;font-weight:600;line-height:1}
+.ped-t{font-size:10px;color:var(--t2);margin-top:3px}
+.gauge{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-top:12px}
+.gauge i{display:block;height:100%;border-radius:2px;transition:width .7s cubic-bezier(.4,0,.2,1)}
 
-/* 대안 안내 */
-.alt{display:flex;align-items:center;gap:11px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:13px 15px;margin-bottom:8px;text-decoration:none;}
-.alt-ico{font-size:21px;}
-.alt-t{font-size:13px;font-weight:700;color:var(--text);}
-.alt-s{font-size:11px;color:var(--text2);margin-top:2px;}
-.alt-go{margin-left:auto;font-size:16px;color:var(--text3);}
+/* 대기시간 */
+.wait{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:var(--card2);border-radius:11px;padding:12px 14px;border-left:3px solid var(--t3);transition:.4s}
+.wait-m{font-size:11.5px;color:var(--t2);line-height:1.6}
+.wait-t{font-family:var(--mono);font-size:15px;font-weight:700;white-space:nowrap}
 
-/* 블로그 (메인 CTA) */
-.blog{display:flex;align-items:center;justify-content:space-between;gap:12px;text-decoration:none;
-  background:linear-gradient(135deg,rgba(34,212,122,0.14),rgba(59,158,255,0.07));
-  border:1px solid rgba(34,212,122,0.35);border-radius:16px;padding:17px 20px;margin-bottom:12px;}
-.blog-t{font-size:15px;font-weight:900;color:var(--text);}
-.blog-s{font-size:11px;color:var(--text2);margin-top:3px;line-height:1.5;}
-.blog-go{font-size:19px;color:var(--green);}
+/* 안내 */
+.tips{display:flex;flex-direction:column;gap:7px}
+.tip{display:flex;gap:9px;align-items:flex-start;background:var(--card2);border-radius:9px;
+  padding:10px 12px;font-size:11.5px;line-height:1.65;color:var(--t2)}
+.tip b{color:var(--t1)}
 
-/* 병원 정보 */
-.info{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
-.info-l{font-size:12px;color:var(--text2);}
-.info-v{font-size:12px;color:var(--text);font-family:var(--mono);text-decoration:none;}
-.info-v.call{color:var(--main);font-weight:700;}
+/* 비교 */
+.cmp{display:flex;flex-direction:column;gap:7px}
+.cmp-r{display:flex;align-items:center;gap:9px;background:var(--card2);border:1px solid var(--line);
+  border-radius:10px;padding:9px 12px}
+.cmp-r.me{background:rgba(59,158,255,.07);border-color:rgba(59,158,255,.25)}
+.cmp-n{flex:1;font-size:11.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmp-r.me .cmp-n{font-weight:700;color:var(--blue)}
+.cmp-g{display:flex;align-items:baseline;gap:4px}
+.cmp-k{font-size:9.5px;color:var(--t3)}
+.cmp-v{font-family:var(--mono);font-size:14px;font-weight:600;min-width:15px;text-align:right}
+.cmp-u{font-size:9px;color:var(--t3)}
+.cmp-f{font-size:9.5px;color:var(--t3);text-align:center;margin-top:9px}
 
-.foot{text-align:center;font-size:11px;color:var(--text3);line-height:1.9;margin-top:22px;}
-.foot .thx{color:var(--text2);font-size:12px;}
+/* 게임 */
+.games{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.game{background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:11px 3px;
+  text-align:center;text-decoration:none;transition:.15s}
+.game:active{transform:scale(.95)}
+.game em{font-size:23px;font-style:normal;line-height:1}
+.game span{display:block;font-size:10.5px;color:var(--t2);margin-top:5px;font-weight:600}
+
+/* 링크 */
+.link{display:flex;align-items:center;justify-content:space-between;gap:12px;text-decoration:none;
+  border-radius:15px;padding:14px 17px;margin-bottom:12px;transition:.15s}
+.link:active{transform:scale(.98)}
+.link-l{display:flex;align-items:center;gap:12px;min-width:0}
+.link em{font-size:24px;font-style:normal}
+.link-t{font-size:13.5px;font-weight:700;color:var(--t1)}
+.link-s{font-size:10.5px;color:var(--t2);margin-top:2px}
+.link-a{font-size:17px;flex-shrink:0}
+.sudo{background:linear-gradient(135deg,rgba(34,212,212,.13),rgba(59,158,255,.07));border:1px solid rgba(34,212,212,.3)}
+.sudo .link-a{color:#22d4d4}
+.blog{background:linear-gradient(135deg,rgba(34,212,122,.12),rgba(59,158,255,.05));border:1px solid rgba(34,212,122,.3)}
+.blog .link-a{color:var(--green)}
+
+.btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--card);
+  border:1px solid var(--line2);color:var(--t2);border-radius:13px;padding:13px;font-size:12.5px;
+  font-weight:600;font-family:inherit;cursor:pointer;margin-bottom:12px;transition:.2s}
+.btn:active{transform:scale(.98)}
+
+/* QR */
+.qr{text-align:center}
+.qr-box{display:inline-flex;background:#fff;padding:9px;border-radius:11px;min-height:40px}
+.qr-c{font-size:10px;color:var(--t3);margin-top:9px;font-family:var(--mono)}
+
+/* 정보 */
+.info{display:flex;justify-content:space-between;align-items:center;background:var(--card);
+  border:1px solid var(--line);border-radius:11px;padding:11px 15px;margin-bottom:7px}
+.info-k{font-size:11.5px;color:var(--t2)}
+.info-v{font-size:11.5px;font-family:var(--mono);color:var(--t1);text-decoration:none}
+.info-v.tel{color:var(--blue);font-weight:600}
+
+.err{display:none;background:rgba(255,68,102,.09);border:1px solid rgba(255,68,102,.25);
+  border-radius:11px;padding:11px 14px;font-size:11.5px;color:#ff8a9c;line-height:1.6;margin-bottom:12px}
+.err.on{display:block}
+.err button{margin-top:8px;background:rgba(59,158,255,.14);border:1px solid rgba(59,158,255,.35);
+  color:var(--blue);padding:6px 12px;border-radius:7px;font-size:11px;font-family:inherit;cursor:pointer}
+.foot{text-align:center;font-size:10px;color:var(--t3);font-family:var(--mono);margin-top:18px;line-height:1.8}
+.skel{color:var(--t3)!important}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <div class="head">
-    <h1>🏥 <span>구미차병원</span> 응급실 현황</h1>
-    <p>서비스를 종료합니다 · 2026.09</p>
+  <header class="hd">
+    <h1>🏥 <b>구미차병원</b> 응급실</h1>
+    <p><i class="live"></i>경북 구미시 신시로 10 · 054-450-9700</p>
+  </header>
+
+  <div class="bar">
+    <div class="bar-i"><div class="bar-k">현재시각</div><div class="bar-v" id="now">—</div></div>
+    <div class="bar-sep"></div>
+    <div class="bar-i"><div class="bar-k">병원입력</div><div class="bar-v" id="hosp" style="color:var(--blue)">—</div></div>
+    <button class="rf" id="rf"><span class="ico">↻</span> 새로고침</button>
   </div>
 
-  <!-- 잠든 화산 -->
-  <div class="volcano-card">
-    <div class="vwrap">
-      <svg class="vsvg" viewBox="0 0 300 160" xmlns="http://www.w3.org/2000/svg">
+  <div class="err" id="err"></div>
+
+  <!-- 화산 -->
+  <section class="volc" id="volc">
+    <div class="volc-bg" id="volcBg"></div>
+    <div class="stage">
+      <svg viewBox="0 0 300 170" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <radialGradient id="grd" cx="50%" cy="100%">
-            <stop offset="0%" stop-color="#1a2535" stop-opacity="0.6"/>
-            <stop offset="100%" stop-color="#060910" stop-opacity="0"/>
-          </radialGradient>
+          <radialGradient id="lava"><stop offset="0" stop-color="#ff8c00"/><stop offset="1" stop-color="#ff2200"/></radialGradient>
+          <radialGradient id="floor" cx=".5" cy="1"><stop offset="0" stop-color="#1a0a00" stop-opacity=".5"/><stop offset="1" stop-color="#060910" stop-opacity="0"/></radialGradient>
         </defs>
-
-        <!-- zZZ -->
-        <text class="zzz" x="168" y="52" font-size="17" font-weight="700" fill="#3b9eff" font-family="DM Mono, monospace">z</text>
-        <text class="zzz z2" x="176" y="42" font-size="13" font-weight="700" fill="#3b9eff" font-family="DM Mono, monospace">z</text>
-        <text class="zzz z3" x="183" y="34" font-size="10" font-weight="700" fill="#3b9eff" font-family="DM Mono, monospace">z</text>
-
-        <!-- 산 -->
-        <polygon points="62,140 150,62 238,140" fill="#141c28"/>
-        <polygon points="84,140 150,78 216,140" fill="#0f151f"/>
-        <!-- 분화구 (식은 상태) -->
-        <ellipse cx="150" cy="70" rx="20" ry="7" fill="#0a0e16"/>
-        <ellipse cx="150" cy="69" rx="13" ry="4" fill="#1c2a3a" style="animation:breathe 4s ease-in-out infinite;transform-origin:150px 69px;"/>
-
-        <!-- 감은 눈 (>‿<) -->
-        <path d="M128 100 q7 -6 14 0" stroke="#3b5878" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-        <path d="M158 100 q7 -6 14 0" stroke="#3b5878" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-        <path d="M143 112 q7 5 14 0" stroke="#2d4055" stroke-width="2" fill="none" stroke-linecap="round"/>
-
-        <!-- 바닥 -->
-        <rect x="0" y="138" width="300" height="16" fill="#0a0e16" rx="2"/>
-        <ellipse cx="150" cy="138" rx="120" ry="6" fill="url(#grd)"/>
+        <g id="smoke">
+          <circle cx="150" cy="58" r="8" fill="#8a97a6" opacity="0"/>
+          <circle cx="144" cy="50" r="10" fill="#7d8a99" opacity="0"/>
+          <circle cx="157" cy="46" r="7" fill="#94a1b0" opacity="0"/>
+          <circle cx="148" cy="38" r="11" fill="#6f7c8b" opacity="0"/>
+          <circle cx="153" cy="31" r="9" fill="#7d8a99" opacity="0"/>
+        </g>
+        <g id="body">
+          <polygon points="58,155 150,52 242,155" fill="#2a1a0a"/>
+          <polygon points="80,155 150,72 220,155" fill="#1a0f05"/>
+          <ellipse cx="150" cy="62" rx="22" ry="8" fill="#0d0705"/>
+          <ellipse cx="150" cy="60" rx="16" ry="5" fill="url(#lava)" id="pool" opacity=".25"/>
+        </g>
+        <g id="parts" opacity="0">
+          <circle cx="150" cy="50" r="3" fill="#ff6a00"/><circle cx="137" cy="40" r="2" fill="#ff4400"/>
+          <circle cx="163" cy="37" r="2.5" fill="#ff8800"/><circle cx="142" cy="29" r="2" fill="#ffaa00"/>
+          <circle cx="159" cy="33" r="2" fill="#ff5500"/><circle cx="131" cy="45" r="1.5" fill="#ff3300"/>
+          <circle cx="169" cy="43" r="2" fill="#ff7700"/>
+        </g>
+        <g id="flow" opacity="0">
+          <path d="M138 72Q125 98 115 126Q110 141 120 150" stroke="#ff4400" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <path d="M162 72Q175 100 180 130Q183 143 173 152" stroke="#ff6a00" stroke-width="3" fill="none" stroke-linecap="round"/>
+        </g>
+        <rect x="0" y="153" width="300" height="17" fill="#0d0705" rx="2"/>
+        <ellipse cx="150" cy="153" rx="122" ry="6" fill="url(#floor)"/>
       </svg>
     </div>
-    <div class="vtitle">화산이 잠들었어요</div>
-    <div class="vdesc">이제 푹 쉬려고 합니다 💤</div>
-  </div>
+    <div class="st-title skel" id="stTitle">불러오는 중…</div>
+    <div class="st-desc" id="stDesc">잠시만 기다려주세요</div>
+    <div class="legend">
+      <span>🟢 여유 8명 미만</span><span>🟡 혼잡 8–14명</span><span>🔴 포화 15명+</span>
+    </div>
+    <div class="nums">
+      <div class="num"><div class="num-v skel" id="nAvail">—</div><div class="num-k">가용병상</div></div>
+      <div class="num"><div class="num-v skel" id="nPat">—</div><div class="num-k">추정 환자</div></div>
+      <div class="num"><div class="num-v" style="color:var(--t3)" id="nTot">20</div><div class="num-k">총 병상</div></div>
+    </div>
+  </section>
 
-  <!-- 종료 사유 -->
-  <div class="card">
-    <div class="card-t">📮 무슨 일이 있었냐면요</div>
-
-    <div class="tl">
-      <div class="tl-item">
-        <div class="tl-dot ok"></div>
-        <div class="tl-body">
-          <div class="tl-date">8월 3일</div>
-          <div class="tl-txt"><b>1차 사망</b><br>
-          공공데이터 서버가 갑자기 응답을 멈춤.<br>
-          <span class="tl-s">온갖 우회로를 뚫어서 겨우 되살림 💪</span></div>
+  <!-- 소아 -->
+  <section class="card">
+    <div class="ped">
+      <div class="ped-l">
+        <em style="font-size:23px;font-style:normal">👶</em>
+        <div>
+          <div class="ped-n">소아 응급실</div>
+          <div class="ped-s">총 <span id="pTot">5</span>병상</div>
+          <div class="chip" id="pChip" style="background:rgba(100,130,160,.1);color:var(--t2)">—</div>
         </div>
       </div>
-      <div class="tl-item">
-        <div class="tl-dot ng"></div>
-        <div class="tl-body">
-          <div class="tl-date">9월 6일</div>
-          <div class="tl-txt"><b>2차 사망</b><br>
-          똑같은 일이 또 발생. 이번엔 <b>모든 길이 막힘.</b><br>
-          <span class="tl-s">에러 메시지조차 없이 그냥 무응답 🫥</span></div>
-        </div>
+      <div class="ped-r">
+        <div class="ped-v skel" id="pAvail">—</div>
+        <div class="ped-t">가용</div>
+        <div class="ped-t">환자 <b id="pPat" style="color:var(--amber)">—</b>명</div>
       </div>
     </div>
+    <div class="gauge"><i id="pGauge" style="width:0;background:var(--green)"></i></div>
+  </section>
 
-    <div class="diag">
-      <div class="diag-row">
-        <span class="diag-ico ok">✓</span>
-        <div><b>승인받은 API 키</b><div class="diag-s">정상 · 하루 10만 건 사용 가능</div></div>
-      </div>
-      <div class="diag-row">
-        <span class="diag-ico ok">✓</span>
-        <div><b>사이트 코드</b><div class="diag-s">멀쩡함 (그날 아침까지 잘 돌아갔어요)</div></div>
-      </div>
-      <div class="diag-row">
-        <span class="diag-ico ng">✕</span>
-        <div><b>데이터 주는 서버</b><div class="diag-s">대답이 없음 · 이유도 안 알려줌</div></div>
-      </div>
+  <!-- 대기시간 -->
+  <section class="card">
+    <div class="card-h">⏱️ 예상 대기시간</div>
+    <div class="wait" id="wait">
+      <div class="wait-m" id="waitMsg">현황을 불러오는 중이에요</div>
+      <div class="wait-t" id="waitT" style="color:var(--t3)">—</div>
     </div>
+  </section>
 
-    <div class="verdict" style="text-align:center;">
-      이틀에 걸쳐 <b>쓸 수 있는 방법은 전부</b><br>
-      동원했지만 결국 실패했습니다 🥲
+  <!-- 안내 -->
+  <section class="card">
+    <div class="card-h">🚑 응급실 이용 안내</div>
+    <div class="tips">
+      <div class="tip">🚨<div><b>응급 증상</b>이라면 즉시 말씀해주세요 — 우선 진료해드려요</div></div>
+      <div class="tip">📋<div>진료 순서는 <b>내원 순서가 아닌 응급도 순서</b>예요</div></div>
+      <div class="tip">⚡<div>중증 응급환자는 <b>대기 없이 바로 진료</b> 가능해요</div></div>
     </div>
+  </section>
 
-    <div class="tries">
-      직접 연결 · 국내외 중계 서버 · 공개 우회로 ·<br>
-      자동 수집기 · 방문자 공유 · 다른 형식 요청 …
-    </div>
+  <!-- 비교 -->
+  <section class="card">
+    <div class="card-h">🏥 주변 응급실 환자수</div>
+    <div class="cmp" id="cmp"><div style="font-size:11px;color:var(--t3);text-align:center;padding:9px">불러오는 중…</div></div>
+    <div class="cmp-f">숫자는 현재 환자수 · 적을수록 빨라요</div>
+  </section>
 
-    <div class="giveup">
-      <div style="font-size:15px;margin-bottom:6px;">🏳️</div>
-      <b style="color:var(--text2);">한 번은 살렸지만, 두 번은 못 하겠더라고요.</b><br>
-      <span style="font-size:11px;color:var(--text3);line-height:1.85;">
-        고쳐도 또 멈출 텐데, 계속 붙잡고 있기엔<br>
-        제가 먼저 지쳐버렸습니다 😌<br>
-        언젠가 서버가 다시 말을 걸어오면 그때 생각해 볼게요.
-      </span>
+  <!-- 게임 -->
+  <section class="card">
+    <div class="card-h">🎮 대기하는 동안 한 판!</div>
+    <div class="games">
+      <a class="game" href="./tetris.html"><em>🧩</em><span>테트리스</span></a>
+      <a class="game" href="./2048.html"><em>🎯</em><span>2048</span></a>
+      <a class="game" href="./minesweeper.html"><em>🚩</em><span>지뢰찾기</span></a>
+      <a class="game" href="./breakout.html"><em>🧱</em><span>벽돌깨기</span></a>
+      <a class="game" href="./snake.html"><em>🐍</em><span>스네이크</span></a>
+      <a class="game" href="./racing.html"><em>🚗</em><span>레이싱</span></a>
     </div>
-  </div>
+  </section>
 
-  <!-- 대안 -->
-  <div class="card">
-    <div class="card-t">🔎 응급실 정보는 여기서</div>
-    <a href="https://www.e-gen.or.kr/" target="_blank" rel="noopener" class="alt">
-      <span class="alt-ico">🚑</span>
-      <div>
-        <div class="alt-t">응급의료포털 E-Gen</div>
-        <div class="alt-s">실시간 병상 현황</div>
-      </div>
-      <span class="alt-go">→</span>
-    </a>
-    <a href="tel:1339" class="alt">
-      <span class="alt-ico">📞</span>
-      <div>
-        <div class="alt-t">1339 · 응급의료상담</div>
-        <div class="alt-s">24시간 상담</div>
-      </div>
-      <span class="alt-go">→</span>
-    </a>
-    <div style="font-size:12px;color:var(--red);text-align:center;margin-top:11px;font-weight:700;">
-      🚨 응급상황은 망설이지 말고 119
-    </div>
-  </div>
-
-  <!-- 블로그 (홍보) -->
-  <a href="https://blog.naver.com/hyinuyu" target="_blank" rel="noopener" class="blog">
-    <div style="display:flex;align-items:center;gap:13px;">
-      <span style="font-size:26px;">✍️</span>
-      <div>
-        <div class="blog-t">흰우유 블로그</div>
-        <div class="blog-s">앞으로의 이야기는 여기서 💙</div>
-      </div>
-    </div>
-    <span class="blog-go">→</span>
+  <a class="link sudo" href="./sudoku.html">
+    <div class="link-l"><em>🔢</em><div><div class="link-t">오늘의 스도쿠</div><div class="link-s">매번 새로운 랜덤 퍼즐 🧠</div></div></div>
+    <span class="link-a">→</span>
   </a>
 
-  <!-- 병원 정보 -->
-  <div class="info">
-    <span class="info-l">📍 주소</span>
-    <span class="info-v">경북 구미시 신시로 10</span>
-  </div>
-  <div class="info">
-    <span class="info-l">📞 응급실</span>
-    <a href="tel:054-450-9700" class="info-v call">054-450-9700</a>
-  </div>
+  <a class="link blog" href="https://blog.naver.com/hyinuyu" target="_blank" rel="noopener">
+    <div class="link-l"><em>✍️</em><div><div class="link-t">흰우유 블로그</div><div class="link-s">blog.naver.com/hyinuyu</div></div></div>
+    <span class="link-a">→</span>
+  </a>
 
-  <div class="foot">
-    <div class="thx">그동안 찾아와 주셔서 감사했습니다 🙇</div>
-    <div style="margin-top:5px;">모두 아프지 말고 건강하세요 💙</div>
-  </div>
+  <button class="btn" id="share">🔗 친구에게 공유하기</button>
 
+  <section class="card qr">
+    <div class="card-h" style="justify-content:center">📱 QR로 접속</div>
+    <div class="qr-box" id="qr"></div>
+    <div class="qr-c">hyinuyu.github.io/Emergency-room</div>
+  </section>
+
+  <div class="info"><span class="info-k">📍 주소</span><span class="info-v">경북 구미시 신시로 10</span></div>
+  <div class="info"><span class="info-k">📞 응급실</span><a class="info-v tel" href="tel:054-450-9700">054-450-9700</a></div>
+  <div class="info"><span class="info-k">🔄 갱신</span><span class="info-v">1분마다 자동</span></div>
+
+  <div class="foot">공공데이터포털 응급의료정보 기반<br>v2026.09.06</div>
 </div>
 
 <script>
-// 예전 앱 캐시 정리 (홈화면에 설치한 분들도 이 페이지가 보이도록)
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations()
-    .then(function(rs){ rs.forEach(function(r){ r.unregister(); }); })
-    .catch(function(){});
+'use strict';
+const KEY='1ae147a1907296a5c5fd16751a21b2f146381a4727784592ae9c235d8ac0263d';
+const URL_API='https://apis.data.go.kr/B552657/ErmctInfoInqireService/getEmrrmRltmUsefulSckbdInfoInqire'
+  +'?serviceKey='+encodeURIComponent(KEY)+'&STAGE1='+encodeURIComponent('경상북도')+'&pageNo=1&numOfRows=100&_type=json';
+const SITE='https://hyinuyu.github.io/Emergency-room/';
+const CACHE='er:v1';
+const $=id=>document.getElementById(id);
+
+/* 병원 매칭 */
+const WHO=[
+  {k:'cha', label:'⭐ 구미차병원', me:true,  test:n=>n.includes('구미차')||n.includes('차의과학')},
+  {k:'gd',  label:'구미강동병원',   me:false, test:n=>n.includes('강동')},
+  {k:'sch', label:'순천향구미병원', me:false, test:n=>n.includes('순천향')&&n.includes('구미')}
+];
+
+/* 상태 정의 — 환자수 기준 */
+const MOOD={
+  calm:{t:'🌋 잠잠해요',   d:'응급실 여유 있어요. 편하게 오세요 👍', c:'var(--green)',
+        pool:.22, smoke:1300, parts:0, flow:0, quake:false, bg:'rgba(34,212,122,.05)',
+        wait:'30분 이내', msg:'😊 지금은 여유로운 편이에요!<br>빠르게 진료받으실 수 있어요.'},
+  busy:{t:'🌋💨 부글부글…', d:'응급실이 좀 바빠요. 서두르세요! 😤', c:'var(--amber)',
+        pool:.7, smoke:500, parts:.45, flow:.6, quake:false, bg:'rgba(255,170,0,.05)',
+        wait:'1시간 이내', msg:'😤 환자가 몰리는 중이에요.<br>가벼운 증상이면 대기가 생겨요.'},
+  full:{t:'🌋🔥 폭발 직전!!', d:'응급실 포화 상태!! 각오하세요 😱', c:'var(--red)',
+        pool:1, smoke:350, parts:1, flow:1, quake:true, bg:'rgba(255,68,102,.08)',
+        wait:'1시간 이상', msg:'🚨 매우 혼잡해요!<br>급하지 않다면 다른 병원도 확인해보세요.'}
+};
+const moodOf=p=>p==null?null:p>=15?'full':p>=8?'busy':'calm';
+const tone=p=>p==null?'var(--t3)':p>=15?'var(--red)':p>=8?'var(--amber)':'var(--green)';
+const toneP=p=>p==null?'var(--t3)':p>=4?'var(--red)':p>=2?'var(--amber)':'var(--green)';
+
+/* ── 데이터 ── */
+const int=v=>{const n=parseInt(v,10);return isNaN(n)?null:n;};
+
+function shape(items){
+  const out={};
+  for(const it of items){
+    const name=String(it.dutyName||'').replace(/\s/g,'');
+    const w=WHO.find(w=>w.test(name));
+    if(!w||out[w.k])continue;
+    out[w.k]={avail:int(it.hvec),total:int(it.hvs01),pAvail:int(it.hv28),pTotal:int(it.hvs02),
+              stamp:it.hvidate?String(it.hvidate):null};
+  }
+  return out.cha?{at:Date.now(),h:out}:null;
 }
-if (window.caches) {
-  caches.keys().then(function(ks){ ks.forEach(function(k){ caches.delete(k); }); }).catch(function(){});
+
+async function load(manual){
+  const btn=$('rf');
+  btn.classList.add('busy');
+  $('err').classList.remove('on');
+  try{
+    const ac=new AbortController();
+    const to=setTimeout(()=>ac.abort(),8000);
+    const res=await fetch(URL_API,{cache:'no-store',signal:ac.signal}).finally(()=>clearTimeout(to));
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const body=await res.json();
+    const raw=body?.response?.body?.items?.item;
+    if(!raw)throw new Error('empty');
+    const data=shape(Array.isArray(raw)?raw:[raw]);
+    if(!data)throw new Error('no-hospital');
+    try{localStorage.setItem(CACHE,JSON.stringify(data));}catch(e){}
+    paint(data);
+    if(manual)toast('최신 정보로 갱신했어요 ✓','var(--green)');
+  }catch(e){
+    const old=cached();
+    if(old){
+      paint(old,true);
+      if(manual)toast('연결이 불안정해요 · 이전 정보 표시','var(--amber)');
+    }else{
+      $('err').innerHTML='⚠️ 현황을 불러오지 못했어요.<br><button id="retry">↻ 다시 시도</button>';
+      $('err').classList.add('on');
+      $('retry').onclick=()=>load(true);
+    }
+  }finally{ btn.classList.remove('busy'); }
 }
+
+function cached(){
+  try{
+    const raw=localStorage.getItem(CACHE);
+    if(!raw)return null;
+    const d=JSON.parse(raw);
+    return d&&d.h&&d.h.cha?d:null;
+  }catch(e){ return null; }
+}
+
+/* ── 화면 ── */
+function paint(data,stale){
+  const me=data.h.cha;
+  const total=me.total??20, pTotal=me.pTotal??5;
+  const avail=me.avail, pAvail=me.pAvail;
+  const pat=avail==null?null:Math.max(0,total-avail);
+  const pPat=pAvail==null?null:Math.max(0,pTotal-pAvail);
+
+  // 숫자
+  set($('nAvail'),avail??'?',tone(pat));
+  set($('nPat'),pat==null?'?':pat+'명',tone(pat));
+  $('nTot').textContent=total;
+  set($('pAvail'),pAvail??'?',toneP(pPat));
+  $('pPat').textContent=pPat??'?';
+  $('pTot').textContent=pTotal;
+
+  // 소아 배지 + 게이지
+  const pk=pPat==null?null:pPat>=4?'full':pPat>=2?'busy':'calm';
+  const chip=$('pChip');
+  chip.textContent=pk?({calm:'🟢 여유',busy:'🟡 혼잡',full:'🔴 포화'})[pk]:'정보없음';
+  chip.style.color=toneP(pPat);
+  chip.style.background=pk?`color-mix(in srgb, ${toneP(pPat)} 12%, transparent)`:'rgba(100,130,160,.1)';
+  const g=$('pGauge');
+  g.style.width=(pPat==null?0:Math.min(100,pPat/pTotal*100))+'%';
+  g.style.background=toneP(pPat);
+
+  // 화산
+  mood(moodOf(pat));
+
+  // 시각
+  const s=me.stamp;
+  $('hosp').textContent=s&&s.length>=12?s.slice(8,10)+':'+s.slice(10,12):'—';
+  $('hosp').style.color=stale?'var(--amber)':'var(--blue)';
+
+  // 비교
+  compare(data.h);
+}
+
+function set(el,txt,color){ el.textContent=txt; el.style.color=color; el.classList.remove('skel'); }
+
+let smokeTimer=null;
+function mood(k){
+  if(!k)return;
+  const m=MOOD[k];
+  const t=$('stTitle');
+  t.textContent=m.t; t.style.color=m.c; t.classList.remove('skel');
+  $('stDesc').textContent=m.d;
+  $('volcBg').style.background=`radial-gradient(ellipse 80% 55% at 50% 100%, ${m.bg}, transparent 70%)`;
+  $('pool').setAttribute('opacity',m.pool);
+  $('parts').setAttribute('opacity',m.parts);
+  $('flow').setAttribute('opacity',m.flow);
+  $('body').style.animation=m.quake?'quake .32s infinite':'none';
+  $('parts').style.animation=m.quake?'pop .5s infinite':'none';
+
+  // 대기시간
+  const w=$('wait');
+  w.style.borderLeftColor=m.c;
+  $('waitT').textContent=m.wait; $('waitT').style.color=m.c;
+  $('waitMsg').innerHTML=m.msg;
+
+  // 연기
+  clearInterval(smokeTimer);
+  const puffs=[...$('smoke').children]; let i=0;
+  const dur=m.smoke<600?1.4:2.8;
+  smokeTimer=setInterval(()=>{
+    const el=puffs[i++%puffs.length];
+    el.style.animation='none'; void el.getBBox();
+    el.style.animation=`smoke ${dur}s ease-out forwards`;
+  },m.smoke);
+}
+
+function compare(h){
+  const rows=WHO.map(w=>{
+    const d=h[w.k]; if(!d)return '';
+    const pat=(d.total!=null&&d.avail!=null)?Math.max(0,d.total-d.avail):null;
+    const pPat=(d.pTotal!=null&&d.pAvail!=null)?Math.max(0,d.pTotal-d.pAvail):null;
+    const cell=(k,v,t,u)=>v==null?'':
+      `<div class="cmp-g"><span class="cmp-k">${k}</span><span class="cmp-v" style="color:${t}">${v}</span><span class="cmp-u">${u}</span></div>`;
+    return `<div class="cmp-r${w.me?' me':''}">
+      <span>${w.me?'⭐':'🏥'}</span>
+      <span class="cmp-n">${w.label.replace('⭐ ','')}</span>
+      ${cell('일반',pat,tone(pat),'/'+(d.total??'?'))}
+      ${cell('소아',pPat,toneP(pPat),'/'+(d.pTotal??'?'))}
+    </div>`;
+  }).filter(Boolean).join('');
+  $('cmp').innerHTML=rows||'<div style="font-size:11px;color:var(--t3);text-align:center;padding:9px">정보 없음</div>';
+}
+
+function toast(msg,color){
+  document.getElementById('tst')?.remove();
+  const el=document.createElement('div');
+  el.id='tst'; el.textContent=msg;
+  el.style.cssText=`position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#131a24;
+    border:1px solid ${color};color:${color};padding:10px 18px;border-radius:22px;font-size:12px;
+    font-weight:600;z-index:99;box-shadow:0 6px 24px rgba(0,0,0,.6);white-space:nowrap`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),2400);
+}
+
+/* ── 시계 ── */
+const clock=()=>$('now').textContent=new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+/* ── 공유 ── */
+$('share').onclick=()=>{
+  if(navigator.share){ navigator.share({title:'구미차병원 응급실 현황',url:SITE}).catch(()=>{}); return; }
+  navigator.clipboard.writeText(SITE).then(()=>toast('링크를 복사했어요 📋','var(--blue)'))
+    .catch(()=>prompt('주소를 복사하세요',SITE));
+};
+
+/* ── 시작 ── */
+const first=cached();
+if(first)paint(first,true);       // 캐시가 있으면 즉시 표시 (0초)
+clock(); setInterval(clock,1000);
+load();
+
+$('rf').onclick=()=>load(true);
+
+// 1분마다 · 화면 보일 때만
+setInterval(()=>{ if(!document.hidden)load(); },60000);
+// 앱 복귀 시 즉시 갱신
+let lastAt=Date.now();
+const revisit=()=>{ if(Date.now()-lastAt>20000){ lastAt=Date.now(); load(); } };
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden)revisit(); });
+window.addEventListener('online',revisit);
+
+// QR·SW는 화면 다 그린 뒤 (초기 속도 우선)
+addEventListener('load',()=>setTimeout(()=>{
+  const s=document.createElement('script');
+  s.src='https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
+  s.onload=()=>new QRCode($('qr'),{text:SITE,width:132,height:132,colorDark:'#0d1117',colorLight:'#fff'});
+  document.head.appendChild(s);
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+},700));
 </script>
 </body>
 </html>
