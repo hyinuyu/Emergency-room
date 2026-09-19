@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>미니게임 아케이드</title>
+<meta name="theme-color" content="#060910">
+<style>
+:root{--bg:#060910;--card:#0d1117;--card2:#131a24;--line:#1c2a3a;--line2:#243447;
+  --t1:#ddeeff;--t2:#6a8aaa;--t3:#2d4055}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--t1);min-height:100vh;
+  font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 70% 45% at 50% 10%,rgba(167,139,250,.07),transparent 70%)}
+.wrap{position:relative;max-width:480px;margin:0 auto;padding:16px 15px 40px}
+.top{display:flex;align-items:center;gap:11px;margin-bottom:18px}
+.back{width:38px;height:38px;flex-shrink:0;display:grid;place-items:center;background:var(--card);
+  border:1px solid var(--line);border-radius:11px;color:var(--t2);font-size:17px;text-decoration:none}
+.top h1{font-size:19px;font-weight:800;letter-spacing:-.3px}
+.top p{font-size:11px;color:var(--t2);margin-top:2px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g{display:block;text-decoration:none;background:var(--card);border:1px solid var(--line);
+  border-radius:16px;padding:17px 14px;transition:.15s;position:relative;overflow:hidden}
+.g:active{transform:scale(.97)}
+.g::after{content:'';position:absolute;inset:0;opacity:.07;pointer-events:none;
+  background:radial-gradient(circle at 78% 18%,var(--c),transparent 62%)}
+.g em{font-size:31px;font-style:normal;line-height:1;display:block}
+.g b{display:block;font-size:14px;font-weight:700;color:var(--t1);margin-top:11px}
+.g s{display:block;font-size:10.5px;color:var(--t2);margin-top:3px;text-decoration:none;line-height:1.5}
+.foot{text-align:center;font-size:10.5px;color:var(--t3);margin-top:22px;line-height:1.8}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="back" href="./index.html">←</a>
+    <div><h1>🕹️ 미니게임 아케이드</h1><p>대기하는 동안 한 판 어때요?</p></div>
+  </div>
+
+  <div class="grid">
+    <a class="g" href="./tetris.html" style="--c:#a78bfa"><em>🧩</em><b>테트리스</b><s>블럭 쌓기 · 리더보드</s></a>
+    <a class="g" href="./2048.html" style="--c:#ffaa00"><em>🎯</em><b>2048</b><s>숫자 합치기</s></a>
+    <a class="g" href="./minesweeper.html" style="--c:#ff4466"><em>🚩</em><b>지뢰찾기</b><s>지뢰 피하기</s></a>
+    <a class="g" href="./breakout.html" style="--c:#3b9eff"><em>🧱</em><b>벽돌깨기</b><s>공 튕기기</s></a>
+    <a class="g" href="./snake.html" style="--c:#22d47a"><em>🐍</em><b>스네이크</b><s>사과 먹기</s></a>
+    <a class="g" href="./racing.html" style="--c:#ff8800"><em>🚗</em><b>레이싱</b><s>장애물 피하기</s></a>
+    <a class="g" href="./sudoku.html" style="--c:#22d4d4" ><em>🔢</em><b>스도쿠</b><s>매번 랜덤 퍼즐</s></a>
+    <a class="g" href="./alkkagi.html" style="--c:#ff4466"><em>🥚</em><b>알까기</b><s>친구와 대전!</s></a>
+  </div>
+
+  <div class="foot">점수는 온라인 순위표에 기록돼요 🏆<br>구미차병원 응급실</div>
+</div>
+</body>
+</html>

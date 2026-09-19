@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>알까기 대전</title>
+<meta name="theme-color" content="#060910">
+<style>
+:root{--bg:#060910;--card:#0d1117;--card2:#131a24;--line:#1c2a3a;--line2:#243447;
+  --blue:#3b9eff;--green:#22d47a;--amber:#ffaa00;--red:#ff4466;--purple:#a78bfa;
+  --t1:#ddeeff;--t2:#6a8aaa;--t3:#2d4055;--mono:ui-monospace,'SF Mono',Menlo,monospace}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--t1);min-height:100vh;overflow-x:hidden;
+  font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif}
+.wrap{max-width:480px;margin:0 auto;padding:16px 15px 34px}
+
+.top{display:flex;align-items:center;gap:11px;margin-bottom:16px}
+.back{width:38px;height:38px;flex-shrink:0;display:grid;place-items:center;background:var(--card);
+  border:1px solid var(--line);border-radius:11px;color:var(--t2);font-size:17px;text-decoration:none}
+.top h1{font-size:19px;font-weight:800;letter-spacing:-.3px}
+.top p{font-size:11px;color:var(--t2);margin-top:2px}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:17px;margin-bottom:12px}
+.card-h{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:14px}
+.row{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+.row-k{font-size:12px;color:var(--t2);width:42px;flex-shrink:0;font-weight:600}
+.opts{display:flex;gap:6px;flex:1;flex-wrap:wrap}
+.opt{flex:1;min-width:0;background:var(--card2);border:1.5px solid var(--line);border-radius:11px;
+  padding:9px 6px;text-align:center;cursor:pointer;transition:.15s;font-family:inherit;color:var(--t2)}
+.opt:active{transform:scale(.96)}
+.opt.on{background:rgba(59,158,255,.13);border-color:var(--blue);color:var(--t1)}
+.opt b{display:block;font-size:12.5px;font-weight:700}
+.opt s{display:block;font-size:9.5px;color:var(--t3);margin-top:2px;text-decoration:none}
+.opt.on s{color:var(--t2)}
+
+.go{width:100%;border:none;border-radius:13px;padding:15px;font-size:15px;font-weight:800;
+  font-family:inherit;cursor:pointer;transition:.15s;margin-top:4px}
+.go:active{transform:scale(.98)}
+.go.p{background:var(--blue);color:#001427}
+.go.g{background:var(--green);color:#00210f}
+.go.o{background:var(--card2);border:1.5px solid var(--line2);color:var(--t1)}
+.hint{font-size:10.5px;color:var(--t3);text-align:center;margin-top:9px;line-height:1.6}
+
+.code-in{width:100%;background:var(--card2);border:1.5px solid var(--line2);border-radius:12px;
+  padding:14px;font-size:24px;font-weight:800;text-align:center;color:var(--t1);
+  font-family:var(--mono);letter-spacing:7px;margin-bottom:9px}
+.code-in::placeholder{color:var(--t3);letter-spacing:5px;font-size:19px}
+
+/* 대기실 */
+.code-box{text-align:center;padding:22px 0}
+.code-lbl{font-size:11.5px;color:var(--t2);margin-bottom:9px}
+.code-v{font-size:46px;font-weight:900;font-family:var(--mono);letter-spacing:9px;color:var(--blue)}
+.wait-t{font-size:12.5px;color:var(--t2);margin-top:14px}
+.dots::after{content:'';animation:dots 1.4s steps(4) infinite}
+@keyframes dots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
+
+/* 게임 */
+.hud{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);
+  border-radius:13px;padding:11px 14px;margin-bottom:11px}
+.side{flex:1;min-width:0}
+.side-n{font-size:11px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.side-p{display:flex;gap:3px;margin-top:5px}
+.pip{width:11px;height:11px;border-radius:50%;background:var(--line2);transition:.3s}
+.pip.a{box-shadow:0 0 7px currentColor}
+.vs{font-size:11px;font-weight:800;color:var(--t3);font-family:var(--mono)}
+.side.r{text-align:right}.side.r .side-p{justify-content:flex-end}
+
+#stage{position:relative;width:100%;aspect-ratio:1;background:var(--card);
+  border:1px solid var(--line2);border-radius:17px;overflow:hidden;touch-action:none}
+#cv{width:100%;height:100%;display:block}
+.msg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;
+  pointer-events:none;font-weight:800;text-shadow:0 3px 14px rgba(0,0,0,.9);transition:opacity .3s}
+.msg b{display:block;font-size:26px;margin-bottom:5px}
+.msg s{display:block;font-size:12.5px;font-weight:600;color:var(--t2);text-decoration:none}
+
+.status{text-align:center;font-size:12.5px;color:var(--t2);margin:12px 0 11px;min-height:19px;line-height:1.5}
+.status b{color:var(--blue)}
+.acts{display:flex;gap:8px}
+.acts .go{margin-top:0}
+
+.over{position:fixed;inset:0;background:rgba(6,9,16,.93);display:none;align-items:center;
+  justify-content:center;z-index:50;padding:24px}
+.over.on{display:flex}
+.over-in{background:var(--card);border:1px solid var(--line2);border-radius:20px;
+  padding:30px 26px;text-align:center;max-width:320px;width:100%}
+.over-e{font-size:52px;margin-bottom:10px}
+.over-t{font-size:23px;font-weight:900;margin-bottom:7px}
+.over-s{font-size:12.5px;color:var(--t2);line-height:1.7;margin-bottom:19px}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <a class="back" href="./index.html">←</a>
+    <div><h1>🥚 알까기 대전</h1><p>당겼다 놓아서 상대 알을 판 밖으로!</p></div>
+  </div>
+
+  <!-- ── 로비 ── -->
+  <div id="lobby">
+    <div class="card">
+      <div class="card-h">🎮 대전 설정</div>
+      <div class="row">
+        <span class="row-k">발사</span>
+        <div class="opts" id="optFire">
+          <button class="opt on" data-v="turn"><b>번갈아</b><s>한 명씩 차례로</s></button>
+          <button class="opt" data-v="sim"><b>동시에</b><s>둘 다 한 번에</s></button>
+        </div>
+      </div>
+      <div class="row">
+        <span class="row-k">알</span>
+        <div class="opts" id="optCount">
+          <button class="opt" data-v="3"><b>3개</b><s>빠른 판</s></button>
+          <button class="opt on" data-v="4"><b>4개</b><s>정통</s></button>
+          <button class="opt" data-v="5"><b>5개</b><s>대혼전</s></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">🌐 온라인 대전</div>
+      <button class="go p" id="btnMake">방 만들기</button>
+      <div class="hint">방 코드가 나오면 친구에게 알려주세요</div>
+      <div style="height:13px"></div>
+      <input class="code-in" id="inCode" inputmode="numeric" maxlength="4" placeholder="방 코드">
+      <button class="go o" id="btnJoin">코드로 참가</button>
+    </div>
+
+    <div class="card">
+      <div class="card-h">🤖 혼자 연습</div>
+      <div class="row">
+        <span class="row-k">난이도</span>
+        <div class="opts" id="optAi">
+          <button class="opt" data-v="easy"><b>쉬움</b><s>살살 튕겨요</s></button>
+          <button class="opt on" data-v="mid"><b>보통</b><s>노림수 있음</s></button>
+          <button class="opt" data-v="hard"><b>어려움</b><s>한 방에 보내요</s></button>
+        </div>
+      </div>
+      <button class="go g" id="btnAi">AI와 한 판</button>
+    </div>
+  </div>
+
+  <!-- ── 대기실 ── -->
+  <div id="room" class="hide">
+    <div class="card">
+      <div class="code-box">
+        <div class="code-lbl">방 코드</div>
+        <div class="code-v" id="roomCode">----</div>
+        <div class="wait-t"><span class="dots">상대를 기다리는 중</span></div>
+      </div>
+      <button class="go o" id="btnCopy">📋 코드 복사</button>
+      <div style="height:8px"></div>
+      <button class="go o" id="btnCancel">취소</button>
+    </div>
+  </div>
+
+  <!-- ── 게임 ── -->
+  <div id="game" class="hide">
+    <div class="hud">
+      <div class="side">
+        <div class="side-n" id="nameMe">나</div>
+        <div class="side-p" id="pipMe"></div>
+      </div>
+      <span class="vs">VS</span>
+      <div class="side r">
+        <div class="side-n" id="nameFoe">상대</div>
+        <div class="side-p" id="pipFoe"></div>
+      </div>
+    </div>
+    <div id="stage"><canvas id="cv"></canvas><div class="msg" id="msg" style="opacity:0"></div></div>
+    <div class="status" id="status">—</div>
+    <div class="acts">
+      <button class="go o" id="btnOut" style="flex:1">나가기</button>
+      <button class="go p hide" id="btnAgain" style="flex:1">다시 하기</button>
+    </div>
+  </div>
+</div>
+
+<div class="over" id="over"><div class="over-in">
+  <div class="over-e" id="ovE">🏆</div>
+  <div class="over-t" id="ovT">승리!</div>
+  <div class="over-s" id="ovS"></div>
+  <button class="go p" id="ovAgain">다시 하기</button>
+  <div style="height:8px"></div>
+  <button class="go o" id="ovHome">로비로</button>
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.js"></script>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+
+/* ═══ 물리 ═══ */
+const W=1000, R=42, FRIC=.970, STOP=.35, MAXV=40, SUB=2;
+function build(n){
+  const ps=[], gap=W/(n+1);
+  for(let i=0;i<n;i++){
+    const x=gap*(i+1);
+    ps.push({id:'h'+i,own:'host', x, y:W-150, vx:0, vy:0, alive:true});
+    ps.push({id:'g'+i,own:'guest',x, y:150,   vx:0, vy:0, alive:true});
+  }
+  return ps;
+}
+function step(ps){
+  let moving=false;
+  for(let s=0;s<SUB;s++){
+    for(const p of ps){ if(p.alive){ p.x+=p.vx/SUB; p.y+=p.vy/SUB; } }
+    for(let i=0;i<ps.length;i++){
+      const a=ps[i]; if(!a.alive)continue;
+      for(let j=i+1;j<ps.length;j++){
+        const b=ps[j]; if(!b.alive)continue;
+        const dx=b.x-a.x, dy=b.y-a.y, d2=dx*dx+dy*dy, min=R*2;
+        if(d2>=min*min||d2===0)continue;
+        const d=Math.sqrt(d2), nx=dx/d, ny=dy/d, push=(min-d)/2;
+        a.x-=nx*push; a.y-=ny*push; b.x+=nx*push; b.y+=ny*push;
+        const dot=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;
+        if(dot>0)continue;
+        const imp=dot*.96;
+        a.vx+=imp*nx; a.vy+=imp*ny; b.vx-=imp*nx; b.vy-=imp*ny;
+      }
+    }
+  }
+  for(const p of ps){
+    if(!p.alive)continue;
+    p.vx*=FRIC; p.vy*=FRIC;
+    if(Math.abs(p.vx)<STOP&&Math.abs(p.vy)<STOP){p.vx=0;p.vy=0;} else moving=true;
+    if(p.x<-R||p.x>W+R||p.y<-R||p.y>W+R){p.alive=false;p.vx=0;p.vy=0;}
+  }
+  return moving;
+}
+const liveOf=(ps,o)=>ps.filter(p=>p.alive&&p.own===o).length;
+const pack=ps=>ps.map(p=>({i:p.id,o:p.own,x:+p.x.toFixed(2),y:+p.y.toFixed(2),a:p.alive}));
+const unpack=a=>a.map(p=>({id:p.i,own:p.o,x:p.x,y:p.y,vx:0,vy:0,alive:p.a}));
+
+/* ═══ 상태 ═══ */
+const G={ mode:'ai', fire:'turn', count:4, ai:'mid', me:'host', foe:'guest',
+  ps:[], turn:'host', busy:false, over:false, room:null, seq:0, myAim:null, sent:false };
+
+/* ═══ 옵션 UI ═══ */
+function pick(box,fn){
+  $(box).onclick=e=>{
+    const b=e.target.closest('.opt'); if(!b)return;
+    [...$(box).children].forEach(x=>x.classList.toggle('on',x===b));
+    fn(b.dataset.v);
+  };
+}
+pick('optFire',v=>G.fire=v);
+pick('optCount',v=>G.count=+v);
+pick('optAi',v=>G.ai=v);
+
+/* ═══ 화면 전환 ═══ */
+const show=n=>['lobby','room','game'].forEach(k=>$(k).classList.toggle('hide',k!==n));
+
+/* ═══ 캔버스 ═══ */
+const cv=$('cv'), cx=cv.getContext('2d');
+let SC=1;
+function fit(){
+  const r=$('stage').getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2.5);
+  cv.width=r.width*dpr; cv.height=r.width*dpr;
+  SC=cv.width/W; cx.setTransform(SC,0,0,SC,0,0);
+  draw();
+}
+addEventListener('resize',fit);
+
+const COL={host:{f:'#3b9eff',d:'#1a5a9e',g:'#8cc9ff'}, guest:{f:'#ff4466',d:'#9e2038',g:'#ff9aab'}};
+function draw(){
+  cx.clearRect(0,0,W,W);
+  // 판
+  const g=cx.createRadialGradient(W/2,W/2,80,W/2,W/2,W*.72);
+  g.addColorStop(0,'#1a2432'); g.addColorStop(1,'#0c121b');
+  cx.fillStyle=g; cx.fillRect(0,0,W,W);
+  cx.strokeStyle='rgba(59,158,255,.07)'; cx.lineWidth=2;
+  for(let i=1;i<6;i++){ const p=W/6*i;
+    cx.beginPath();cx.moveTo(p,30);cx.lineTo(p,W-30);cx.stroke();
+    cx.beginPath();cx.moveTo(30,p);cx.lineTo(W-30,p);cx.stroke(); }
+  cx.strokeStyle='rgba(59,158,255,.16)'; cx.lineWidth=4;
+  cx.strokeRect(14,14,W-28,W-28);
+
+  // 알
+  for(const p of G.ps){
+    if(!p.alive)continue;
+    const c=COL[p.own];
+    cx.beginPath();cx.arc(p.x+3,p.y+6,R,0,7);cx.fillStyle='rgba(0,0,0,.4)';cx.fill();
+    const gr=cx.createRadialGradient(p.x-R*.35,p.y-R*.4,R*.15,p.x,p.y,R);
+    gr.addColorStop(0,c.g); gr.addColorStop(.55,c.f); gr.addColorStop(1,c.d);
+    cx.beginPath();cx.arc(p.x,p.y,R,0,7);cx.fillStyle=gr;cx.fill();
+    if(p.own===G.me){ cx.lineWidth=3;cx.strokeStyle='rgba(255,255,255,.55)';cx.stroke(); }
+  }
+  // 조준선
+  if(aim.on&&aim.p){
+    const p=aim.p, dx=aim.sx-aim.cx, dy=aim.sy-aim.cy;
+    const L=Math.min(Math.hypot(dx,dy),300), a=Math.atan2(dy,dx);
+    const ex=p.x+Math.cos(a)*L*2.2, ey=p.y+Math.sin(a)*L*2.2;
+    cx.setLineDash([16,13]); cx.lineWidth=6;
+    cx.strokeStyle=`rgba(255,255,255,${.25+L/300*.5})`;
+    cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(ex,ey);cx.stroke();
+    cx.setLineDash([]);
+    cx.beginPath();cx.arc(ex,ey,13,0,7);cx.fillStyle='rgba(255,255,255,.8)';cx.fill();
+    // 파워
+    const pw=L/300;
+    cx.fillStyle=pw>.75?'#ff4466':pw>.4?'#ffaa00':'#22d47a';
+    cx.fillRect(p.x-60,p.y+R+20,120*pw,9);
+    cx.strokeStyle='rgba(255,255,255,.3)';cx.lineWidth=2;
+    cx.strokeRect(p.x-60,p.y+R+20,120,9);
+  }
+}
+
+/* ═══ 조준 ═══ */
+const aim={on:false,p:null,cx:0,cy:0,sx:0,sy:0};
+const toLocal=e=>{ const r=cv.getBoundingClientRect(), t=e.touches?e.touches[0]:e;
+  return {x:(t.clientX-r.left)/r.width*W, y:(t.clientY-r.top)/r.width*W}; };
+
+function canAim(){
+  if(G.busy||G.over)return false;
+  if(G.fire==='turn')return G.turn===G.me;
+  return !G.sent;                    // 동시 모드: 아직 안 쐈으면 가능
+}
+function down(e){
+  if(!canAim())return;
+  const q=toLocal(e);
+  let best=null,bd=1e9;
+  for(const p of G.ps){
+    if(!p.alive||p.own!==G.me)continue;
+    const d=Math.hypot(p.x-q.x,p.y-q.y);
+    if(d<R*1.9&&d<bd){bd=d;best=p;}
+  }
+  if(!best)return;
+  aim.on=true; aim.p=best; aim.cx=q.x; aim.cy=q.y; aim.sx=q.x; aim.sy=q.y;
+  e.preventDefault(); draw();
+}
+function move(e){ if(!aim.on)return; const q=toLocal(e); aim.sx=q.x; aim.sy=q.y; e.preventDefault(); draw(); }
+function up(){
+  if(!aim.on)return;
+  const p=aim.p, dx=aim.sx-aim.cx, dy=aim.sy-aim.cy;
+  const L=Math.hypot(dx,dy);
+  aim.on=false; aim.p=null;
+  if(L<22){draw();return;}
+  const pw=Math.min(L,300)/300, a=Math.atan2(dy,dx);
+  fire({id:p.id, vx:Math.cos(a)*MAXV*pw, vy:Math.sin(a)*MAXV*pw});
+}
+cv.addEventListener('mousedown',down); cv.addEventListener('touchstart',down,{passive:false});
+addEventListener('mousemove',move); cv.addEventListener('touchmove',move,{passive:false});
+addEventListener('mouseup',up); cv.addEventListener('touchend',up);
+
+/* ═══ 발사 ═══ */
+function fire(shot){
+  if(G.mode==='ai'){
+    if(G.fire==='turn'){ run([shot]); }
+    else { G.sent=true; setStatus('AI도 조준 중…'); setTimeout(()=>run([shot,aiShot()]),450); }
+    return;
+  }
+  // 온라인
+  G.sent=true;
+  if(G.fire==='turn'){
+    G.room.update({seq:G.seq+1, shot:{by:G.me,...shot}}).catch(net);
+  }else{
+    G.room.update({['aim'+G.me]:shot}).catch(net);
+    setStatus('상대를 기다리는 중…');
+  }
+}
+
+/* ═══ 시뮬 ═══ */
+function run(shots){
+  G.busy=true; aim.on=false;
+  for(const s of shots){
+    const p=G.ps.find(x=>x.id===s.id);
+    if(p&&p.alive){ p.vx=s.vx; p.vy=s.vy; }
+  }
+  setStatus('');
+  let f=0;
+  (function loop(){
+    const moving=step(G.ps);
+    draw(); f++;
+    if(moving&&f<900){ requestAnimationFrame(loop); return; }
+    G.busy=false; G.sent=false;
+    pips();
+    settle();
+  })();
+}
+
+function settle(){
+  const mine=liveOf(G.ps,G.me), foes=liveOf(G.ps,G.foe);
+  if(mine===0||foes===0){
+    if(G.mode==='online'&&G.me==='host')
+      G.room.update({ps:pack(G.ps),winner:foes===0?'host':'guest',state:'end'}).catch(()=>{});
+    return finish(foes===0&&mine>0 ? 'win' : mine===0&&foes>0 ? 'lose' : 'draw');
+  }
+  if(G.mode==='ai'){
+    if(G.fire==='turn'){
+      G.turn=G.turn==='host'?'guest':'host';
+      if(G.turn!==G.me){ setStatus('AI 차례'); setTimeout(()=>run([aiShot()]),700); }
+      else turnMsg();
+    } else turnMsg();
+    return;
+  }
+  // 온라인: 방장이 결과 기록
+  if(G.me==='host'){
+    const nt=G.fire==='turn' ? (G.turn==='host'?'guest':'host') : 'host';
+    G.room.update({ps:pack(G.ps), turn:nt, aimhost:null, aimguest:null}).catch(()=>{});
+  }
+  if(G.fire==='turn') G.turn=G.turn==='host'?'guest':'host';
+  turnMsg();
+}
+
+function turnMsg(){
+  if(G.over)return;
+  if(G.fire==='sim'){ setStatus('내 알을 <b>당겼다 놓으세요</b> · 둘 다 쏘면 동시 발사'); return; }
+  setStatus(G.turn===G.me ? '<b>내 차례!</b> 알을 당겼다 놓으세요' : '상대 차례를 기다리는 중…');
+}
+function setStatus(h){ $('status').innerHTML=h; }
+
+/* ═══ AI ═══ */
+function aiShot(){
+  const mine=G.ps.filter(p=>p.alive&&p.own===G.foe);
+  const foes=G.ps.filter(p=>p.alive&&p.own===G.me);
+  if(!mine.length||!foes.length)return {id:mine[0]?.id||'g0',vx:0,vy:0};
+  const cfg={easy:{err:.42,pw:[.35,.6]},mid:{err:.17,pw:[.6,.85]},hard:{err:.05,pw:[.85,1]}}[G.ai];
+  // 가장 가까운 짝 고르기
+  let best=null,bd=1e9;
+  for(const m of mine)for(const f of foes){
+    const d=Math.hypot(f.x-m.x,f.y-m.y);
+    if(d<bd){bd=d;best={m,f};}
+  }
+  const {m,f}=best;
+  // 밖으로 밀어내기 좋은 방향(판 중심 반대쪽)으로 살짝 보정
+  let a=Math.atan2(f.y-m.y,f.x-m.x);
+  if(G.ai==='hard'){
+    const out=Math.atan2(f.y-W/2,f.x-W/2);
+    a=a*.75+out*.25;
+  }
+  a+=(Math.random()-.5)*cfg.err;
+  const pw=cfg.pw[0]+Math.random()*(cfg.pw[1]-cfg.pw[0]);
+  return {id:m.id, vx:Math.cos(a)*MAXV*pw, vy:Math.sin(a)*MAXV*pw};
+}
+
+/* ═══ 표시 ═══ */
+function pips(){
+  const mk=(box,own,col)=>{
+    const total=G.count, live=liveOf(G.ps,own);
+    $(box).innerHTML=Array.from({length:total},(_,i)=>
+      `<i class="pip${i<live?' a':''}" style="background:${i<live?col:'var(--line2)'};color:${col}"></i>`).join('');
+  };
+  mk('pipMe',G.me,G.me==='host'?'#3b9eff':'#ff4466');
+  mk('pipFoe',G.foe,G.foe==='host'?'#3b9eff':'#ff4466');
+}
+function flash(text,sub,color){
+  const m=$('msg');
+  m.innerHTML=`<b style="color:${color}">${text}</b>`+(sub?`<s>${sub}</s>`:'');
+  m.style.opacity=1; setTimeout(()=>m.style.opacity=0,1100);
+}
+function finish(r){
+  G.over=true; setStatus('');
+  const o={win:['🏆','승리!','상대 알을 모두 떨어뜨렸어요!'],
+           lose:['😵','패배…','다음 판엔 이겨봐요!'],
+           draw:['🤝','무승부','동시에 모두 떨어졌네요!']}[r];
+  $('ovE').textContent=o[0]; $('ovT').textContent=o[1]; $('ovS').textContent=o[2];
+  $('ovT').style.color=r==='win'?'var(--green)':r==='lose'?'var(--red)':'var(--amber)';
+  setTimeout(()=>$('over').classList.add('on'),450);
+}
+
+/* ═══ 시작 ═══ */
+function begin(mode,me){
+  G.mode=mode; G.me=me; G.foe=me==='host'?'guest':'host';
+  G.over=false; G.busy=false; G.sent=false; G.turn='host';
+  G.ps=build(G.count);
+  $('nameMe').textContent=mode==='ai'?'나':(me==='host'?'나 (방장)':'나');
+  $('nameFoe').textContent=mode==='ai'?'🤖 AI':'상대';
+  $('over').classList.remove('on');
+  $('btnAgain').classList.toggle('hide',mode!=='ai');
+  show('game'); fit(); pips(); turnMsg();
+  if(mode==='ai'&&G.fire==='turn'&&G.turn!==G.me) setTimeout(()=>run([aiShot()]),800);
+}
+
+/* ═══ Firebase ═══ */
+let db=null;
+function fb(){
+  if(db)return db;
+  firebase.initializeApp({apiKey:'AIzaSyAu9lEDOwLgtiO3FE-bI7mXanF-F7E9RJk',
+    authDomain:'gumi-er-tetris.firebaseapp.com',projectId:'gumi-er-tetris',
+    storageBucket:'gumi-er-tetris.firebasestorage.app',messagingSenderId:'421677764064',
+    appId:'1:421677764064:web:35fb5b795c94e5226def85'});
+  db=firebase.firestore(); return db;
+}
+const net=()=>setStatus('⚠️ 연결이 불안정해요');
+let unsub=null;
+
+$('btnMake').onclick=async()=>{
+  try{
+    const code=String(Math.floor(1000+Math.random()*9000));
+    G.room=fb().collection('alk_rooms').doc(code);
+    G.ps=build(G.count);
+    await G.room.set({fire:G.fire,count:G.count,state:'wait',ps:pack(G.ps),
+      turn:'host',seq:0,shot:null,aimhost:null,aimguest:null,winner:null,at:Date.now()});
+    $('roomCode').textContent=code; show('room'); listen('host');
+  }catch(e){ alert('방을 만들지 못했어요. 잠시 후 다시 시도해주세요.'); }
+};
+$('btnJoin').onclick=async()=>{
+  const code=$('inCode').value.trim();
+  if(!/^\d{4}$/.test(code)) return alert('4자리 방 코드를 입력해주세요');
+  try{
+    const ref=fb().collection('alk_rooms').doc(code);
+    const s=await ref.get();
+    if(!s.exists) return alert('그런 방이 없어요 🥲');
+    const d=s.data();
+    if(d.state!=='wait') return alert('이미 시작된 방이에요');
+    G.room=ref; G.fire=d.fire; G.count=d.count;
+    await ref.update({state:'play'});
+    listen('guest');
+  }catch(e){ alert('참가하지 못했어요. 잠시 후 다시 시도해주세요.'); }
+};
+$('btnCopy').onclick=()=>{
+  const c=$('roomCode').textContent;
+  navigator.clipboard.writeText(c).then(()=>{ $('btnCopy').textContent='✅ 복사됨!';
+    setTimeout(()=>$('btnCopy').textContent='📋 코드 복사',1500); }).catch(()=>{});
+};
+$('btnCancel').onclick=leave;
+
+function listen(me){
+  G.me=me; G.foe=me==='host'?'guest':'host'; G.seq=0;
+  unsub&&unsub();
+  unsub=G.room.onSnapshot(s=>{
+    if(!s.exists)return;
+    const d=s.data();
+    if(d.state==='play'&&$('game').classList.contains('hide')){
+      G.fire=d.fire; G.count=d.count;
+      begin('online',me);
+      G.ps=unpack(d.ps); G.turn=d.turn||'host'; pips(); draw(); turnMsg();
+    }
+    if(G.busy)return;
+    // 권위 상태 동기화
+    if(d.ps&&d.seq===G.seq){ G.ps=unpack(d.ps); G.turn=d.turn||G.turn; pips(); draw(); }
+    // 발사 수신 (번갈아)
+    if(d.seq>G.seq&&d.shot){ G.seq=d.seq; run([d.shot]); return; }
+    // 동시 발사
+    if(G.fire==='sim'&&d.aimhost&&d.aimguest&&d.seq===G.seq){
+      if(me==='host') G.room.update({seq:G.seq+1}).catch(()=>{});
+      G.seq++; run([d.aimhost,d.aimguest]); return;
+    }
+    if(d.state==='end'&&!G.over){
+      G.ps=unpack(d.ps); pips(); draw();
+      finish(d.winner===G.me?'win':liveOf(G.ps,G.me)===0?'lose':'draw');
+    }
+    if(!G.busy&&!G.over&&d.state==='play') turnMsg();
+  },()=>net());
+}
+function leave(){
+  unsub&&unsub(); unsub=null;
+  if(G.room&&G.me==='host') G.room.delete().catch(()=>{});
+  G.room=null; G.over=true;
+  $('over').classList.remove('on'); show('lobby');
+}
+
+/* ═══ 버튼 ═══ */
+$('btnAi').onclick=()=>begin('ai','host');
+$('btnOut').onclick=leave;
+$('btnAgain').onclick=()=>begin('ai','host');
+$('ovAgain').onclick=()=>{
+  if(G.mode==='ai'){ begin('ai','host'); return; }
+  $('over').classList.remove('on'); leave();
+};
+$('ovHome').onclick=()=>{ leave(); };
+$('inCode').oninput=e=>e.target.value=e.target.value.replace(/\D/g,'');
+fit();
+</script>
+</body>
+</html>
