@@ -128,6 +128,12 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;
 .link-t{font-size:13.5px;font-weight:700;color:var(--t1)}
 .link-s{font-size:10.5px;color:var(--t2);margin-top:2px}
 .link-a{font-size:17px;flex-shrink:0}
+.duel{background:linear-gradient(135deg,rgba(255,68,102,.14),rgba(255,136,0,.06));border:1px solid rgba(255,68,102,.32)}
+.duel .link-a{color:var(--red)}
+.new{font-style:normal;font-size:9px;font-weight:800;background:var(--red);color:#fff;
+  padding:2px 6px;border-radius:5px;margin-left:5px;vertical-align:2px;letter-spacing:.3px}
+.arc{background:linear-gradient(135deg,rgba(167,139,250,.13),rgba(59,158,255,.06));border:1px solid rgba(167,139,250,.3)}
+.arc .link-a{color:#a78bfa}
 .sudo{background:linear-gradient(135deg,rgba(34,212,212,.13),rgba(59,158,255,.07));border:1px solid rgba(34,212,212,.3)}
 .sudo .link-a{color:#22d4d4}
 .blog{background:linear-gradient(135deg,rgba(34,212,122,.12),rgba(59,158,255,.05));border:1px solid rgba(34,212,122,.3)}
@@ -271,20 +277,19 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;
   </section>
 
   <!-- 게임 -->
-  <section class="card">
-    <div class="card-h">🎮 대기하는 동안 한 판!</div>
-    <div class="games">
-      <a class="game" href="./tetris.html"><em>🧩</em><span>테트리스</span></a>
-      <a class="game" href="./2048.html"><em>🎯</em><span>2048</span></a>
-      <a class="game" href="./minesweeper.html"><em>🚩</em><span>지뢰찾기</span></a>
-      <a class="game" href="./breakout.html"><em>🧱</em><span>벽돌깨기</span></a>
-      <a class="game" href="./snake.html"><em>🐍</em><span>스네이크</span></a>
-      <a class="game" href="./racing.html"><em>🚗</em><span>레이싱</span></a>
-    </div>
-  </section>
+  <a class="link duel" href="./alkkagi.html">
+    <div class="link-l"><em>🥚</em><div>
+      <div class="link-t">알까기 대전 <i class="new">NEW</i></div>
+      <div class="link-s">방 만들어서 친구와 1:1 · AI 연습도</div>
+    </div></div>
+    <span class="link-a">→</span>
+  </a>
 
-  <a class="link sudo" href="./sudoku.html">
-    <div class="link-l"><em>🔢</em><div><div class="link-t">오늘의 스도쿠</div><div class="link-s">매번 새로운 랜덤 퍼즐 🧠</div></div></div>
+  <a class="link arc" href="./arcade.html">
+    <div class="link-l"><em>🕹️</em><div>
+      <div class="link-t">미니게임 아케이드</div>
+      <div class="link-s">테트리스 · 2048 · 지뢰찾기 외 7종</div>
+    </div></div>
     <span class="link-a">→</span>
   </a>
 
